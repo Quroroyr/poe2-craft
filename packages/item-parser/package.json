@@ -1,0 +1,19 @@
+{
+  "name": "@poe2-craft/item-parser",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@poe2-craft/craft-domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@poe2-craft/craft-db": "workspace:*"
+  }
+}

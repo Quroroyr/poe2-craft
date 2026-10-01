@@ -1,0 +1,27 @@
+{
+  "name": "@poe2-craft/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@poe2-craft/craft-db": "workspace:*",
+    "@poe2-craft/craft-domain": "workspace:*",
+    "@poe2-craft/economy": "workspace:*",
+    "@poe2-craft/item-parser": "workspace:*",
+    "@poe2-craft/probability-engine": "workspace:*",
+    "next": "^16.3.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,87 @@
+import type { AffixSide, ItemBaseId, Rarity } from './item';
+import type { ModifierGroupId, ModifierId } from './modifier';
+
+/** An explicit modifier recognised against CraftDB. Holds only the stable id and rolled values. */
+export interface ResolvedModifier {
+  readonly kind: 'resolved';
+  readonly modifierId: ModifierId;
+  readonly values: readonly number[];
+  readonly fractured: boolean;
+  /** Text exactly as it appeared on this item — observation, not a copy of the definition. */
+  readonly sourceText: string;
+}
+
+export type UnresolvedReason =
+  /** No definition in CraftDB has this text. */
+  | 'no-matching-definition'
+  /** The text matches, but the rolled values fit no known tier. */
+  | 'value-out-of-range'
+  /** Several tiers fit equally well. */
+  | 'ambiguous';
+
+/**
+ * An explicit line we could not map to a definition. Kept, never dropped:
+ * it still occupies an affix slot and the user must see it.
+ */
+export interface UnresolvedModifier {
+  readonly kind: 'unresolved';
+  readonly sourceText: string;
+  readonly fractured: boolean;
+  readonly reason: UnresolvedReason;
+  /** Known when every candidate definition agrees, or from an advanced (Ctrl+Alt+C) header. */
+  readonly sideHint?: AffixSide;
+  /** Groups of the candidate definitions; used to keep collision checks conservative. */
+  readonly groupIdsHint?: readonly ModifierGroupId[];
+}
+
+export type ExplicitModifier = ResolvedModifier | UnresolvedModifier;
+
+export type OtherLineSource = 'implicit' | 'rune' | 'enchant' | 'other';
+
+/** Non-explicit lines (implicits, runes, ...). Recorded but not part of affix crafting in v0.1. */
+export interface OtherItemLine {
+  readonly source: OtherLineSource;
+  readonly text: string;
+}
+
+/**
+ * Immutable state of one concrete item. References definitions by stable id only;
+ * full definitions live in CraftDB so data can be updated per patch without touching states.
+ */
+export interface ItemState {
+  /** null when the base name was not found in CraftDB. */
+  readonly baseId: ItemBaseId | null;
+  readonly baseName: string | null;
+  readonly itemClassName: string | null;
+  readonly rarity: Rarity | null;
+  readonly itemLevel: number | null;
+  readonly explicits: readonly ExplicitModifier[];
+  readonly otherLines: readonly OtherItemLine[];
+  readonly corrupted: boolean;
+}
+
+export function createItemState(input: ItemState): ItemState {
+  return deepFreeze({
+    ...input,
+    explicits: input.explicits.map((m) => ({ ...m })),
+    otherLines: input.otherLines.map((l) => ({ ...l })),
+  });
+}
+
+export function resolvedModifiers(state: ItemState): readonly ResolvedModifier[] {
+  return state.explicits.filter((m): m is ResolvedModifier => m.kind === 'resolved');
+}
+
+export function unresolvedModifiers(state: ItemState): readonly UnresolvedModifier[] {
+  return state.explicits.filter((m): m is UnresolvedModifier => m.kind === 'unresolved');
+}
+
+function deepFreeze<T>(value: T): T {
+  if (value !== null && typeof value === 'object' && !Object.isFrozen(value)) {
+    for (const key of Object.keys(value)) {
+      deepFreeze((value as Record<string, unknown>)[key]);
+    }
+    Object.freeze(value);
+  }
+  return value;
+}

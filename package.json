@@ -1,0 +1,26 @@
+{
+  "name": "poe2-craft-planner",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "PoE 2 Craft Planner — web service for Path of Exile 2 crafting analysis",
+  "packageManager": "pnpm@10.34.6",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @poe2-craft/web dev",
+    "build": "pnpm --filter @poe2-craft/web build",
+    "start": "pnpm --filter @poe2-craft/web start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "pnpm -r typecheck",
+    "check": "pnpm test && pnpm typecheck && pnpm build"
+  },
+  "devDependencies": {
+    "@poe2-craft/craft-db": "workspace:*",
+    "@types/node": "^26.6.3",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}
