@@ -3,6 +3,7 @@ import { akoyanSpearFixture, createCraftDb, type CraftDb } from '@poe2-craft/cra
 import {
   createItemState,
   renderModifierText,
+  targetSpecFromItem,
   type ExplicitModifier,
   type ItemState,
   type ResolvedModifier,
@@ -48,7 +49,9 @@ const spear = (explicits: ExplicitModifier[], overrides: Partial<ItemState> = {}
   });
 
 const SOURCE = spear([resolved('mod.local-critical-chance.t1', true)]);
-const TARGET = spear([resolved('mod.local-critical-chance.t1', true), resolved('mod.projectile-skill-levels.t1')]);
+const TARGET = targetSpecFromItem(
+  spear([resolved('mod.local-critical-chance.t1', true), resolved('mod.projectile-skill-levels.t1')]),
+);
 const COST: AttemptCost = {
   unit: 'div',
   total: 0.21,
@@ -202,7 +205,7 @@ describe('action application (demo simulation)', () => {
       resolved('mod.strength.t1'),
     ]);
     const outcome = apply(full, 'action.add-random-suffix', 1);
-    expect(outcome).toEqual({ status: 'rejected', item: full, rejection: { code: 'no-eligible-modifiers' } });
+    expect(outcome).toEqual({ status: 'rejected', item: full, rejection: { code: 'no-free-slot', sides: ['suffix'] } });
     expect(full.explicits).toHaveLength(3);
 
     const magic = spear([], { rarity: 'magic' });

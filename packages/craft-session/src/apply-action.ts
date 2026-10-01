@@ -1,4 +1,5 @@
 import {
+  AFFIX_SIDES,
   rangeDecimals,
   renderModifierText,
   withExplicitModifier,
@@ -8,9 +9,15 @@ import {
   type ModifierDefinition,
   type ModifierId,
   type ResolvedModifier,
+  type AffixSide,
 } from '@poe2-craft/craft-domain';
 import type { CraftDb } from '@poe2-craft/craft-db';
-import { buildEligiblePool, type PoolEntry, type PoolIssue } from '@poe2-craft/probability-engine';
+import {
+  buildEligiblePool,
+  type EligiblePool,
+  type PoolEntry,
+  type PoolIssue,
+} from '@poe2-craft/probability-engine';
 import type { Rng } from './rng';
 
 export interface ApplyInput {
@@ -24,6 +31,8 @@ export interface ApplyInput {
 /** Why an action was not applied. The item is returned untouched in every case. */
 export type ApplyRejection =
   | { readonly code: 'pool-blocked'; readonly issues: readonly PoolIssue[] }
+  /** Every side the action may add to is full. */
+  | { readonly code: 'no-free-slot'; readonly sides: readonly AffixSide[] }
   | { readonly code: 'no-eligible-modifiers' }
   /** Sampling with an unknown weight would invent a number (crafting invariant 8). */
   | { readonly code: 'unknown-weights'; readonly modifierIds: readonly ModifierId[] };
@@ -56,18 +65,9 @@ export type ApplyOutcome = AppliedOutcome | RejectedOutcome;
 export function applyAction(input: ApplyInput): ApplyOutcome {
   const { item, rng } = input;
   const pool = buildEligiblePool(input);
-  if (pool.status === 'blocked') {
-    return { status: 'rejected', item, rejection: { code: 'pool-blocked', issues: pool.issues } };
-  }
-  if (pool.unknownWeightModifierIds.length > 0) {
-    return {
-      status: 'rejected',
-      item,
-      rejection: { code: 'unknown-weights', modifierIds: pool.unknownWeightModifierIds },
-    };
-  }
-  if (pool.eligible.length === 0 || pool.totalKnownWeight <= 0) {
-    return { status: 'rejected', item, rejection: { code: 'no-eligible-modifiers' } };
+  const rejection = checkApplicable(pool);
+  if (rejection || pool.status === 'blocked') {
+    return { status: 'rejected', item, rejection: rejection ?? { code: 'no-eligible-modifiers' } };
   }
 
   // The switch keeps future effect kinds from silently reusing this sampling model.
@@ -94,6 +94,23 @@ export function applyAction(input: ApplyInput): ApplyOutcome {
       };
     }
   }
+}
+
+/**
+ * Why the pool's action cannot be applied, or null when it can. Shared by applyAction and by
+ * the UI preview ("hover the item"), so the preview never disagrees with the real click.
+ */
+export function checkApplicable(pool: EligiblePool): ApplyRejection | null {
+  if (pool.status === 'blocked') return { code: 'pool-blocked', issues: pool.issues };
+  const sides = AFFIX_SIDES.filter((side) => pool.action.effect.allowedSides.includes(side));
+  if (sides.length > 0 && sides.every((side) => pool.slots[side].free <= 0)) {
+    return { code: 'no-free-slot', sides };
+  }
+  if (pool.unknownWeightModifierIds.length > 0) {
+    return { code: 'unknown-weights', modifierIds: pool.unknownWeightModifierIds };
+  }
+  if (pool.eligible.length === 0 || pool.totalKnownWeight <= 0) return { code: 'no-eligible-modifiers' };
+  return null;
 }
 
 /** Weighted choice: walks the cumulative weights with r ∈ [0, 1). Entries must have known weights. */

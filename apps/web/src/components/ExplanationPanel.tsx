@@ -18,7 +18,7 @@ interface ExplanationPanelProps {
 
 export function ExplanationPanel({ steps, view }: ExplanationPanelProps) {
   return (
-    <Panel title="Почему так" step="10">
+    <Panel title="Почему так" step="8">
       {steps.length === 0 ? (
         <p className="empty">Нет расчёта для объяснения.</p>
       ) : (

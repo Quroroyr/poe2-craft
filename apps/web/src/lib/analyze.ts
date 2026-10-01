@@ -3,10 +3,9 @@
  * Contains no game rules — only the order in which the packages are called.
  */
 import { akoyanSpearFixture, createCraftDb, type CraftDbView } from '@poe2-craft/craft-db';
-import type { CraftActionId, CraftTarget, GameVersion, ItemState } from '@poe2-craft/craft-domain';
+import { targetSpecFromItem, type CraftTarget, type GameVersion, type ItemState, type TargetSpec } from '@poe2-craft/craft-domain';
 import { parseItem, type ItemParseResult } from '@poe2-craft/item-parser';
 import {
-  buildEligiblePool,
   calculateTargetProbability,
   explainCalculation,
   explorePool,
@@ -16,18 +15,36 @@ import {
   type ProbabilityResult,
 } from '@poe2-craft/probability-engine';
 import {
+  checkApplicable,
   compareToTarget,
   outstandingTargetModifiers,
-  startFromSource,
+  poolForMode,
+  resolveTool,
   targetFromModifier,
-  withTarget,
+  type ApplyRejection,
   type CraftSession,
   type ItemComparison,
+  type PoolMode,
+  type ResolvedTool,
+  type ToolSelection,
 } from '@poe2-craft/craft-session';
 
 export const craftDb = createCraftDb(akoyanSpearFixture);
 export const DEFAULT_GAME_VERSION: GameVersion =
   craftDb.supportedVersions[craftDb.supportedVersions.length - 1] ?? '0.5.0';
+
+export function importItem(text: string, gameVersion: GameVersion): ItemParseResult | null {
+  return text.trim() ? parseItem(text, craftDb.forVersion(gameVersion)) : null;
+}
+
+export function importSource(text: string, gameVersion: GameVersion): ItemState | null {
+  return importItem(text, gameVersion)?.state ?? null;
+}
+
+export function importTarget(text: string, gameVersion: GameVersion): TargetSpec | null {
+  const parsed = importItem(text, gameVersion);
+  return parsed ? targetSpecFromItem(parsed.state) : null;
+}
 
 export interface StageTargetOption {
   readonly key: string;
@@ -35,22 +52,26 @@ export interface StageTargetOption {
   readonly target: CraftTarget;
 }
 
+/** Explorer mode as the UI knows it; `side` only chooses the tab to open. */
+export type ExplorerMode =
+  | { readonly kind: 'inspect' }
+  | { readonly kind: 'edit-source'; readonly side: 'prefix' | 'suffix'; readonly replaceIndex?: number }
+  | { readonly kind: 'edit-target'; readonly side: 'prefix' | 'suffix' };
+
 export interface WorkspaceInput {
-  readonly sourceText: string;
-  readonly targetText: string;
   readonly session: CraftSession;
-  readonly actionId: CraftActionId;
+  readonly tool: ToolSelection;
   readonly stageTargetKey: string | null;
+  readonly explorerMode: ExplorerMode;
 }
 
 export interface WorkspaceAnalysis {
   readonly view: CraftDbView;
-  readonly source: ItemParseResult | null;
-  readonly target: ItemParseResult | null;
-  /** The session as the UI should see it: before the first step, current follows the source text. */
-  readonly session: CraftSession;
-  readonly current: ItemState | null;
+  readonly tool: ResolvedTool;
+  /** Pool of the active tool on the current item (null without a ready tool). */
   readonly pool: EligiblePool | null;
+  /** Why clicking the current item would do nothing; null when the click would apply. */
+  readonly blockedBy: ApplyRejection | null;
   readonly explorer: PoolExplorer | null;
   readonly comparison: ItemComparison | null;
   readonly stageTargets: readonly StageTargetOption[];
@@ -59,52 +80,45 @@ export interface WorkspaceAnalysis {
   readonly explanation: readonly ExplanationStep[];
 }
 
-const parseOrNull = (text: string, view: CraftDbView) => (text.trim() ? parseItem(text, view) : null);
-
 export function analyzeWorkspace(input: WorkspaceInput): WorkspaceAnalysis {
-  const view = craftDb.forVersion(input.session.gameVersion);
-  const source = parseOrNull(input.sourceText, view);
-  const target = parseOrNull(input.targetText, view);
+  const { session } = input;
+  const view = craftDb.forVersion(session.gameVersion);
+  const tool = resolveTool(view, input.tool);
+  const actionId = tool.status === 'ready' ? tool.action.id : null;
 
-  const synced = input.session.steps.length === 0 ? startFromSource(input.session, source?.state ?? null) : input.session;
-  const session = withTarget(synced, target?.state ?? null);
-  const current = session.current;
+  const inspect = poolForMode(session, craftDb, { kind: 'inspect', actionId });
+  const pool = inspect.pool;
+  const blockedBy = pool ? checkApplicable(pool) : null;
 
-  const pool = current
-    ? buildEligiblePool({
-        item: current,
-        context: { gameVersion: session.gameVersion },
-        db: craftDb,
-        actionId: input.actionId,
-      })
-    : null;
-  const explorer = pool?.status === 'ready' ? explorePool(pool, view) : null;
-  const comparison = current && session.target ? compareToTarget(current, session.target, view) : null;
+  const mode = toPoolMode(input.explorerMode, actionId);
+  const explorerPool = mode.kind === 'inspect' ? pool : poolForMode(session, craftDb, mode).pool;
+  const explorer = explorerPool?.status === 'ready' ? explorePool(explorerPool, view) : null;
 
+  const comparison =
+    session.current && session.target ? compareToTarget(session.current, session.target, view) : null;
   const stageTargets = stageTargetOptions(view, comparison);
-  const stageTarget =
-    stageTargets.find((o) => o.key === input.stageTargetKey) ?? stageTargets[0] ?? null;
+  const stageTarget = stageTargets.find((o) => o.key === input.stageTargetKey) ?? stageTargets[0] ?? null;
   const probability = pool && stageTarget ? calculateTargetProbability(pool, stageTarget.target) : null;
   const explanation =
     pool && stageTarget && probability ? explainCalculation(pool, stageTarget.target, probability) : [];
 
-  return {
-    view,
-    source,
-    target,
-    session,
-    current,
-    pool,
-    explorer,
-    comparison,
-    stageTargets,
-    stageTarget,
-    probability,
-    explanation,
-  };
+  return { view, tool, pool, blockedBy, explorer, comparison, stageTargets, stageTarget, probability, explanation };
 }
 
-/** Outstanding modifiers of the target item first, then the catalog targets of the dataset. */
+function toPoolMode(mode: ExplorerMode, actionId: string | null): PoolMode {
+  switch (mode.kind) {
+    case 'inspect':
+      return { kind: 'inspect', actionId };
+    case 'edit-source':
+      return mode.replaceIndex === undefined
+        ? { kind: 'edit-source' }
+        : { kind: 'edit-source', replaceIndex: mode.replaceIndex };
+    case 'edit-target':
+      return { kind: 'edit-target' };
+  }
+}
+
+/** Outstanding target requirements first, then the catalog targets of the dataset. */
 function stageTargetOptions(view: CraftDbView, comparison: ItemComparison | null): StageTargetOption[] {
   const fromItem = comparison
     ? outstandingTargetModifiers(comparison).flatMap((definition): StageTargetOption[] => {

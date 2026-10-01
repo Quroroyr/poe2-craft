@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { AffixSide, ExplicitModifier, ItemState } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ModBadge } from '@/lib/session-ui';
@@ -10,10 +11,15 @@ interface ItemCardProps {
   readonly size?: 'compact' | 'large';
   /** Badge per index in `item.explicits` (e.g. "new" for simulated modifiers, target status). */
   readonly badges?: ReadonlyMap<number, ModBadge>;
+  /** Extra controls under a modifier line (used by the editable source). */
+  readonly renderModActions?: (index: number, mod: ExplicitModifier) => ReactNode;
+  /** Extra controls at the end of a side block (e.g. "+ Add prefix"). */
+  readonly renderSideFooter?: (side: AffixSide, used: number, max: number | undefined) => ReactNode;
 }
 
 /** Item rendered like an in-game tooltip, split into prefix / suffix / unresolved blocks. */
-export function ItemCard({ item, view, name, size = 'compact', badges }: ItemCardProps) {
+export function ItemCard(props: ItemCardProps) {
+  const { item, view, name, size = 'compact', badges } = props;
   const limits = item.rarity ? view.getAffixLimits(item.rarity) : undefined;
   const indexed = item.explicits.map((mod, index) => ({ mod, index }));
   const sideOf = (m: ExplicitModifier): AffixSide | null =>
@@ -43,8 +49,12 @@ export function ItemCard({ item, view, name, size = 'compact', badges }: ItemCar
             </div>
             {mods.length === 0 && <div className="affix-empty">пусто</div>}
             {mods.map(({ mod, index }) => (
-              <ModLine key={index} mod={mod} view={view} badge={badges?.get(index)} />
+              <div key={index}>
+                <ModLine mod={mod} view={view} badge={badges?.get(index)} />
+                {props.renderModActions?.(index, mod)}
+              </div>
             ))}
+            {props.renderSideFooter?.(side, mods.length, max)}
           </div>
         );
       })}
@@ -53,18 +63,9 @@ export function ItemCard({ item, view, name, size = 'compact', badges }: ItemCar
         <div className="affix-block">
           <div className="affix-title bad">Нераспознанные строки</div>
           {unresolved.map(({ mod, index }) => (
-            <ModLine key={index} mod={mod} view={view} badge={badges?.get(index)} />
-          ))}
-        </div>
-      )}
-
-      {item.otherLines.length > 0 && size === 'large' && (
-        <div className="affix-block">
-          <div className="affix-title muted">Прочие строки (в расчёте не участвуют)</div>
-          {item.otherLines.map((l, i) => (
-            <div key={i} className="mod-line mod-other">
-              <span className="mod-text">{l.text}</span>
-              <span className="tag">{l.source}</span>
+            <div key={index}>
+              <ModLine mod={mod} view={view} badge={badges?.get(index)} />
+              {props.renderModActions?.(index, mod)}
             </div>
           ))}
         </div>
@@ -95,7 +96,6 @@ function ModLine({ mod, view, badge }: { mod: ExplicitModifier; view: CraftDbVie
         <span className="mod-text">{mod.sourceText}</span>
         <span className="mod-meta">
           {UNRESOLVED_LABEL[mod.reason]}
-          {mod.sideHint && ` · похоже на ${mod.sideHint === 'prefix' ? 'префикс' : 'суффикс'}`}
           {badgeEl}
         </span>
       </div>
@@ -106,7 +106,7 @@ function ModLine({ mod, view, badge }: { mod: ExplicitModifier; view: CraftDbVie
     <div className={`mod-line${mod.fractured ? ' mod-fractured' : ''}${badge?.tone === 'new' ? ' mod-new' : ''}`}>
       <span className="mod-text">{mod.sourceText}</span>
       <span className="mod-meta">
-        {def ? `«${def.name}» · T${def.tier}` : mod.modifierId}
+        {def ? `T${def.tier} · ${def.name}` : mod.modifierId}
         {mod.fractured && <span className="tag tag-fractured">fractured</span>}
         {badgeEl}
       </span>

@@ -13,7 +13,7 @@
 | `packages/item-parser` | `parseItemText` (только текст) + `resolveItem` (сопоставление с каталогом) |
 | `packages/probability-engine` | `buildEligiblePool`, `calculateTargetProbability`, геометрия, `explainCalculation` |
 | `packages/economy` | `PriceSnapshot`, `calculateAttemptCost`, `calculateStageCost` |
-| `packages/craft-session` | `applyAction` (демо-симуляция), `CraftSession`, `compareToTarget`, `targetFromModifier` |
+| `packages/craft-session` | `applyAction` + `checkApplicable` (демо-симуляция), `CraftSession` (undo/redo/reset), инструменты (`resolveTool`), ручная правка source, `poolForMode`, сравнение с `TargetSpec` |
 | `docs/` | архитектура, доменная модель, инварианты, источники данных, ADR |
 | `tests/` | архитектурные границы, наличие иконок |
 
@@ -34,7 +34,8 @@ pnpm check       # test + typecheck + build
 
 - Направление зависимостей: `craft-domain` ← `craft-db` ← `probability-engine` ← `economy` ← `craft-session`;
   `item-parser` зависит только от `craft-domain`. Сайт зависит от всех.
-- Текущий предмет меняется только функциями `craft-session` (`applyStep`, `undoLastStep`, `startFromSource`).
+- Текущий предмет меняется только функциями `craft-session` (`applyStep`, `undoLastStep`, `redoStep`, `undoToStep`, `resetToSource`); source — только ручными правками (`setSource`), target — функциями `TargetSpec`.
+- Новые инструменты в палитре появляются только вместе с действием в данных (ADR 006).
 - Случайность — только через переданный `Rng`; `Math.random` в пакетах запрещён.
 - Симуляция подписывается как демо, пока механика не подтверждена данными.
 - Пакеты не импортируют React/Next.js (проверяет `tests/architecture.test.ts`).

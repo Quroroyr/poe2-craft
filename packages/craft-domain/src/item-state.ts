@@ -73,6 +73,16 @@ export function withExplicitModifier(state: ItemState, modifier: ExplicitModifie
   return createItemState({ ...state, explicits: [...state.explicits, modifier] });
 }
 
+/** A new state without the explicit at `index`. */
+export function withoutExplicitAt(state: ItemState, index: number): ItemState {
+  return createItemState({ ...state, explicits: state.explicits.filter((_, i) => i !== index) });
+}
+
+/** A new state where the explicit at `index` is replaced, keeping its position. */
+export function replaceExplicitAt(state: ItemState, index: number, modifier: ExplicitModifier): ItemState {
+  return createItemState({ ...state, explicits: state.explicits.map((m, i) => (i === index ? modifier : m)) });
+}
+
 export function resolvedModifiers(state: ItemState): readonly ResolvedModifier[] {
   return state.explicits.filter((m): m is ResolvedModifier => m.kind === 'resolved');
 }

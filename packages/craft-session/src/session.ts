@@ -4,6 +4,7 @@ import type {
   GameVersion,
   ItemState,
   ModifierId,
+  TargetSpec,
 } from '@poe2-craft/craft-domain';
 import type { CraftDb } from '@poe2-craft/craft-db';
 import type { AttemptCost } from '@poe2-craft/economy';
@@ -11,22 +12,24 @@ import { applyAction, type ApplyOutcome } from './apply-action';
 import { rollRng } from './rng';
 
 /**
- * One crafting session. Three different items, never aliases of one another by accident:
- * - source:  the base the user started from (pasted from the game);
- * - current: the item after every applied step — the thing being crafted;
- * - target:  an example of the desired result (pasted from the game), used for comparison.
+ * One crafting session. Three different things, never aliases of one another by accident:
+ * - source:  the base the user starts from (imported from the game, editable by hand);
+ * - current: the item after every applied step — the only thing crafting actions change;
+ * - target:  the desired result as requirements (imported and/or built by hand).
  * The session is an immutable value: every operation returns a new session.
  */
 export interface CraftSession {
   readonly gameVersion: GameVersion;
   /** Seed of the demo simulation; together with `rollCount` it makes every roll replayable. */
-  readonly seed: number;
-  /** Number of rolls ever made. Never decreases, so undo + apply does not replay the same roll. */
   readonly rollCount: number;
+  readonly seed: number;
   readonly source: ItemState | null;
   readonly current: ItemState | null;
-  readonly target: ItemState | null;
+  readonly target: TargetSpec | null;
+  /** Applied steps, oldest first. `current` is the `after` of the last one (or the source). */
   readonly steps: readonly CraftStepRecord[];
+  /** Undone steps, most recently undone last; `redo` re-applies them exactly as they were. */
+  readonly redoStack: readonly CraftStepRecord[];
 }
 
 export interface CraftStepRecord {
@@ -53,7 +56,7 @@ export interface SessionInit {
   readonly gameVersion: GameVersion;
   readonly seed: number;
   readonly source?: ItemState | null;
-  readonly target?: ItemState | null;
+  readonly target?: TargetSpec | null;
 }
 
 export function createSession(init: SessionInit): CraftSession {
@@ -66,15 +69,37 @@ export function createSession(init: SessionInit): CraftSession {
     current: source,
     target: init.target ?? null,
     steps: [],
+    redoStack: [],
   };
 }
 
-/** Starts crafting from a (new) source item: current = source, history cleared. Target is kept. */
-export function startFromSource(session: CraftSession, source: ItemState | null): CraftSession {
-  return { ...session, source, current: source, steps: [] };
+/**
+ * Replaces the source (import or manual edit). Before the first step the current item follows
+ * the source; once crafting started, the current item is left alone until `resetToSource`.
+ * Never counted as spending.
+ */
+export function setSource(session: CraftSession, source: ItemState | null): CraftSession {
+  const untouched = session.steps.length === 0;
+  return { ...session, source, current: untouched ? source : session.current, redoStack: untouched ? [] : session.redoStack };
 }
 
-export function withTarget(session: CraftSession, target: ItemState | null): CraftSession {
+/** The source changed after crafting started, so current no longer descends from it. */
+export function isSourceOutOfSync(session: CraftSession): boolean {
+  const first = session.steps[0];
+  return first !== undefined && first.before !== session.source;
+}
+
+/** Reset craft: current = source, history and spending cleared. Source and target untouched. */
+export function resetToSource(session: CraftSession): CraftSession {
+  return { ...session, current: session.source, steps: [], redoStack: [] };
+}
+
+/** Starts over from a new source item: the same as `setSource` followed by `resetToSource`. */
+export function startFromSource(session: CraftSession, source: ItemState | null): CraftSession {
+  return resetToSource({ ...session, source });
+}
+
+export function withTarget(session: CraftSession, target: TargetSpec | null): CraftSession {
   return { ...session, target };
 }
 
@@ -131,15 +156,41 @@ export function applyStep(session: CraftSession, input: ApplyStepInput): ApplySt
       rollCount: session.rollCount + 1,
       current: outcome.item,
       steps: [...session.steps, step],
+      // A new roll makes the undone branch unreachable, as in any editor.
+      redoStack: [],
     },
   };
 }
 
-/** Removes the last step and restores the item before it. Its cost leaves "spent" too. */
+/** Undoes the last step: current goes back to the item before it, its cost leaves "spent". */
 export function undoLastStep(session: CraftSession): CraftSession {
   const last = session.steps[session.steps.length - 1];
   if (!last) return session;
-  return { ...session, current: last.before, steps: session.steps.slice(0, -1) };
+  return {
+    ...session,
+    current: last.before,
+    steps: session.steps.slice(0, -1),
+    redoStack: [...session.redoStack, last],
+  };
+}
+
+/** Re-applies the most recently undone step exactly as it happened (no new roll). */
+export function redoStep(session: CraftSession): CraftSession {
+  const next = session.redoStack[session.redoStack.length - 1];
+  if (!next) return session;
+  return {
+    ...session,
+    current: next.after,
+    steps: [...session.steps, next],
+    redoStack: session.redoStack.slice(0, -1),
+  };
+}
+
+/** Rolls back to just after step `index` (0 = before the first step), keeping later steps redoable. */
+export function undoToStep(session: CraftSession, index: number): CraftSession {
+  let result = session;
+  while (result.steps.length > Math.max(0, index)) result = undoLastStep(result);
+  return result;
 }
 
 export interface SessionSpent {
@@ -153,7 +204,7 @@ export interface SessionSpent {
   readonly mixedUnits: boolean;
 }
 
-/** What was actually spent in this session, as recorded by its steps. */
+/** What was actually spent on the current item, as recorded by its (not undone) steps. */
 export function sessionSpent(session: CraftSession): SessionSpent {
   const unit = session.steps[0]?.cost.unit ?? null;
   let total = 0;

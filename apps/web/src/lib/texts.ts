@@ -133,13 +133,17 @@ export const TARGET_STATUS_LABEL: Record<TargetModStatus, string> = {
 };
 
 export function applyRejectionText(rejection: ApplyRejection | null): string {
-  if (!rejection) return 'Нет текущего предмета — вставьте исходный предмет.';
+  if (!rejection) return 'Нет текущего предмета — импортируйте или создайте исходный.';
   switch (rejection.code) {
     case 'pool-blocked':
-      return `Действие не применено: ${rejection.issues.map(issueText).join(' ')}`;
+      return `Предмет не подходит для этого действия. ${rejection.issues.map(issueText).join(' ')}`;
+    case 'no-free-slot':
+      return rejection.sides.length === 2
+        ? 'Нет свободных слотов: префиксы и суффиксы заняты.'
+        : `Нет свободного ${rejection.sides[0] === 'prefix' ? 'префикса' : 'суффикса'}.`;
     case 'no-eligible-modifiers':
-      return 'Действие не применено: нет ни одного мода, который оно могло бы добавить (слоты заняты или всё заблокировано). Предмет и затраты не изменились.';
+      return 'Нет ни одного мода, который действие могло бы добавить: всё подходящее заблокировано.';
     case 'unknown-weights':
-      return `Действие не применено: у ${rejection.modifierIds.length} мод(ов) в пуле неизвестен вес, честно выбрать результат нельзя.`;
+      return `У ${rejection.modifierIds.length} мод(ов) в пуле неизвестен вес — честно выбрать результат нельзя.`;
   }
 }

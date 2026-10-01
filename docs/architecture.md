@@ -38,6 +38,16 @@ React; сайт только вызывает их и показывает ре�
 шага сессия хранит свою копию исходного предмета, и правка текста не стирает историю: сайт
 предлагает начать заново.
 
+### Взаимодействие (v0.3)
+
+```
+палитра: ToolSelection {сфера, omen} ──resolveTool──► CraftAction из данных | unsupported
+клик по текущему ──checkApplicable──► отказ (без изменений)  |  applyStep → current', история, потрачено
+«+ Добавить…» у исходного / цели ──► ModifierPool в режиме edit-source / edit-target (poolForMode)
+выбор тира ──► addSourceModifier / replaceSourceModifier | addRequirement (TargetSpec)
+Ctrl+Z / Ctrl+Shift+Z / откат к шагу / Reset ──► undoLastStep / redoStep / undoToStep / resetToSource
+```
+
 ## Пакеты и направление зависимостей
 
 | Пакет | Назначение | Зависит от |

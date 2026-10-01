@@ -22,9 +22,11 @@
 | `ModifierDefinition` | **один тир** мода: `id` (стабильный), `side`, `tier`, `groupIds[]`, `requiredItemLevel`, `modifierLevel`, `lines[]` (шаблон с `#` + диапазоны), `spawnWeights[]`, `tags`, `versions`, `provenance` |
 | `SpawnWeight` | `(tag, weight)`; `weight: null` = вес неизвестен |
 | `AffixLimitRule` | лимит префиксов/суффиксов для редкости (данные, а не код) |
-| `Consumable` | расходник: валюта, Omen; `art` — игровой id иконки |
+| `Consumable` | расходник: `category` (currency / omen / essence — по группам трейда), `art` — игровой id иконки |
 | `CraftAction` | действие: `requirements`, `effect` (union, пока только `add-random-modifier`), `defaultCost` |
-| `CraftTarget` | цель: набор допустимых `modifierIds` («+3 и выше» = два тира в списке) |
+| `CraftTarget` | цель шага для расчёта: набор допустимых `modifierIds` («+3 и выше» = два тира в списке) |
+| `TargetRequirement` | требование к финальному предмету: id минимально приемлемого тира + fractured + origin (import / manual) |
+| `TargetSpec` | цель целиком: база, ilvl, `requirements[]`, `unresolvedLines[]` (нераспознанное при импорте) |
 
 `ModifierTier` отдельным типом не выделен: в данных игры каждый тир — отдельная запись мода со
 своим весом и уровнем, так и моделируем. Тиры одного стата объединяет общая `ModifierGroup`.
@@ -75,17 +77,20 @@ UnresolvedModifier { sourceText, fractured, reason, sideHint?, groupIdsHint? }
 
 | Предмет | Откуда | Роль |
 |---|---|---|
-| **source** — исходный | вставлен из игры | база, с которой начали; не меняется действиями |
+| **source** — исходный | импорт из игры и/или ручная правка | база, с которой начали; меняется только руками, никогда — крафтом |
 | **current** — текущий | `source` + применённые шаги | то, что сейчас крафтится; меняется только через `applyStep` |
-| **target** — целевой | вставлен из игры | пример желаемого результата; используется для сравнения и как источник целей шага |
+| **target** — цель | импорт примера и/или ручная сборка | `TargetSpec`: требования «семейство не хуже тира N»; используется для сравнения и как источник целей шага |
 
 | Понятие | Пакет | Суть |
 |---|---|---|
 | `withExplicitModifier` | domain | новый `ItemState` с ещё одним модом; исходный не меняется |
 | `renderModifierText` | domain | текст мода с конкретными значениями (точность берётся из диапазона) |
-| `CraftSession` | craft-session | `{ gameVersion, seed, rollCount, source, current, target, steps }`, неизменяемая |
+| `CraftSession` | craft-session | `{ gameVersion, seed, rollCount, source, current, target: TargetSpec, steps, redoStack }`, неизменяемая |
+| `ToolSelection`, `ResolvedTool` | craft-session | выбранная сфера + omen → действие из данных (`ready`) или `unsupported` |
+| `PoolMode` | craft-session | `inspect` / `edit-source` (+ `replaceIndex`) / `edit-target` — один обозреватель на три задачи |
+| `MANUAL_EDIT_ACTION` | craft-session | правила «что законно стоит на предмете» для режимов правки; не игровое действие |
 | `CraftStepRecord` | craft-session | номер, действие, `AttemptCost` на момент шага, `before`, `after`, выпавший мод и его шанс |
-| `ApplyOutcome` | craft-session | `applied` (новый предмет, мод, его доля) или `rejected` (`pool-blocked`, `no-eligible-modifiers`, `unknown-weights`) |
+| `ApplyOutcome` | craft-session | `applied` (новый предмет, мод, его доля) или `rejected` (`pool-blocked`, `no-free-slot`, `no-eligible-modifiers`, `unknown-weights`) |
 | `SessionSpent` | craft-session | факт: сумма стоимостей шагов, флаги «не всё оценено» и «разные единицы» |
 | `Rng` | craft-session | `() => [0, 1)`; `rollRng(seed, n)` — поток для n-го броска |
 | `ItemComparison` | craft-session | строки целевого предмета со статусом matched / better-tier / worse-tier / missing / unknown, плюс лишние моды и `matched/total` |

@@ -439,9 +439,11 @@ const affixLimits: AffixLimitRule[] = [
   { rarity: 'rare', maxPrefixes: 3, maxSuffixes: 3, versions: ALWAYS, provenance: KNOWN_NAME },
 ];
 
+// Category follows the trade data groups: orbs under "Currency", omens under "Ritual".
 const consumable = (id: string, name: string, art: string): Consumable => ({
   id,
   name,
+  category: id.startsWith('omen.') ? 'omen' : 'currency',
   art,
   versions: ALWAYS,
   provenance: OFFICIAL_NAME,

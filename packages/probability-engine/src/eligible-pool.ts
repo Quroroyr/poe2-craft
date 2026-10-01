@@ -16,12 +16,15 @@ import {
 import type { CraftDb, DatasetInfo } from '@poe2-craft/craft-db';
 import { collectAffixFacts, type GroupOccupant, type SlotSummary } from './affix-slots';
 
-export interface PoolInput {
+/**
+ * The action is given by id (looked up in CraftDB) or as an object. The object form exists
+ * for pools that are not a game action, e.g. "which modifiers could legally be added by hand".
+ */
+export type PoolInput = {
   readonly item: ItemState;
   readonly context: CraftContext;
   readonly db: CraftDb;
-  readonly actionId: CraftActionId;
-}
+} & ({ readonly actionId: CraftActionId } | { readonly action: CraftAction });
 
 /** Why a modifier cannot be the outcome of this action on this item. A modifier may have several. */
 export type ExclusionReason =
@@ -106,11 +109,11 @@ export type EligiblePool = ReadyPool | BlockedPool;
 export function buildEligiblePool(input: PoolInput): EligiblePool {
   const { item, context, db } = input;
   const view = db.forVersion(context.gameVersion);
-  const action = view.getAction(input.actionId) ?? null;
+  const action = 'action' in input ? input.action : (view.getAction(input.actionId) ?? null);
   const base = item.baseId === null ? undefined : view.getBase(item.baseId);
 
   const issues: PoolIssue[] = [];
-  if (!action) issues.push({ code: 'action-unknown', actionId: input.actionId });
+  if (!action) issues.push({ code: 'action-unknown', actionId: 'actionId' in input ? input.actionId : '' });
   if (!base) issues.push({ code: 'base-unknown', baseName: item.baseName });
   if (item.itemLevel === null) issues.push({ code: 'item-level-unknown' });
   if (item.rarity === null) issues.push({ code: 'rarity-unknown' });
