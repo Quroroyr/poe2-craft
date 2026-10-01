@@ -7,12 +7,13 @@
 
 | Путь | Назначение |
 |---|---|
-| `apps/web` | Next.js 16 (App Router). `src/lib/analyze.ts` — композиция; `src/components` — отображение |
+| `apps/web` | Next.js 16 (App Router). `src/lib/analyze.ts` — композиция (`analyzeWorkspace`); `src/components/Workspace.tsx` — состояние страницы; остальные компоненты — отображение |
 | `packages/craft-domain` | Типы домена и чистые правила (версии, provenance, spawn-веса, ItemState) |
 | `packages/craft-db` | `CraftDataset`, валидация, `CraftDb.forVersion()`, fixture Akoyan Spear |
 | `packages/item-parser` | `parseItemText` (только текст) + `resolveItem` (сопоставление с каталогом) |
 | `packages/probability-engine` | `buildEligiblePool`, `calculateTargetProbability`, геометрия, `explainCalculation` |
 | `packages/economy` | `PriceSnapshot`, `calculateAttemptCost`, `calculateStageCost` |
+| `packages/craft-session` | `applyAction` (демо-симуляция), `CraftSession`, `compareToTarget`, `targetFromModifier` |
 | `docs/` | архитектура, доменная модель, инварианты, источники данных, ADR |
 | `tests/` | архитектурные границы, наличие иконок |
 
@@ -31,8 +32,11 @@ pnpm check       # test + typecheck + build
 
 ## Границы архитектуры
 
-- Направление зависимостей: `craft-domain` ← `craft-db` ← `probability-engine` ← `economy`;
+- Направление зависимостей: `craft-domain` ← `craft-db` ← `probability-engine` ← `economy` ← `craft-session`;
   `item-parser` зависит только от `craft-domain`. Сайт зависит от всех.
+- Текущий предмет меняется только функциями `craft-session` (`applyStep`, `undoLastStep`, `startFromSource`).
+- Случайность — только через переданный `Rng`; `Math.random` в пакетах запрещён.
+- Симуляция подписывается как демо, пока механика не подтверждена данными.
 - Пакеты не импортируют React/Next.js (проверяет `tests/architecture.test.ts`).
 - В React-компонентах нет игровых правил и расчётов вероятностей.
 - Игровые числа живут только в данных CraftDB, у каждой записи есть `provenance`.

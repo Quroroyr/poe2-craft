@@ -67,6 +67,27 @@ export interface ModifierDefinition {
   readonly provenance: Provenance;
 }
 
+/** Number of decimals a range is expressed in, e.g. 3.21–4.4 → 2. Rolled values keep that precision. */
+export function rangeDecimals(range: StatRange): number {
+  const decimals = (n: number) => (Number.isInteger(n) ? 0 : (String(n).split('.')[1]?.length ?? 0));
+  return Math.max(decimals(range.min), decimals(range.max));
+}
+
+/** Text of a modifier with concrete rolled values, one string per line (as it would appear on an item). */
+export function renderModifierText(definition: ModifierDefinition, values: readonly number[]): string {
+  let i = 0;
+  return definition.lines
+    .map((line) =>
+      line.template.replace(/#/g, () => {
+        const range = line.ranges[i];
+        const value = values[i++];
+        if (value === undefined || !range) return '#';
+        return value.toFixed(rangeDecimals(range));
+      }),
+    )
+    .join('\n');
+}
+
 export function modifierText(definition: ModifierDefinition): string {
   return definition.lines
     .map((line) => {

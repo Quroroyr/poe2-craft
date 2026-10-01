@@ -1,6 +1,6 @@
 {
   "name": "@poe2-craft/web",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -11,6 +11,7 @@
   "dependencies": {
     "@poe2-craft/craft-db": "workspace:*",
     "@poe2-craft/craft-domain": "workspace:*",
+    "@poe2-craft/craft-session": "workspace:*",
     "@poe2-craft/economy": "workspace:*",
     "@poe2-craft/item-parser": "workspace:*",
     "@poe2-craft/probability-engine": "workspace:*",

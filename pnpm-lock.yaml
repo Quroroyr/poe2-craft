@@ -29,6 +29,9 @@ importers:
       '@poe2-craft/craft-domain':
         specifier: workspace:*
         version: link:../../packages/craft-domain
+      '@poe2-craft/craft-session':
+        specifier: workspace:*
+        version: link:../../packages/craft-session
       '@poe2-craft/economy':
         specifier: workspace:*
         version: link:../../packages/economy
@@ -68,6 +71,21 @@ importers:
         version: link:../craft-domain
 
   packages/craft-domain: {}
+
+  packages/craft-session:
+    dependencies:
+      '@poe2-craft/craft-db':
+        specifier: workspace:*
+        version: link:../craft-db
+      '@poe2-craft/craft-domain':
+        specifier: workspace:*
+        version: link:../craft-domain
+      '@poe2-craft/economy':
+        specifier: workspace:*
+        version: link:../economy
+      '@poe2-craft/probability-engine':
+        specifier: workspace:*
+        version: link:../probability-engine
 
   packages/economy:
     dependencies:

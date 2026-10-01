@@ -5,7 +5,8 @@
 import type { AffixSide, Confidence, Rarity, UnresolvedReason } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ParseDiagnostic } from '@poe2-craft/item-parser';
-import type { ExclusionReason, PoolCaveat, PoolIssue } from '@poe2-craft/probability-engine';
+import type { ApplyRejection, TargetModStatus } from '@poe2-craft/craft-session';
+import type { ExclusionReason, ExplorerStatus, PoolCaveat, PoolIssue } from '@poe2-craft/probability-engine';
 
 export const SIDE_LABEL: Record<AffixSide, string> = { prefix: 'Префикс', suffix: 'Суффикс' };
 export const SIDE_SHORT: Record<AffixSide, string> = { prefix: 'P', suffix: 'S' };
@@ -113,5 +114,32 @@ export function diagnosticText(d: ParseDiagnostic): string {
       return 'Предмет не опознан (Unidentified) — моды не видны.';
     case 'unresolved-modifier':
       return `Не распознано: «${d.text}» — ${UNRESOLVED_LABEL[d.reason]}`;
+  }
+}
+
+export const EXPLORER_STATUS_LABEL: Record<ExplorerStatus, string> = {
+  eligible: 'доступен',
+  'already-present': 'уже на предмете',
+  blocked: 'заблокирован',
+  excluded: 'исключён',
+};
+
+export const TARGET_STATUS_LABEL: Record<TargetModStatus, string> = {
+  matched: 'есть',
+  'better-tier': 'есть, тир лучше',
+  'worse-tier': 'тир хуже',
+  missing: 'не хватает',
+  unknown: 'не распознан',
+};
+
+export function applyRejectionText(rejection: ApplyRejection | null): string {
+  if (!rejection) return 'Нет текущего предмета — вставьте исходный предмет.';
+  switch (rejection.code) {
+    case 'pool-blocked':
+      return `Действие не применено: ${rejection.issues.map(issueText).join(' ')}`;
+    case 'no-eligible-modifiers':
+      return 'Действие не применено: нет ни одного мода, который оно могло бы добавить (слоты заняты или всё заблокировано). Предмет и затраты не изменились.';
+    case 'unknown-weights':
+      return `Действие не применено: у ${rejection.modifierIds.length} мод(ов) в пуле неизвестен вес, честно выбрать результат нельзя.`;
   }
 }

@@ -88,3 +88,39 @@ export const SAMPLE_ITEMS: readonly SampleItem[] = [
   { id: 'ilvl-70', label: 'Akoyan Spear · ilvl 70', text: AKOYAN_SPEAR_ILVL_70 },
   { id: 'advanced', label: 'Akoyan Spear · Ctrl+Alt+C', text: AKOYAN_SPEAR_ADVANCED },
 ];
+
+/** FIXTURE examples of a desired result, for the "target item" panel. */
+export const AKOYAN_SPEAR_TARGET_PROJECTILE = `Item Class: Spears
+Rarity: Rare
+Dread Impaler
+Akoyan Spear
+${PROPERTIES}
+Item Level: 82
+--------
+98% increased Physical Damage
+Adds 18 to 30 Physical Damage
+Adds 3 to 68 Lightning Damage
++4.12% to Critical Hit Chance (fractured)
++4 to Level of all Projectile Skills
++30% to Critical Damage Bonus
+--------
+Fractured Item`;
+
+export const AKOYAN_SPEAR_TARGET_MELEE = `Item Class: Spears
+Rarity: Rare
+War Thorn
+Akoyan Spear
+${PROPERTIES}
+Item Level: 82
+--------
+98% increased Physical Damage
++4.12% to Critical Hit Chance (fractured)
++4 to Level of all Melee Skills
+12% increased Attack Speed
+--------
+Fractured Item`;
+
+export const SAMPLE_TARGET_ITEMS: readonly SampleItem[] = [
+  { id: 'target-projectile', label: 'Цель: +4 Projectile, 6 модов', text: AKOYAN_SPEAR_TARGET_PROJECTILE },
+  { id: 'target-melee', label: 'Цель: +4 Melee, 4 мода', text: AKOYAN_SPEAR_TARGET_MELEE },
+];

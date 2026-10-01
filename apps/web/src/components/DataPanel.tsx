@@ -11,7 +11,7 @@ interface DataPanelProps {
 export function DataPanel({ view, probability }: DataPanelProps) {
   const info = view.info;
   return (
-    <Panel title="Данные" step="8">
+    <Panel title="Данные" step="11">
       <dl className="data-list">
         <div>
           <dt>Версия игры</dt>

@@ -18,6 +18,7 @@ const ALLOWED: Record<string, string[]> = {
   'item-parser': ['craft-domain'],
   'probability-engine': ['craft-domain', 'craft-db'],
   economy: ['craft-domain', 'probability-engine'],
+  'craft-session': ['craft-domain', 'craft-db', 'probability-engine', 'economy'],
 };
 
 const UI_PACKAGES = /^(react|react-dom|next)(\/|$)/;
@@ -50,6 +51,12 @@ describe('architecture boundaries', () => {
       expect(deps.filter((d) => UI_PACKAGES.test(d))).toEqual([]);
       for (const file of sourceFiles(join(packagesDir, pkg, 'src'))) {
         expect(imports(file).filter((i) => UI_PACKAGES.test(i)), file).toEqual([]);
+      }
+    });
+
+    it(`${pkg} takes randomness only through an injected Rng`, () => {
+      for (const file of sourceFiles(join(packagesDir, pkg, 'src')).filter((f) => !f.endsWith('.test.ts'))) {
+        expect(readFileSync(file, 'utf8'), file).not.toMatch(/Math\.random|crypto\.getRandomValues/);
       }
     });
 

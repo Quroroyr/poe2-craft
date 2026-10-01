@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     '@poe2-craft/item-parser',
     '@poe2-craft/probability-engine',
     '@poe2-craft/economy',
+    '@poe2-craft/craft-session',
   ],
 };
 

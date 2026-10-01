@@ -68,6 +68,11 @@ export function createItemState(input: ItemState): ItemState {
   });
 }
 
+/** A new state with one more explicit modifier. The original state is left untouched. */
+export function withExplicitModifier(state: ItemState, modifier: ExplicitModifier): ItemState {
+  return createItemState({ ...state, explicits: [...state.explicits, modifier] });
+}
+
 export function resolvedModifiers(state: ItemState): readonly ResolvedModifier[] {
   return state.explicits.filter((m): m is ResolvedModifier => m.kind === 'resolved');
 }

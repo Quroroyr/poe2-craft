@@ -66,4 +66,37 @@ UnresolvedModifier { sourceText, fractured, reason, sideHint?, groupIdsHint? }
 | `AttemptCost`, `StageCost` | economy | цена попытки; ожидаемая стоимость + квантили |
 
 `CraftStep` (шаг гайда) в v0.1 не введён: без солвера он был бы пустой обёрткой над
-`(action, target, ProbabilityOk, StageCost)`. Появится вместе с `guide-generator`.
+`(action, target, ProbabilityOk, StageCost)`. Появится вместе с `guide-generator`. Записанный шаг
+сессии — это другое понятие, `CraftStepRecord` (ниже).
+
+## Рабочий стол и сессия (v0.2)
+
+Три разных предмета, которые нельзя путать:
+
+| Предмет | Откуда | Роль |
+|---|---|---|
+| **source** — исходный | вставлен из игры | база, с которой начали; не меняется действиями |
+| **current** — текущий | `source` + применённые шаги | то, что сейчас крафтится; меняется только через `applyStep` |
+| **target** — целевой | вставлен из игры | пример желаемого результата; используется для сравнения и как источник целей шага |
+
+| Понятие | Пакет | Суть |
+|---|---|---|
+| `withExplicitModifier` | domain | новый `ItemState` с ещё одним модом; исходный не меняется |
+| `renderModifierText` | domain | текст мода с конкретными значениями (точность берётся из диапазона) |
+| `CraftSession` | craft-session | `{ gameVersion, seed, rollCount, source, current, target, steps }`, неизменяемая |
+| `CraftStepRecord` | craft-session | номер, действие, `AttemptCost` на момент шага, `before`, `after`, выпавший мод и его шанс |
+| `ApplyOutcome` | craft-session | `applied` (новый предмет, мод, его доля) или `rejected` (`pool-blocked`, `no-eligible-modifiers`, `unknown-weights`) |
+| `SessionSpent` | craft-session | факт: сумма стоимостей шагов, флаги «не всё оценено» и «разные единицы» |
+| `Rng` | craft-session | `() => [0, 1)`; `rollRng(seed, n)` — поток для n-го броска |
+| `ItemComparison` | craft-session | строки целевого предмета со статусом matched / better-tier / worse-tier / missing / unknown, плюс лишние моды и `matched/total` |
+| `targetFromModifier` | craft-session | цель шага «этот тир или лучше» по моду целевого предмета |
+| `PoolExplorer` | probability-engine | вкладки (prefix / suffix; позже особые пулы) → группы → тиры; статус, вес, доля |
+| `ExplorerStatus` | probability-engine | eligible / already-present / blocked (мешает состояние или действие) / excluded (не выпадет на этом ilvl) |
+
+Что честно, а что демо:
+
+- **Честно (по данным набора):** пул, веса, причины исключения, вероятность, ожидаемая стоимость,
+  сравнение по группам и тирам, учёт потраченного.
+- **Демо-симуляция:** что именно выпало при «Применить». Модель: один мод пропорционально весу и
+  значения равномерно в диапазоне. Реальное поведение валют и Omen PoE 2 не проверено, а все числа
+  в наборе — fixture.
