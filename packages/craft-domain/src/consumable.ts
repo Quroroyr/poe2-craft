@@ -8,7 +8,26 @@ export type ConsumableId = string;
  * ("Currency", omens under "Ritual", "Essences", catalysts under "Breach", "Runes"); drives the
  * tool palette only.
  */
-export type ConsumableCategory = 'currency' | 'omen' | 'essence' | 'catalyst' | 'rune';
+export type ConsumableCategory =
+  | 'currency'
+  | 'omen'
+  | 'essence'
+  | 'catalyst'
+  | 'rune'
+  | 'soul-core'
+  | 'liquid-emotion'
+  | 'abyssal-bone';
+
+/**
+ * How far a consumable is understood by the planner. Existing is not the same as implemented:
+ * - catalogued:  known item (name, icon, category), mechanic not described;
+ * - researched:  mechanic described from sources, not implemented;
+ * - modelled:    an action implements it (with the confidence of its rules);
+ * - verified:    the model was checked against observed in-game results;
+ * - unsupported: deliberately not handled (e.g. not a crafting material for equipment).
+ * Only modelled / verified consumables can be applied.
+ */
+export type CraftSupportStatus = 'catalogued' | 'researched' | 'modelled' | 'verified' | 'unsupported';
 
 /**
  * Which consumables an omen changes ("your next Exalted Orb…"). Data with its own provenance:
@@ -32,6 +51,12 @@ export interface Consumable {
   readonly art?: string;
   /** Omens only: the consumables this omen modifies. Absent = unknown, not "none". */
   readonly modifies?: OmenScope;
+  /** Absent = derived (modelled when an action spends it, otherwise catalogued). */
+  readonly craftStatus?: CraftSupportStatus;
+  /** Notes on the researched mechanic (what it does, source), when there are any. */
+  readonly mechanicNotes?: string;
+  /** Official trade group the record was taken from. */
+  readonly tradeGroup?: string;
   readonly versions: VersionRange;
   readonly provenance: Provenance;
 }

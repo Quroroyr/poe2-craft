@@ -17,7 +17,17 @@ export function resolveSpawnWeight(
   return null;
 }
 
-/** A modifier is spawnable when its resolved weight is unknown or positive; weight 0 forbids it. */
+/**
+ * A modifier is spawnable when the resolved rule says so: the extracted `spawns` fact when present,
+ * otherwise an unknown or positive weight; weight 0 forbids it.
+ */
 export function isSpawnable(entry: SpawnWeight | null): boolean {
-  return entry !== null && (entry.weight === null || entry.weight > 0);
+  if (entry === null) return false;
+  if (entry.spawns !== undefined) return entry.spawns && (entry.weight === null || entry.weight > 0);
+  return entry.weight === null || entry.weight > 0;
+}
+
+/** The modifier and the base live in the same modifier domain (either side unspecified = compatible). */
+export function sameDomain(modifierDomain: string | undefined, baseDomain: string | undefined): boolean {
+  return modifierDomain === undefined || baseDomain === undefined || modifierDomain === baseDomain;
 }

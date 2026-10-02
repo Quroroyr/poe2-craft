@@ -85,6 +85,17 @@ export interface ItemSetupRules {
 }
 
 /**
+ * How far the data of a base can be trusted for crafting:
+ * - imported:           present in the client export only;
+ * - validated:          also listed by an independent source (official trade base types);
+ * - crafting-supported: validated, and the engine knows the rules of its class (affix limits, …);
+ * - unsupported:        data present, but the class has mechanics the engine does not model —
+ *                       crafting refuses instead of silently applying general rules.
+ * Absent = a hand-written (fixture) base.
+ */
+export type BaseDataStatus = 'imported' | 'validated' | 'crafting-supported' | 'unsupported';
+
+/**
  * Definition of a base type (Akoyan Spear). Stable, versioned game data; an item only refers to
  * it by `id` (`ItemState.baseId`) and never copies it.
  */
@@ -94,6 +105,16 @@ export interface ItemBase {
   readonly itemClassId: ItemClassId;
   /** Spawn tags. Modifier spawn weights are resolved against these (see spawn.ts). */
   readonly tags: readonly string[];
+  /** Modifier domain of the base ("item", "flask", "misc"…); a modifier spawns only in its own domain. */
+  readonly domain?: string;
+  readonly dropLevel?: number;
+  /** Implicit modifiers the base comes with (ids of `SpecialModifierDefinition`). */
+  readonly implicitModifierIds?: readonly string[];
+  readonly dataStatus?: BaseDataStatus;
+  /** Other export ids with identical data folded into this record. */
+  readonly aliases?: readonly string[];
+  /** Another base with the same name but different data exists: a name alone does not identify it. */
+  readonly ambiguousName?: boolean;
   readonly artAssetId?: ArtAssetId;
   readonly details?: ItemBaseDetails;
   readonly setup?: ItemSetupRules;

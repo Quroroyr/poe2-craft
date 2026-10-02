@@ -1,5 +1,5 @@
 import type { AffixSide } from './item';
-import type { Provenance } from './provenance';
+import type { Confidence, Provenance } from './provenance';
 import type { VersionRange } from './version';
 
 export type ModifierId = string;
@@ -30,13 +30,50 @@ export interface ModifierLine {
 }
 
 /**
- * Spawn weight for items carrying `tag`. `weight: null` means the weight is unknown —
- * it must never be silently treated as a real number (crafting invariant 8).
+ * How a weight value is known. Client data of PoE 2 carries no weights (only whether a modifier
+ * can spawn), so measured community values must say how they were measured.
+ */
+export type WeightMethod =
+  | 'game-extracted'
+  | 'official'
+  | 'recombinator-observation'
+  | 'trade-observation'
+  | 'community-estimate'
+  | 'fixture'
+  | 'unknown';
+
+export interface WeightEvidence {
+  readonly sourceId: string;
+  readonly method: WeightMethod;
+  readonly capturedAt?: string;
+  readonly patch?: string;
+  readonly confidence: Confidence;
+  readonly sampleSize?: number;
+  readonly normalized?: boolean;
+  readonly notes?: string;
+}
+
+/**
+ * Spawn rule for items carrying `tag`. `weight: null` means the weight is unknown — it must never
+ * be silently treated as a real number (crafting invariant 8). `spawns` is the extracted fact
+ * "can appear on bases with this tag" (PoE 2 client data has only this); absent = derived from the
+ * weight (0 forbids, unknown or positive allows). A known weight carries its `evidence`.
  */
 export interface SpawnWeight {
   readonly tag: string;
   readonly weight: number | null;
+  readonly spawns?: boolean;
+  readonly evidence?: WeightEvidence;
 }
+
+/**
+ * Layer of a slot modifier: ordinary explicit, or desecrated (revealed through Abyss crafting).
+ * Both occupy prefix / suffix slots; only explicit ones roll from ordinary currency.
+ */
+export type ModifierLayer = 'explicit' | 'desecrated';
+
+/** Modifiers outside the prefix / suffix slots. Fractured is not a layer: it is a state of a modifier on an item. */
+export type SpecialModifierLayer = 'implicit' | 'corruption';
 
 /**
  * One tier of one modifier. The `id` is stable across game versions; a value change
@@ -62,6 +99,33 @@ export interface ModifierDefinition {
   /** Ordered list; the first tag present on the base decides the weight. */
   readonly spawnWeights: readonly SpawnWeight[];
   /** Descriptive tags shown to the user ("attack", "critical", ...). Not used for spawning. */
+  readonly tags: readonly string[];
+  /** Stable family id from game data (the modifier "type"); absent = family by side + groups. */
+  readonly family?: string;
+  /** Absent = explicit. */
+  readonly layer?: ModifierLayer;
+  /** Modifier domain ("item", "flask", "misc"); absent = any. Must match the base domain. */
+  readonly domain?: string;
+  readonly statIds?: readonly string[];
+  readonly versions: VersionRange;
+  readonly provenance: Provenance;
+}
+
+/**
+ * Implicit modifiers of bases and corruption enchantments: game data shown and parsed, but not part
+ * of the prefix / suffix pool and not rolled by ordinary currency.
+ */
+export interface SpecialModifierDefinition {
+  readonly id: ModifierId;
+  readonly name: string;
+  readonly layer: SpecialModifierLayer;
+  readonly family?: string;
+  readonly domain?: string;
+  readonly groupIds: readonly ModifierGroupId[];
+  readonly requiredItemLevel: number;
+  readonly lines: readonly ModifierLine[];
+  readonly statIds?: readonly string[];
+  readonly spawnWeights: readonly SpawnWeight[];
   readonly tags: readonly string[];
   readonly versions: VersionRange;
   readonly provenance: Provenance;

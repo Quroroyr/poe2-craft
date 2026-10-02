@@ -17,7 +17,8 @@
     "typecheck": "pnpm -r typecheck",
     "check": "pnpm test && pnpm typecheck && pnpm build",
     "data:fetch": "node scripts/data/fetch.ts",
-    "data:fetch:pinned": "node scripts/data/fetch.ts --pinned"
+    "data:fetch:pinned": "node scripts/data/fetch.ts --pinned",
+    "data:normalize": "node scripts/data/normalize.ts"
   },
   "devDependencies": {
     "@poe2-craft/craft-db": "workspace:*",

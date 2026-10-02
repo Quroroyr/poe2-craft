@@ -9,6 +9,7 @@ import type {
   ItemClass,
   ModifierDefinition,
   ModifierGroup,
+  SpecialModifierDefinition,
 } from '@poe2-craft/craft-domain';
 
 /**
@@ -35,6 +36,8 @@ export interface CraftDataset {
   readonly bases: readonly ItemBase[];
   readonly groups: readonly ModifierGroup[];
   readonly modifiers: readonly ModifierDefinition[];
+  /** Implicits and corruption enchantments: shown and parsed, never in the prefix / suffix pool. */
+  readonly specialModifiers?: readonly SpecialModifierDefinition[];
   readonly actions: readonly CraftAction[];
   readonly targets: readonly CraftTarget[];
   readonly affixLimits: readonly AffixLimitRule[];
