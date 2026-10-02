@@ -1,0 +1,82 @@
+{
+  "note": "Raw upstream snapshots used by scripts/data/normalize.ts. The JSON files are not committed; fetch them again with `pnpm data:fetch --pinned`.",
+  "sources": [
+    {
+      "id": "repoe-poe2",
+      "title": "RePoE — PoE 2 export of the game client data",
+      "kind": "game-data",
+      "repository": "https://github.com/repoe-fork/poe2",
+      "revision": "b818b843337cae43b090b272fd98bbc0fd3a34f3",
+      "gameClientVersion": "4.5.5.2",
+      "license": "RePoE tooling: MIT (github.com/repoe-fork/repoe). Exported data: owned by Grinding Gear Games, used under their terms for a non-commercial fan tool.",
+      "fetchedAt": "2026-10-02T12:45:42.548Z",
+      "files": [
+        {
+          "path": "repoe-poe2/base_items.json",
+          "url": "https://raw.githubusercontent.com/repoe-fork/poe2/b818b843337cae43b090b272fd98bbc0fd3a34f3/data/base_items.json",
+          "bytes": 8199055,
+          "sha256": "86932dabccb37552e0d38b3abf996edebea73f1946bfa941ed7992c05f16fcd3"
+        },
+        {
+          "path": "repoe-poe2/mods.json",
+          "url": "https://raw.githubusercontent.com/repoe-fork/poe2/b818b843337cae43b090b272fd98bbc0fd3a34f3/data/mods.json",
+          "bytes": 12978684,
+          "sha256": "3ee691822595d8c91c96416583d1adc9c5e9884232db6cc6f295e79d15d85a07"
+        },
+        {
+          "path": "repoe-poe2/item_classes.json",
+          "url": "https://raw.githubusercontent.com/repoe-fork/poe2/b818b843337cae43b090b272fd98bbc0fd3a34f3/data/item_classes.json",
+          "bytes": 15998,
+          "sha256": "c235f54b1801a84bc03c121072d2003615b8efd40be423cf498c9b6965d35d60"
+        },
+        {
+          "path": "repoe-poe2/tags.json",
+          "url": "https://raw.githubusercontent.com/repoe-fork/poe2/b818b843337cae43b090b272fd98bbc0fd3a34f3/data/tags.json",
+          "bytes": 29102,
+          "sha256": "d80ec3e84684f20f02cdf3429a23957580f68064ed90d528c8a254ad143c3cc1"
+        },
+        {
+          "path": "repoe-poe2/augments.json",
+          "url": "https://raw.githubusercontent.com/repoe-fork/poe2/b818b843337cae43b090b272fd98bbc0fd3a34f3/data/augments.json",
+          "bytes": 335680,
+          "sha256": "0084135db4971e7cca28e52530b60aef5b8f4eb7c87900dcd269092309c41fc0"
+        },
+        {
+          "path": "repoe-poe2/mods_by_base.json",
+          "url": "https://raw.githubusercontent.com/repoe-fork/poe2/b818b843337cae43b090b272fd98bbc0fd3a34f3/data/mods_by_base.json",
+          "bytes": 5615572,
+          "sha256": "281b5258206d61aeeedb1f59d760fe5e5ea65587e9fb204dba95fde541c62880"
+        }
+      ]
+    },
+    {
+      "id": "official-trade2",
+      "title": "Official PoE 2 trade reference data (static, items, stats)",
+      "kind": "official",
+      "revision": null,
+      "gameClientVersion": null,
+      "license": "Grinding Gear Games public trade API; reference data for a non-commercial fan tool.",
+      "fetchedAt": "2026-10-02T12:45:53.303Z",
+      "files": [
+        {
+          "path": "trade2/static.json",
+          "url": "https://www.pathofexile.com/api/trade2/data/static",
+          "bytes": 184282,
+          "sha256": "1d5d84c1b09cd24fa9354bef2714801b661381dcc70fbebe9d136cef515a01a4"
+        },
+        {
+          "path": "trade2/items.json",
+          "url": "https://www.pathofexile.com/api/trade2/data/items",
+          "bytes": 186664,
+          "sha256": "f0002615d7f0b4bd12935020214179dd211f5b06d35965cc22b27a7b758aa26c"
+        },
+        {
+          "path": "trade2/stats.json",
+          "url": "https://www.pathofexile.com/api/trade2/data/stats",
+          "bytes": 853425,
+          "sha256": "98e16e6a4e7d71a2a408da746a6e3c6be3242555f7d2234ec0bfc9c4aed5b931"
+        }
+      ]
+    }
+  ]
+}

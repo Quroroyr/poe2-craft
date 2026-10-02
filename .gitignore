@@ -6,3 +6,6 @@ coverage/
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# Raw upstream game data: re-fetch with `pnpm data:fetch --pinned` (see data/raw/manifest.json)
+data/raw/*/

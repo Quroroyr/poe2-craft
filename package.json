@@ -15,7 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "pnpm -r typecheck",
-    "check": "pnpm test && pnpm typecheck && pnpm build"
+    "check": "pnpm test && pnpm typecheck && pnpm build",
+    "data:fetch": "node scripts/data/fetch.ts",
+    "data:fetch:pinned": "node scripts/data/fetch.ts --pinned"
   },
   "devDependencies": {
     "@poe2-craft/craft-db": "workspace:*",
