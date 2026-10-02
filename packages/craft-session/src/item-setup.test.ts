@@ -26,6 +26,8 @@ import {
   selectCurrency,
   sessionSpent,
   setItemLevel,
+  setRarity,
+  setupRarities,
   setQuality,
   setSlotCount,
   setSource,
@@ -151,6 +153,19 @@ describe('item setup', () => {
     expect(itemSetupFields(bareView, bare)).toMatchObject({ quality: null, slots: [] });
     expect(setQuality(bareView, bare, 20)).toBe(bare);
     expect(setSlotCount(bareView, bare, 'rune-socket', 1)).toBe(bare);
+  });
+
+  it('changes rarity among the rarities with affix rules and flags modifiers that no longer fit', () => {
+    // Affix limits exist for normal (0/0), magic (1/1) and rare (3/3).
+    expect(setupRarities(view)).toEqual(['normal', 'magic', 'rare']);
+    let item = addSourceModifier(build('base.akoyan-spear'), def('mod.local-critical-chance.t1'));
+    item = addSourceModifier(item, def('mod.local-attack-speed.t1'));
+    const magic = setRarity(view, item, 'magic');
+    expect(magic.rarity).toBe('magic');
+    expect(magic.explicits).toHaveLength(2);
+    // Two suffixes on a magic item (limit 1): each is flagged as having no free suffix slot.
+    expect(sourceModifierIssues(db, VERSION, magic).get(0)?.map((r) => r.code)).toContain('no-free-affix-slot');
+    expect(setRarity(view, item, 'unique')).toBe(item);
   });
 
   it('accepts only slot counts the base lists', () => {

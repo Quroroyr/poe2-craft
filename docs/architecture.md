@@ -63,6 +63,17 @@ ilvl / качество / сокеты ──setItemLevel / setQuality / setSlot
 Арт: `ItemBase.artAssetId` / `Consumable.art` (id) → `apps/web/src/lib/art-manifest.ts` (файл, размер,
 источник) → `/icons/game/*.png`. Домен не знает ни путей, ни URL.
 
+### Интерфейс по макету (v0.5)
+
+```
+┌ 1 Исходный ─────────┬ 2 Текущий (золотая рамка) ┬ 3 Целевой ──────────────┐
+│ база/класс/редкость │ арт · свойства базы        │ требования + статус     │
+│ ilvl/качество/сокеты│ моды P/S · T · fractured   │ targetOutlook, прогресс │
+├ 4 Инструменты: вкладки · полоса иконок (toolPalette) · Активный крафт ──────┤
+│   ToolSelection {валюта, omen} → resolveTool: ready | incompatible | unsupported | none
+├ 5 Пул модов: семейства | таблица тиров ┬ 6 История ┬ 7 Затраты: факт | этап ┤
+```
+
 ## Пакеты и направление зависимостей
 
 | Пакет | Назначение | Зависит от |
@@ -96,7 +107,9 @@ ilvl / качество / сокеты ──setItemLevel / setQuality / setSlot
 | `src/lib/base-catalog.ts` | поиск / фильтр по классу / сортировка в селекторе баз (без игровых правил) |
 | `src/lib/held-tool.ts` | что «держит» курсор: иконки и ready / blocked с причиной |
 | `src/components/BaseSelector.tsx` | модальное окно выбора базы (`<dialog>`) |
-| `src/components/HeldToolCursor.tsx` | оверлей валюты у курсора над предметом (портал, `pointer-events: none`) |
+| `src/components/HeldToolCursor.tsx` | оверлей валюты у курсора над предметом (портал, `pointer-events: none`), Omen — кольцевой значок |
+| `src/components/Masthead.tsx`, `ToolPalette.tsx`, `HistoryPanel.tsx`, `SpendingPanel.tsx`, `ItemBits.tsx` | шапка, полоса инструментов с активным крафтом, история, затраты, рамка арта и свойства базы |
+| `src/app/planner.css` | стили макета: позолоченные рамки, ряды, адаптивность (container queries для узких колонок) |
 | `src/components/Workspace.tsx` | состояние страницы и вызовы пакетов |
 | `src/components/*Panel.tsx`, `ItemCard.tsx` | отображение |
 

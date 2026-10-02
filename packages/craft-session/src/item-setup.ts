@@ -8,6 +8,7 @@ import {
   type ItemState,
   type ModifierDefinition,
   type QualityRule,
+  type Rarity,
   type SlotKindId,
   type SlotRule,
 } from '@poe2-craft/craft-domain';
@@ -73,6 +74,20 @@ export function itemSetupFields(view: CraftDbView, item: ItemState): ItemSetupFi
     quality: base.setup?.quality ?? null,
     slots: base.setup?.slots ?? [],
   };
+}
+
+/**
+ * Rarities a manually built item can have: those with an affix-limit rule in this game version
+ * (unique items are found, not built). Data decides, so a patch can change the list.
+ */
+export function setupRarities(view: CraftDbView): readonly Rarity[] {
+  return (['normal', 'magic', 'rare'] as const).filter((r) => view.getAffixLimits(r) !== undefined);
+}
+
+/** Sets the rarity. Modifiers the new rarity has no room for are kept and flagged by `sourceModifierIssues`. */
+export function setRarity(view: CraftDbView, item: ItemState, rarity: Rarity): ItemState {
+  if (!setupRarities(view).includes(rarity) || item.rarity === rarity) return item;
+  return createItemState({ ...item, rarity });
 }
 
 export function setItemLevel(item: ItemState, itemLevel: number): ItemState {

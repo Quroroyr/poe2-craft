@@ -26,6 +26,8 @@ import {
   sourceTierOptions,
   targetBaseCheck,
   targetFromModifier,
+  targetOutlook,
+  toolPalette,
   type ApplyRejection,
   type CraftSession,
   type ItemComparison,
@@ -33,7 +35,9 @@ import {
   type PoolMode,
   type ResolvedTool,
   type TargetBaseCheck,
+  type TargetOutlook,
   type TierOption,
+  type ToolPalette,
   type ToolSelection,
 } from '@poe2-craft/craft-session';
 
@@ -93,6 +97,9 @@ export interface WorkspaceAnalysis {
   readonly blockedBy: ApplyRejection | null;
   readonly explorer: PoolExplorer | null;
   readonly comparison: ItemComparison | null;
+  /** Per-requirement state against the current item and target progress. */
+  readonly outlook: TargetOutlook | null;
+  readonly palette: ToolPalette;
   readonly stageTargets: readonly StageTargetOption[];
   readonly stageTarget: StageTargetOption | null;
   readonly probability: ProbabilityResult | null;
@@ -116,6 +123,8 @@ export function analyzeWorkspace(input: WorkspaceInput): WorkspaceAnalysis {
   const comparison =
     session.current && session.target ? compareToTarget(session.current, session.target, view) : null;
   const targetBase = targetBaseCheck(session.source ?? session.current, session.target);
+  const outlook =
+    session.current && comparison ? targetOutlook(craftDb, session.gameVersion, session.current, comparison) : null;
   const stageTargets = stageTargetOptions(view, targetBase === 'mismatch' ? null : comparison);
   const stageTarget = stageTargets.find((o) => o.key === input.stageTargetKey) ?? stageTargets[0] ?? null;
   const probability = pool && stageTarget ? calculateTargetProbability(pool, stageTarget.target) : null;
@@ -131,6 +140,8 @@ export function analyzeWorkspace(input: WorkspaceInput): WorkspaceAnalysis {
     blockedBy,
     explorer,
     comparison,
+    outlook,
+    palette: toolPalette(view),
     stageTargets,
     stageTarget,
     probability,

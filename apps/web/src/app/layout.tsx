@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { Alegreya_SC } from 'next/font/google';
 import './globals.css';
-import './workspace.css';
-import './workbench.css';
+import './planner.css';
 
 /** Small-caps book face for item names, close to how the game sets them. Self-hosted by next/font. */
 const itemFace = Alegreya_SC({

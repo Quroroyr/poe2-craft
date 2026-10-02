@@ -14,7 +14,8 @@
 | Свойства баз (урон, крит, скорость атаки), требования, implicit-строки, арт | **реальные**, наблюдение | `official.trade2-listings`: JSON одного обычного (normal) предмета без качества и сокетов на каждую базу, 02.10.2026 | verified (одно наблюдение, с файлами игры не сверено) |
 | Теги спавна баз | **придуманы** | fixture | experimental |
 | Диапазон качества 0–20 %, сокеты рун (1 у одноручных, 2 у двуручных) | общеизвестно, не сверено | `unverified.general-knowledge` | experimental |
-| Названия валют и Omen, их иконки | **реальные** | `official.trade2-data` (trade2/data/static), 02.10.2026 | official |
+| Названия и иконки 47 расходников (валюта, Omen, эссенции, катализаторы, руны) | **реальные** | `official.trade2-data` (trade2/data/static), 02.10.2026 | official |
+| Какой валюте относится Omen (`Consumable.modifies`) | общеизвестно, не сверено | `unverified.general-knowledge` | experimental |
 | Лимиты аффиксов (magic 1/1, rare 3/3) | общеизвестно, не сверено | `unverified.general-knowledge` | experimental |
 | Действия (Exalted Orb и т. п.) | упрощённая модель «добавить 1 мод по весу»; реальные эффекты Omen **не закодированы** | fixture | experimental |
 | Порог «modifier level ≥ 50» у Perfect Exalted Orb | **придуман** | fixture | experimental |
@@ -57,3 +58,9 @@ CDN) — сайт показывает их в этом размере или м
 
 Каждый импорт создаёт `DataSource` и проставляет `Provenance` с `lastVerified`. Правила из
 PoE 1 без подтверждения для PoE 2 не импортируются (инвариант 11).
+
+## Оформление, не данные
+
+`apps/web/public/img/workshop.webp` — фон страницы, сгенерирован локально (ComfyUI, Z-Image-Turbo,
+лицензия Apache 2.0), исходник — `design/bg/bg_00001_.png`. Это не игровой ассет и не источник данных.
+

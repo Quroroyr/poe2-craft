@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { AffixSide, ExplicitModifier, ItemState } from '@poe2-craft/craft-domain';
+import type { AffixSide, ExplicitModifier, ItemBaseId, ItemState, Rarity } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import { SAMPLE_ITEMS } from '@poe2-craft/item-parser';
 import {
@@ -7,18 +7,18 @@ import {
   replaceSourceModifier,
   setItemLevel,
   setQuality,
+  setRarity,
   setSlotCount,
   setSourceModifierFractured,
+  setupRarities,
   slotCount,
 } from '@poe2-craft/craft-session';
 import type { ExplorerMode, SourceSetupView } from '@/lib/analyze';
-import { baseArt } from '@/lib/icons';
-import { SLOT_LABEL, exclusionText, sourceTitle } from '@/lib/texts';
-import { Segmented, Stepper } from './Controls';
+import { ITEM_CATEGORY_LABEL, RARITY_LABEL, SIDE_LABEL, SLOT_LABEL, exclusionText, sourceTitle } from '@/lib/texts';
+import { Stepper } from './Controls';
 import { Icon } from './Icon';
 import { ImportBox } from './ImportBox';
-import { ItemArt } from './ItemArt';
-import { ItemCard } from './ItemCard';
+import { ArtFrame } from './ItemBits';
 import { Panel } from './Panel';
 
 interface SourcePanelProps {
@@ -32,34 +32,58 @@ interface SourcePanelProps {
   /** Initial item setup of the source. Never crafting, never counted as spending. */
   readonly onEdit: (source: ItemState) => void;
   readonly onExplore: (mode: ExplorerMode) => void;
-  readonly onChooseBase: () => void;
+  readonly onChooseBase: (baseId: ItemBaseId) => void;
+  readonly onOpenCatalog: () => void;
+  readonly onClear: () => void;
 }
 
-type SourceMode = 'build' | 'import';
+/**
+ * - base:   pick the class and base from the catalog, then configure the item (default);
+ * - import: paste the game's Ctrl+C text;
+ * - manual: the same settings plus the detailed editor of every starting modifier.
+ */
+type SourceMode = 'base' | 'import' | 'manual';
 
-/** Source item: built from a base by hand, or imported from the game's Ctrl+C text. */
+const MODES: readonly { id: SourceMode; label: string }[] = [
+  { id: 'base', label: 'База из игры' },
+  { id: 'import', label: 'Импорт предмета' },
+  { id: 'manual', label: 'Ручная настройка' },
+];
+
+/** Source builder: base, rarity, item level, quality, slots, starting modifiers and their fractured state. */
 export function SourcePanel(props: SourcePanelProps) {
   const { source, view, setup } = props;
-  const [mode, setMode] = useState<SourceMode>('build');
+  const [mode, setMode] = useState<SourceMode>('base');
 
   return (
     <Panel
+      index={1}
       title="Исходный предмет"
+      className="panel-source"
       aside={
-        <button type="button" className="btn btn-small" onClick={props.onChooseBase}>
-          <Icon name="plus" size={14} />
-          Новый предмет
+        <button type="button" className="btn btn-small" onClick={props.onClear} disabled={!source || source.explicits.length === 0}>
+          <Icon name="reset" size={14} />
+          Сбросить
         </button>
       }
     >
-      <div className="segmented segmented-wide" role="tablist" aria-label="Способ создания исходного">
-        <button type="button" role="tab" aria-selected={mode === 'build'} aria-pressed={mode === 'build'} onClick={() => setMode('build')}>
-          <Icon name="hammer" size={14} />
-          Собрать вручную
-        </button>
-        <button type="button" role="tab" aria-selected={mode === 'import'} aria-pressed={mode === 'import'} onClick={() => setMode('import')}>
-          <Icon name="import" size={14} />
-          Импорт из игры
+      <div className="mode-row">
+        <div className="segmented segmented-wide" role="tablist" aria-label="Способ создания исходного">
+          {MODES.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              role="tab"
+              aria-selected={mode === m.id}
+              aria-pressed={mode === m.id}
+              onClick={() => setMode(m.id)}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="icon-btn icon-btn-gold" aria-label="Каталог баз" title="Каталог баз" onClick={props.onOpenCatalog}>
+          <Icon name="book" size={16} />
         </button>
       </div>
 
@@ -76,220 +100,293 @@ export function SourcePanel(props: SourcePanelProps) {
       {!source ? (
         <div className="source-empty">
           <p>Исходного предмета нет. Выберите базу и соберите его — или вставьте текст из игры.</p>
-          <button type="button" className="btn btn-primary" onClick={props.onChooseBase}>
+          <button type="button" className="btn btn-primary" onClick={props.onOpenCatalog}>
             Создать предмет
           </button>
         </div>
       ) : (
         <>
-          <SourceBase source={source} view={view} setup={setup} onChooseBase={props.onChooseBase} onEdit={props.onEdit} />
-          <ItemCard
-            item={source}
-            view={view}
-            variant="setup"
-            issues={issueTexts(setup, view)}
-            renderModActions={(index, mod) => (
-              <ModEditor
-                key={`${index}-${mod.kind === 'resolved' ? mod.modifierId : mod.sourceText}`}
-                index={index}
-                mod={mod}
-                source={source}
-                view={view}
-                setup={setup}
-                onEdit={props.onEdit}
-                onExplore={props.onExplore}
-              />
-            )}
-            renderSideFooter={(side: AffixSide, used, max) => {
-              const active =
-                props.explorerMode.kind === 'edit-source' &&
-                props.explorerMode.side === side &&
-                props.explorerMode.replaceIndex === undefined;
-              return (
-                <button
-                  type="button"
-                  className={`add-btn${active ? ' add-btn-active' : ''}`}
-                  disabled={max !== undefined && used >= max}
-                  onClick={() => props.onExplore({ kind: 'edit-source', side })}
-                >
-                  <Icon name="plus" size={14} />
-                  {side === 'prefix' ? 'Добавить префикс' : 'Добавить суффикс'}
-                </button>
-              );
-            }}
-          />
+          <SourceSetup {...props} source={source} />
+          <div className="source-affixes">
+            {(['prefix', 'suffix'] as const).map((side) => (
+              <AffixColumn key={side} side={side} {...props} source={source} detailed={mode === 'manual'} />
+            ))}
+          </div>
+          {unresolvedOf(source, view).length > 0 && (
+            <p className="state-box state-warn">
+              Нераспознанные строки импорта: {unresolvedOf(source, view).map((m) => m.sourceText).join('; ')}
+            </p>
+          )}
         </>
       )}
       <p className="hint">
-        Всё здесь — настройка стартового предмета, а не крафт: валюта не тратится, шаги не пишутся.
-        {props.craftStarted && ' Крафт уже начат: текущий предмет догонит исходный только после Reset.'}
+        Настройка стартового предмета — не крафт: валюта не тратится, шаги не пишутся.
+        {props.craftStarted && ' Крафт уже начат: текущий догонит исходный только после Reset.'}
+        {setup && setup.fields && (setup.fields.quality || setup.fields.slots.length > 0) && ' Качество и сокеты в расчётах пока не участвуют.'}
       </p>
     </Panel>
   );
 }
 
-function SourceBase(props: {
-  source: ItemState;
-  view: CraftDbView;
-  setup: SourceSetupView | null;
-  onChooseBase: () => void;
-  onEdit: (source: ItemState) => void;
-}) {
+function unresolvedOf(source: ItemState, view: CraftDbView): ExplicitModifier[] {
+  return source.explicits.filter((m) => m.kind === 'unresolved' || !view.getModifier(m.modifierId));
+}
+
+function SourceSetup(props: SourcePanelProps & { source: ItemState }) {
   const { source, view } = props;
   const fields = props.setup?.fields ?? null;
   const base = fields?.base;
   const itemClass = base ? view.getItemClass(base.itemClassId) : undefined;
+  const classes = view.listItemClasses();
+  const categories = [...new Set(classes.map((c) => c.category ?? 'other'))];
+  const category = itemClass?.category ?? categories[0] ?? 'other';
+  const basesOfClass = view.listBases().filter((b) => b.itemClassId === itemClass?.id);
+  const requirements = base?.details?.requirements;
+  const firstBaseOf = (classId: string) => view.listBases().find((b) => b.itemClassId === classId);
+
   return (
-    <div className="source-base">
-      <div className="source-base-head">
-        <ItemArt art={baseArt(base)} label={source.baseName ?? 'база'} maxHeight={96} className="source-base-art" />
-        <div className="source-base-title">
-          <span className="source-base-name">{source.baseName ?? 'База не распознана'}</span>
-          <span className="muted small">{itemClass?.clipboardName ?? source.itemClassName ?? 'класс неизвестен'}</span>
-          <button type="button" className="link-btn" onClick={props.onChooseBase}>
-            <Icon name="swap" size={14} />
-            Сменить базу
+    <div className="source-setup">
+      <ArtFrame base={base} label={source.baseName ?? 'база'} glow="ember" maxHeight={188} className="source-art" />
+      <div className="setup-fields">
+        <div className="field-pair">
+          <label className="field">
+            <span className="field-label">Тип предмета</span>
+            <select
+              name="source-category"
+              value={category}
+              onChange={(e) => {
+                const cls = classes.find((c) => (c.category ?? 'other') === e.target.value);
+                const next = cls && firstBaseOf(cls.id);
+                if (next) props.onChooseBase(next.id);
+              }}
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {ITEM_CATEGORY_LABEL[c] ?? c}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span className="field-label">Класс</span>
+            <select
+              name="source-class"
+              value={itemClass?.id ?? ''}
+              onChange={(e) => {
+                const next = firstBaseOf(e.target.value);
+                if (next) props.onChooseBase(next.id);
+              }}
+            >
+              {!itemClass && <option value="">—</option>}
+              {classes
+                .filter((c) => (c.category ?? 'other') === category)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.clipboardName}
+                  </option>
+                ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="field-base">
+          <label className="field">
+            <span className="field-label">База</span>
+            <select name="source-base" value={base?.id ?? ''} onChange={(e) => props.onChooseBase(e.target.value)}>
+              {!base && <option value="">{source.baseName ?? 'не распознана'}</option>}
+              {basesOfClass.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="button" className="icon-btn icon-btn-gold" aria-label="Выбрать в каталоге" title="Выбрать в каталоге" onClick={props.onOpenCatalog}>
+            <Icon name="pencil" size={15} />
           </button>
         </div>
-      </div>
 
-      {fields ? (
-        <div className="setup-grid">
-          <Stepper
-            name="source-ilvl"
-            label="Item level"
-            value={source.itemLevel}
-            min={fields.itemLevel.min}
-            max={fields.itemLevel.max}
-            onChange={(n) => props.onEdit(setItemLevel(source, n))}
-          />
-          {fields.quality && (
-            <Stepper
-              name="source-quality"
-              label="Качество"
-              suffix="%"
-              value={source.quality}
-              min={fields.quality.min}
-              max={fields.quality.max}
-              onChange={(n) => props.onEdit(setQuality(view, source, n))}
-            />
-          )}
-          {fields.slots.map((rule) => (
-            <Segmented
-              key={rule.kind}
-              label={SLOT_LABEL[rule.kind] ?? rule.label}
-              value={slotCount(source, rule.kind)}
-              options={rule.options.map((n) => ({ value: n, label: String(n) }))}
-              onChange={(n) => props.onEdit(setSlotCount(view, source, rule.kind, n))}
-            />
-          ))}
-        </div>
-      ) : (
-        <p className="state-box state-warn">База не найдена в CraftDB — свойства предмета не настраиваются.</p>
-      )}
-      {fields && (fields.quality || fields.slots.length > 0) && (
-        <p className="hint" title={[fields.quality, ...fields.slots].map((r) => r && sourceTitle(view, r.provenance)).filter(Boolean).join('\n')}>
-          Качество и сокеты записываются в предмет, но в расчётах пока не участвуют. Допустимые значения общеизвестны и
-          не сверены с данными игры.
-        </p>
-      )}
+        {fields ? (
+          <>
+            <div className="field-pair">
+              <label className="field">
+                <span className="field-label">Редкость</span>
+                <select
+                  name="source-rarity"
+                  className={`rarity-select rarity-${source.rarity ?? 'unknown'}`}
+                  value={source.rarity ?? ''}
+                  onChange={(e) => props.onEdit(setRarity(view, source, e.target.value as Rarity))}
+                >
+                  {source.rarity === null && <option value="">—</option>}
+                  {setupRarities(view).map((r) => (
+                    <option key={r} value={r}>
+                      {RARITY_LABEL[r]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <Stepper
+                name="source-ilvl"
+                label="Уровень предмета"
+                value={source.itemLevel}
+                min={fields.itemLevel.min}
+                max={fields.itemLevel.max}
+                onChange={(n) => props.onEdit(setItemLevel(source, n))}
+              />
+            </div>
+            <div className="field-pair">
+              {fields.quality ? (
+                <Stepper
+                  name="source-quality"
+                  label="Качество"
+                  suffix="%"
+                  value={source.quality}
+                  min={fields.quality.min}
+                  max={fields.quality.max}
+                  onChange={(n) => props.onEdit(setQuality(view, source, n))}
+                />
+              ) : (
+                <span />
+              )}
+              <div className="field">
+                <span className="field-label">Требования базы</span>
+                <div className="req-chips num">
+                  <span>Str {requirements?.strength ?? '—'}</span>
+                  <span>Dex {requirements?.dexterity ?? '—'}</span>
+                  <span>Int {requirements?.intelligence ?? '—'}</span>
+                </div>
+              </div>
+            </div>
+            {fields.slots.length > 0 && (
+              <div className="setup-extra">
+                <span className="field-label">Дополнительно</span>
+                {fields.slots.map((rule) => (
+                  <label key={rule.kind} className="inline-field" title={sourceTitle(view, rule.provenance)}>
+                    {SLOT_LABEL[rule.kind] ?? rule.label}
+                    <select
+                      name={`source-slot-${rule.kind}`}
+                      value={slotCount(source, rule.kind) ?? ''}
+                      onChange={(e) => props.onEdit(setSlotCount(view, source, rule.kind, Number(e.target.value)))}
+                    >
+                      {slotCount(source, rule.kind) === null && <option value="">—</option>}
+                      {rule.options.map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="state-box state-warn">База не найдена в CraftDB — свойства предмета не настраиваются.</p>
+        )}
+      </div>
     </div>
   );
 }
 
-function ModEditor(props: {
-  index: number;
-  mod: ExplicitModifier;
-  source: ItemState;
-  view: CraftDbView;
-  setup: SourceSetupView | null;
-  onEdit: (source: ItemState) => void;
-  onExplore: (mode: ExplorerMode) => void;
-}) {
-  const { index, mod, source, view } = props;
-  const [open, setOpen] = useState(false);
-  const def = mod.kind === 'resolved' ? view.getModifier(mod.modifierId) : undefined;
-  const tiers = props.setup?.tierOptions.get(index) ?? [];
-  const fracture = (fractured: boolean) => props.onEdit(setSourceModifierFractured(source, index, fractured));
+function AffixColumn(props: SourcePanelProps & { source: ItemState; side: AffixSide; detailed: boolean }) {
+  const { source, view, side } = props;
+  const limits = source.rarity ? view.getAffixLimits(source.rarity) : undefined;
+  const max = side === 'prefix' ? limits?.maxPrefixes : limits?.maxSuffixes;
+  const mods = source.explicits
+    .map((mod, index) => ({ mod, index }))
+    .filter(({ mod }) => mod.kind === 'resolved' && view.getModifier(mod.modifierId)?.side === side);
+  const active =
+    props.explorerMode.kind === 'edit-source' && props.explorerMode.side === side && props.explorerMode.replaceIndex === undefined;
 
   return (
-    <div className="mod-editor">
-      <div className="mod-editor-bar">
+    <section className="affix-col" aria-label={`${SIDE_LABEL[side]}ы исходного`}>
+      <h3 className="affix-col-title">
+        {SIDE_LABEL[side]}ы <span className="num">{mods.length} / {max ?? '?'}</span>
+      </h3>
+      <ul className="chip-list">
+        {mods.map(({ mod, index }) => (
+          <SourceModChip key={`${index}-${mod.kind === 'resolved' ? mod.modifierId : ''}`} {...props} mod={mod} index={index} />
+        ))}
+      </ul>
+      <button
+        type="button"
+        className={`add-btn${active ? ' add-btn-active' : ''}`}
+        disabled={max !== undefined && mods.length >= max}
+        onClick={() => props.onExplore({ kind: 'edit-source', side })}
+      >
+        <Icon name="plus" size={14} />
+        {side === 'prefix' ? 'Добавить префикс' : 'Добавить суффикс'}
+      </button>
+    </section>
+  );
+}
+
+function SourceModChip(props: SourcePanelProps & { source: ItemState; mod: ExplicitModifier; index: number; detailed: boolean }) {
+  const { source, view, mod, index } = props;
+  if (mod.kind !== 'resolved') return null;
+  const def = view.getModifier(mod.modifierId);
+  if (!def) return null;
+  const tiers = props.setup?.tierOptions.get(index) ?? [];
+  const issue = props.setup?.issues.get(index);
+  return (
+    <li className={`mod-chip${mod.fractured ? ' mod-chip-fractured' : ''}`}>
+      <div className="mod-chip-main">
+        <span className="mod-text">{mod.sourceText.replace(/\s*\(fractured\)$/i, '')}</span>
+        <button
+          type="button"
+          className="icon-btn icon-btn-quiet"
+          aria-label="Удалить мод"
+          onClick={() => props.onEdit(removeSourceModifier(source, index))}
+        >
+          <Icon name="close" size={13} />
+        </button>
+      </div>
+      <div className="mod-chip-tags">
+        <select
+          name={`source-tier-${index}`}
+          className="tier-select"
+          aria-label="Тир"
+          value={def.id}
+          onChange={(e) => {
+            const next = view.getModifier(e.target.value);
+            if (next) props.onEdit(replaceSourceModifier(source, index, next));
+          }}
+        >
+          {tiers.map((t) => (
+            <option
+              key={t.definition.id}
+              value={t.definition.id}
+              disabled={!t.allowed && t.definition.id !== def.id}
+              title={t.reasons.map((r) => exclusionText(r, view)).join('; ')}
+            >
+              T{t.definition.tier}
+              {t.allowed ? '' : ` — ${t.reasons.map((r) => exclusionText(r, view)).join('; ')}`}
+            </option>
+          ))}
+        </select>
+        <span className="chip-name">{def.name.replace(/^of /, '')}</span>
         <button
           type="button"
           className="frac-toggle"
           aria-pressed={mod.fractured}
           title="Настройка исходного: мод уже fractured на вашей базе. Это не Fracturing Orb и ничего не стоит."
-          onClick={() => fracture(!mod.fractured)}
+          onClick={() => props.onEdit(setSourceModifierFractured(source, index, !mod.fractured))}
         >
-          <Icon name="crack" size={14} />
-          {mod.fractured ? 'Снять fracture' : 'Сделать fractured'}
-        </button>
-        <button type="button" className="link-btn" aria-expanded={open} onClick={() => setOpen(!open)}>
-          {open ? 'Свернуть' : 'Изменить'}
-          <Icon name="chevron" size={12} className={open ? 'rot-90' : undefined} />
+          <Icon name="crack" size={12} />
+          fractured
         </button>
       </div>
-      {open && (
-        <div className="mod-editor-panel">
-          {def && tiers.length > 0 && (
-            <label className="inline-field">
-              Тир
-              <select
-                name={`source-tier-${index}`}
-                value={def.id}
-                onChange={(e) => {
-                  const next = view.getModifier(e.target.value);
-                  if (next) props.onEdit(replaceSourceModifier(source, index, next));
-                }}
-              >
-                {tiers.map((t) => (
-                  <option
-                    key={t.definition.id}
-                    value={t.definition.id}
-                    disabled={!t.allowed && t.definition.id !== def.id}
-                    title={t.reasons.map((r) => exclusionText(r, view)).join('; ')}
-                  >
-                    T{t.definition.tier} · {t.definition.name}
-                    {t.allowed ? '' : ` — ${t.reasons.map((r) => exclusionText(r, view)).join('; ')}`}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <Segmented
-            label="Состояние"
-            value={mod.fractured ? 'fractured' : 'normal'}
-            options={[
-              { value: 'normal', label: 'Обычный' },
-              { value: 'fractured', label: 'Fractured' },
-            ]}
-            onChange={(v) => fracture(v === 'fractured')}
-          />
-          <div className="mod-editor-actions">
-            {def && (
-              <button
-                type="button"
-                className="btn btn-small"
-                onClick={() => props.onExplore({ kind: 'edit-source', side: def.side, replaceIndex: index })}
-              >
-                Заменить из пула
-              </button>
-            )}
-            <button type="button" className="btn btn-small btn-danger" onClick={() => props.onEdit(removeSourceModifier(source, index))}>
-              Удалить
-            </button>
-          </div>
+      {issue && <p className="mod-issue">Не может стоять на предмете: {issue.map((r) => exclusionText(r, view)).join('; ')}</p>}
+      {props.detailed && (
+        <div className="mod-chip-detail">
+          <span className="muted small">
+            {def.name} · ilvl {def.requiredItemLevel} · {def.tags.join(', ') || 'без тегов'}
+          </span>
+          <button type="button" className="link-btn" onClick={() => props.onExplore({ kind: 'edit-source', side: def.side, replaceIndex: index })}>
+            Заменить из пула
+          </button>
         </div>
       )}
-    </div>
+    </li>
   );
-}
-
-function issueTexts(setup: SourceSetupView | null, view: CraftDbView): ReadonlyMap<number, string> {
-  const texts = new Map<number, string>();
-  for (const [index, reasons] of setup?.issues ?? []) {
-    texts.set(index, `Не может стоять на этом предмете: ${reasons.map((r) => exclusionText(r, view)).join('; ')}`);
-  }
-  return texts;
 }

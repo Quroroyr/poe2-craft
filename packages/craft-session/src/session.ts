@@ -134,7 +134,7 @@ export type ApplyStepResult =
       readonly session: CraftSession;
       readonly outcome: ApplyOutcome | null;
       /** Set when the attempt never reached the action: no item, no tool, or a tool without a model. */
-      readonly reason?: 'no-item' | 'no-tool' | 'unsupported-tool';
+      readonly reason?: 'no-item' | 'no-tool' | 'incompatible-tool' | 'unsupported-tool';
     };
 
 /** Applies one action to the current item (demo simulation) and records it in the history. */
@@ -196,6 +196,9 @@ export function applyToolStep(session: CraftSession, input: ApplyToolInput): App
   if (!session.current) return { status: 'rejected', session, outcome: null, reason: 'no-item' };
   const resolved = resolveTool(input.db.forVersion(session.gameVersion), input.tool);
   if (resolved.status === 'none') return { status: 'rejected', session, outcome: null, reason: 'no-tool' };
+  if (resolved.status === 'incompatible') {
+    return { status: 'rejected', session, outcome: null, reason: 'incompatible-tool' };
+  }
   if (resolved.status === 'unsupported') {
     return { status: 'rejected', session, outcome: null, reason: 'unsupported-tool' };
   }
@@ -260,6 +263,36 @@ export function sessionSpent(session: CraftSession): SessionSpent {
     if (!step.cost.complete) incomplete = true;
   }
   return { unit, total, stepCount: session.steps.length, incomplete, mixedUnits };
+}
+
+export interface SpentLine {
+  readonly consumableId: string;
+  readonly quantity: number;
+  /** Sum of priced subtotals in the session unit. */
+  readonly total: number;
+  /** At least one use had no price, so `total` covers only the priced ones. */
+  readonly unpriced: boolean;
+}
+
+/**
+ * The same fact as `sessionSpent`, split by consumable: how many of each the recorded (not undone)
+ * steps spent and what they cost at the prices of their time. Steps in another unit are left out,
+ * as in `sessionSpent`.
+ */
+export function sessionSpentByConsumable(session: CraftSession): readonly SpentLine[] {
+  const unit = session.steps[0]?.cost.unit ?? null;
+  const lines = new Map<string, { quantity: number; total: number; unpriced: boolean }>();
+  for (const step of session.steps) {
+    if (step.cost.unit !== unit) continue;
+    for (const line of step.cost.lines) {
+      const entry = lines.get(line.consumableId) ?? { quantity: 0, total: 0, unpriced: false };
+      entry.quantity += line.quantity;
+      if (line.subtotal === null) entry.unpriced = true;
+      else entry.total += line.subtotal;
+      lines.set(line.consumableId, entry);
+    }
+  }
+  return [...lines].map(([consumableId, e]) => ({ consumableId, ...e }));
 }
 
 /** Modifier ids added by the simulation in this session (to mark them on the current item). */

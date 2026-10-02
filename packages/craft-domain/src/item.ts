@@ -14,6 +14,8 @@ export interface ItemClass {
   readonly name: string;
   /** Value of the "Item Class:" line in the game's Ctrl+C text, e.g. "Spears". */
   readonly clipboardName: string;
+  /** Group of classes as the trade data groups them ("weapon", "armour", "accessory", ...). */
+  readonly category?: string;
   readonly versions: VersionRange;
   readonly provenance: Provenance;
 }

@@ -31,7 +31,7 @@ export const HeldToolGlyph = forwardRef<HTMLDivElement, HeldToolCursorProps>(fun
         {main?.src && <img className="held-main" src={main.src} alt="" width={44} height={44} draggable={false} />}
         {extras.map((icon) =>
           icon.src ? (
-            <img key={icon.name} className="held-extra" src={icon.src} alt="" width={26} height={26} draggable={false} />
+            <img key={icon.name} className="held-extra" src={icon.src} alt="" width={30} height={30} draggable={false} />
           ) : null,
         )}
         {tool.state === 'blocked' && (

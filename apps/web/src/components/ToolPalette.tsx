@@ -1,193 +1,224 @@
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { Consumable, ConsumableCategory } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import {
   EMPTY_TOOL,
-  selectCurrency,
-  toggleOmen,
-  toolPalette,
+  clearOmens,
+  pickTool,
   type ResolvedTool,
+  type ToolPalette as Palette,
   type ToolSelection,
 } from '@poe2-craft/craft-session';
 import type { AttemptCost } from '@poe2-craft/economy';
 import type { ProbabilityResult } from '@poe2-craft/probability-engine';
-import type { StageTargetOption } from '@/lib/analyze';
 import { formatAttempts, formatCost, formatPercent } from '@/lib/format';
 import { consumableIconUrl } from '@/lib/icons';
 import { parsePriceInput, type PriceInputs } from '@/lib/prices';
+import { TOOL_CATEGORY_LABEL } from '@/lib/texts';
 import { GameIcon } from './GameIcon';
 import { Icon } from './Icon';
+import { Panel } from './Panel';
 
-/** Palette tabs. Only categories with an implemented model have tools; the rest show what is planned. */
-const TABS: readonly { id: string; label: string; category?: ConsumableCategory }[] = [
-  { id: 'currency', label: 'Валюта', category: 'currency' },
-  { id: 'omen', label: 'Omens', category: 'omen' },
-  { id: 'essence', label: 'Essences' },
-  { id: 'catalyst', label: 'Catalysts' },
-  { id: 'desecration', label: 'Desecration' },
-  { id: 'runes', label: 'Runes' },
-];
+const CATEGORIES: readonly ConsumableCategory[] = ['currency', 'omen', 'essence', 'catalyst', 'rune'];
 
 interface ToolPaletteProps {
   readonly view: CraftDbView;
+  readonly palette: Palette;
   readonly selection: ToolSelection;
   readonly onSelect: (selection: ToolSelection) => void;
   readonly resolved: ResolvedTool;
   readonly priceInputs: PriceInputs;
   readonly attemptCost: AttemptCost | null;
   readonly probability: ProbabilityResult | null;
-  readonly stageTargets: readonly StageTargetOption[];
-  readonly stageTargetKey: string | null;
-  readonly onStageTarget: (key: string) => void;
 }
 
-/** Image-first crafting tools above the current item, and what the held combination does per click. */
+/** Wide icon-first strip of crafting tools, and the active craft (currency + omen) it puts in hand. */
 export function ToolPalette(props: ToolPaletteProps) {
-  const { view, selection } = props;
-  const [tabId, setTabId] = useState('currency');
-  const palette = toolPalette(view);
-  const tab = TABS.find((t) => t.id === tabId) ?? TABS[0]!;
-  const tools = tab.category ? (palette.byCategory[tab.category] ?? []) : [];
+  const { palette, selection } = props;
+  const [category, setCategory] = useState<ConsumableCategory>('currency');
+  const [query, setQuery] = useState('');
+  const [wrap, setWrap] = useState(false);
+  const stripRef = useRef<HTMLDivElement>(null);
+
+  const tools = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const list = q
+      ? CATEGORIES.flatMap((c) => palette.byCategory[c] ?? [])
+      : (palette.byCategory[category] ?? []);
+    return q ? list.filter((c) => c.name.toLowerCase().includes(q)) : list;
+  }, [palette, category, query]);
 
   const isSelected = (c: Consumable) => selection.currencyId === c.id || selection.omenIds.includes(c.id);
-  const pick = (c: Consumable) =>
-    props.onSelect(c.category === 'omen' ? toggleOmen(selection, c.id) : selectCurrency(selection, c.id));
+  const scroll = (dir: number) => stripRef.current?.scrollBy({ left: dir * 360, behavior: 'smooth' });
 
   return (
-    <div className="toolbar" aria-label="Инструменты крафта">
-      <div className="toolbar-tabs" role="tablist" aria-label="Категория инструментов">
-        {TABS.map((t) => {
-          const count = t.category ? (palette.byCategory[t.category]?.length ?? 0) : 0;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={t.id === tab.id}
-              className={`toolbar-tab${count === 0 ? ' toolbar-tab-dim' : ''}`}
-              onClick={() => setTabId(t.id)}
-              title={count === 0 ? 'Нет подтверждённой модели механики — инструментов пока нет' : undefined}
-            >
-              {t.label}
-              {count === 0 && <span className="toolbar-tab-soon">скоро</span>}
-            </button>
-          );
-        })}
-        <span className="badge badge-warn toolbar-badge">демо-модели</span>
-      </div>
-
-      {tools.length === 0 ? (
-        <p className="empty toolbar-empty">
-          Пока не реализовано: для этой категории нет подтверждённой модели механики, поэтому инструментов нет.
-        </p>
-      ) : (
-        <div className="tool-strip">
-          {tools.map((c) => {
-            const price = parsePriceInput(props.priceInputs[c.id]);
-            return (
+    <Panel
+      index={4}
+      title="Инструменты крафта"
+      className="panel-tools"
+      aside={
+        <>
+          <div className="tool-tabs" role="tablist" aria-label="Категория инструментов">
+            {CATEGORIES.map((c) => (
               <button
-                key={c.id}
+                key={c}
                 type="button"
-                aria-pressed={isSelected(c)}
-                className="tool-tile"
-                onClick={() => pick(c)}
-                title={c.name}
+                role="tab"
+                aria-selected={!query && c === category}
+                className="tool-tab"
+                onClick={() => {
+                  setCategory(c);
+                  setQuery('');
+                }}
               >
-                <GameIcon src={consumableIconUrl(c)} label={c.name} size={44} />
-                <span className="tool-name">{c.name.replace(/^Omen of /, '')}</span>
-                <span className="tool-price num">{price === null ? 'нет цены' : formatCost(price, 'div')}</span>
+                {TOOL_CATEGORY_LABEL[c]}
               </button>
-            );
-          })}
+            ))}
+          </div>
+          <label className="search-field search-compact">
+            <Icon name="search" size={15} />
+            <input
+              type="search"
+              name="tool-search"
+              aria-label="Поиск инструмента"
+              placeholder="Поиск валюты…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-pressed={wrap}
+            aria-label={wrap ? 'Одной полосой' : 'Сеткой'}
+            title={wrap ? 'Одной полосой' : 'Сеткой'}
+            onClick={() => setWrap((w) => !w)}
+          >
+            <Icon name={wrap ? 'list' : 'grid'} size={15} />
+          </button>
+        </>
+      }
+    >
+      <div className="tools-layout">
+        <div className={`strip-wrap${wrap ? ' strip-wrap-grid' : ''}`}>
+          {!wrap && (
+            <button type="button" className="strip-arrow" aria-label="Прокрутить влево" onClick={() => scroll(-1)}>
+              <Icon name="left" size={16} />
+            </button>
+          )}
+          <div className="tool-strip" ref={stripRef} role="listbox" aria-label="Инструменты" aria-multiselectable="true">
+            {tools.length === 0 && <p className="empty strip-empty">Ничего не найдено.</p>}
+            {tools.map((c) => {
+              const modelled = palette.modelled.has(c.id);
+              const price = parsePriceInput(props.priceInputs[c.id]);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected(c)}
+                  className={`tool-tile${modelled ? '' : ' tool-tile-dim'}${c.category === 'omen' ? ' tool-tile-omen' : ''}`}
+                  title={`${c.name}${modelled ? '' : ' — механика не смоделирована'}${price === null ? '' : ` · ${formatCost(price, 'div')}`}`}
+                  onClick={() => props.onSelect(pickTool(selection, c))}
+                >
+                  <GameIcon src={consumableIconUrl(c)} label={c.name} size={44} />
+                  <span className="tool-name">{c.name.replace(/^Omen of /, '')}</span>
+                  {!modelled && <span className="tool-flag">не смоделировано</span>}
+                </button>
+              );
+            })}
+          </div>
+          {!wrap && (
+            <button type="button" className="strip-arrow" aria-label="Прокрутить вправо" onClick={() => scroll(1)}>
+              <Icon name="chevron" size={16} />
+            </button>
+          )}
         </div>
-      )}
-      {tab.category === 'omen' && (
-        <p className="hint toolbar-hint">Omen меняет действие сферы: выберите сферу во вкладке «Валюта» и Omen здесь.</p>
-      )}
-
-      <ActiveCraft {...props} />
-    </div>
+        <ActiveCraft {...props} />
+      </div>
+    </Panel>
   );
 }
 
+/**
+ * What the next click on the current item uses. The omen is shown as part of the craft, stays when
+ * the currency changes, and its compatibility with the held currency is always spelled out.
+ */
 function ActiveCraft(props: ToolPaletteProps) {
-  const { resolved, probability, attemptCost } = props;
-  const consumables = resolved.status === 'none' ? [] : resolved.consumables;
+  const { resolved, view, selection, probability, attemptCost } = props;
+  const currency = selection.currencyId ? view.getConsumable(selection.currencyId) : undefined;
+  const omens = selection.omenIds.flatMap((id) => view.getConsumable(id) ?? []);
+  const incompatible = resolved.status === 'incompatible' ? new Set(resolved.incompatibleOmenIds) : new Set<string>();
+
   return (
-    <div className={`active-craft active-craft-${resolved.status}`} aria-label="Активный крафт">
-      <div className="active-craft-combo">
-        {consumables.length === 0 ? (
-          <span className="muted">Ничего не выбрано — возьмите сферу из палитры.</span>
+    <aside className={`active-craft active-${resolved.status}`} aria-label="Активный крафт" aria-live="polite">
+      <div className="active-title">Активный крафт</div>
+      <div className="active-combo">
+        {currency ? (
+          <span className="combo-part">
+            <GameIcon src={consumableIconUrl(currency)} label={currency.name} size={34} />
+            <span className="combo-name">{currency.name}</span>
+            <button type="button" className="icon-btn icon-btn-quiet" aria-label={`Убрать ${currency.name}`} onClick={() => props.onSelect({ ...selection, currencyId: null })}>
+              <Icon name="close" size={12} />
+            </button>
+          </span>
         ) : (
-          consumables.map((c, i) => (
-            <span key={c.id} className="combo-part">
-              {i > 0 && <Icon name="plus" size={12} className="combo-plus" />}
-              <GameIcon src={consumableIconUrl(c)} label={c.name} size={28} />
-              <span>{c.name}</span>
-            </span>
-          ))
+          <span className="combo-empty">Возьмите валюту</span>
         )}
-        {consumables.length > 0 && (
-          <button type="button" className="icon-btn" aria-label="Положить инструмент" onClick={() => props.onSelect(EMPTY_TOOL)}>
-            <Icon name="close" size={14} />
-          </button>
+        {omens.map((omen) => (
+          <span key={omen.id} className={`combo-part combo-omen${incompatible.has(omen.id) ? ' combo-bad' : ''}`}>
+            <Icon name="plus" size={12} className="combo-plus" />
+            <GameIcon src={consumableIconUrl(omen)} label={omen.name} size={28} />
+            <span className="combo-name">{omen.name}</span>
+            <button type="button" className="icon-btn icon-btn-quiet" aria-label={`Убрать ${omen.name}`} onClick={() => props.onSelect(clearOmens(selection))}>
+              <Icon name="close" size={12} />
+            </button>
+          </span>
+        ))}
+      </div>
+
+      <div className="active-status">
+        {resolved.status === 'ready' && (
+          <dl className="active-facts">
+            <div>
+              <dt>Цена клика</dt>
+              <dd className="num">{attemptCost ? formatCost(attemptCost.total, attemptCost.unit) : '—'}</dd>
+            </div>
+            <div>
+              <dt>Шанс цели шага</dt>
+              <dd className="num accent">
+                {probability?.status === 'ok'
+                  ? `${formatPercent(probability.probability)} · ≈${formatAttempts(probability.expectedAttempts)}`
+                  : probability?.status === 'already-satisfied'
+                    ? 'уже есть'
+                    : 'недоступен'}
+              </dd>
+            </div>
+          </dl>
+        )}
+        {resolved.status === 'incompatible' && (
+          <p className="status-line status-bad">
+            {omens.filter((o) => incompatible.has(o.id)).map((o) => o.name).join(', ')} не действует на {currency?.name}. Клик ничего не
+            сделает.
+          </p>
+        )}
+        {resolved.status === 'unsupported' && (
+          <p className="status-line status-warn">
+            {omens.length > 0 ? 'Комбинация совместима, но не смоделирована' : 'Механика этой валюты ещё не смоделирована'} — клик
+            ничего не сделает и не потратит.
+          </p>
+        )}
+        {resolved.status === 'none' && (
+          <p className="status-line muted">
+            {omens.length > 0 ? 'Omen выбран и ждёт валюту.' : 'Выберите валюту в полосе слева.'}
+          </p>
         )}
       </div>
-      {resolved.status === 'unsupported' && (
-        <p className="active-craft-warn">Такая комбинация не смоделирована — клик ничего не сделает.</p>
+      {(currency || omens.length > 0) && (
+        <button type="button" className="link-btn active-clear" onClick={() => props.onSelect(EMPTY_TOOL)}>
+          Положить всё
+        </button>
       )}
-      {resolved.status === 'ready' && (
-        <dl className="active-craft-facts">
-          <div>
-            <dt>Цена клика</dt>
-            <dd className="num">{attemptCost ? formatCost(attemptCost.total, attemptCost.unit) : '—'}</dd>
-          </div>
-          <div>
-            <dt>Шанс цели шага</dt>
-            <dd className="num accent">
-              {probability?.status === 'ok'
-                ? `${formatPercent(probability.probability)} · ≈${formatAttempts(probability.expectedAttempts)}`
-                : probability?.status === 'already-satisfied'
-                  ? 'уже есть'
-                  : 'недоступна'}
-            </dd>
-          </div>
-          <div className="active-craft-stage">
-            <dt>
-              <label htmlFor="stage-target">Цель шага</label>
-            </dt>
-            <dd>
-              <select
-                id="stage-target"
-                name="stage-target"
-                value={props.stageTargetKey ?? ''}
-                onChange={(e) => props.onStageTarget(e.target.value)}
-              >
-                {props.stageTargets.some((o) => o.origin === 'target-item') && (
-                  <optgroup label="Не хватает до цели">
-                    {props.stageTargets
-                      .filter((o) => o.origin === 'target-item')
-                      .map((o) => (
-                        <option key={o.key} value={o.key}>
-                          {o.target.label}
-                        </option>
-                      ))}
-                  </optgroup>
-                )}
-                <optgroup label="Каталог (fixture)">
-                  {props.stageTargets
-                    .filter((o) => o.origin === 'catalog')
-                    .map((o) => (
-                      <option key={o.key} value={o.key}>
-                        {o.target.label}
-                      </option>
-                    ))}
-                </optgroup>
-              </select>
-            </dd>
-          </div>
-        </dl>
-      )}
-    </div>
+    </aside>
   );
 }

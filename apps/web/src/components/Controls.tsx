@@ -63,25 +63,3 @@ export function Stepper(props: {
     </div>
   );
 }
-
-/** One choice out of a few, as a row of toggle buttons. */
-export function Segmented<T extends string | number>(props: {
-  label: string;
-  value: T | null;
-  options: readonly { value: T; label: string }[];
-  onChange: (value: T) => void;
-  hideLabel?: boolean;
-}) {
-  return (
-    <div className="segmented-field">
-      {!props.hideLabel && <span className="field-label">{props.label}</span>}
-      <div className="segmented" role="group" aria-label={props.label}>
-        {props.options.map((o) => (
-          <button key={String(o.value)} type="button" aria-pressed={props.value === o.value} onClick={() => props.onChange(o.value)}>
-            {o.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}

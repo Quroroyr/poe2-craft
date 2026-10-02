@@ -15,7 +15,6 @@
 import type {
   AffixLimitRule,
   AffixSide,
-  Consumable,
   CraftAction,
   CraftTarget,
   ModifierDefinition,
@@ -27,6 +26,7 @@ import type {
 } from '@poe2-craft/craft-domain';
 import type { CraftDataset } from '../dataset';
 import { bases, itemClasses } from './bases';
+import { consumables } from './consumables';
 import {
   ALWAYS,
   FIXTURE,
@@ -38,14 +38,6 @@ import {
 } from './sources';
 
 export { FIXTURE_SOURCE_ID, GENERAL_KNOWLEDGE_SOURCE_ID, OFFICIAL_TRADE_DATA_SOURCE_ID };
-
-/** Names (and art ids) confirmed against GGG's PoE 2 trade data endpoints. */
-const OFFICIAL_NAME: Provenance = {
-  sourceId: OFFICIAL_TRADE_DATA_SOURCE_ID,
-  confidence: 'official',
-  lastVerified: '2026-10-02',
-  notes: 'Name and icon art taken from pathofexile.com/api/trade2/data/static; mechanics not covered by this source',
-};
 
 // ---------------------------------------------------------------- groups
 
@@ -393,28 +385,6 @@ const affixLimits: AffixLimitRule[] = [
   { rarity: 'normal', maxPrefixes: 0, maxSuffixes: 0, versions: ALWAYS, provenance: KNOWN_NAME },
   { rarity: 'magic', maxPrefixes: 1, maxSuffixes: 1, versions: ALWAYS, provenance: KNOWN_NAME },
   { rarity: 'rare', maxPrefixes: 3, maxSuffixes: 3, versions: ALWAYS, provenance: KNOWN_NAME },
-];
-
-// Category follows the trade data groups: orbs under "Currency", omens under "Ritual".
-const consumable = (id: string, name: string, art: string): Consumable => ({
-  id,
-  name,
-  category: id.startsWith('omen.') ? 'omen' : 'currency',
-  art,
-  versions: ALWAYS,
-  provenance: OFFICIAL_NAME,
-});
-
-const consumables: Consumable[] = [
-  // The trade data gives every tier of Exalted Orb the same art.
-  consumable('currency.exalted-orb', 'Exalted Orb', 'Art/2DItems/Currency/CurrencyAddModToRare'),
-  consumable('currency.perfect-exalted-orb', 'Perfect Exalted Orb', 'Art/2DItems/Currency/CurrencyAddModToRare'),
-  consumable('currency.perfect-chaos-orb', 'Perfect Chaos Orb', 'Art/2DItems/Currency/CurrencyRerollRare'),
-  consumable('currency.divine-orb', 'Divine Orb', 'Art/2DItems/Currency/CurrencyModValues'),
-  consumable('omen.dextral-exaltation', 'Omen of Dextral Exaltation', 'Art/2DItems/Currency/Omens/VoodooOmens3Yellow'),
-  consumable('omen.sinistral-exaltation', 'Omen of Sinistral Exaltation', 'Art/2DItems/Currency/Omens/VoodooOmens2Yellow'),
-  consumable('omen.whittling', 'Omen of Whittling', 'Art/2DItems/Currency/Omens/VoodooOmens1Dark'),
-  consumable('omen.dextral-erasure', 'Omen of Dextral Erasure', 'Art/2DItems/Currency/Omens/VoodooOmens3Dark'),
 ];
 
 const MODELLED_ACTION: Provenance = {

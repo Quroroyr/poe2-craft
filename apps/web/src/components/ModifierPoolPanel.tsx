@@ -1,13 +1,7 @@
 import { useMemo, useState } from 'react';
 import { modifierText, type ModifierDefinition } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
-import type {
-  ExplorerGroup,
-  ExplorerRow,
-  ExplorerStatus,
-  ExplorerTabId,
-  PoolExplorer,
-} from '@poe2-craft/probability-engine';
+import type { ExplorerGroup, ExplorerRow, ExplorerStatus, ExplorerTabId, PoolExplorer } from '@poe2-craft/probability-engine';
 import type { ExplorerMode } from '@/lib/analyze';
 import { formatInt, formatPercent } from '@/lib/format';
 import { EXPLORER_STATUS_LABEL, exclusionText } from '@/lib/texts';
@@ -15,7 +9,6 @@ import { Icon } from './Icon';
 import { Panel } from './Panel';
 
 const TAB_LABEL: Record<ExplorerTabId, string> = { prefix: 'Префиксы', suffix: 'Суффиксы' };
-const FUTURE_TABS = ['Implicits', 'Desecrated', 'Special'];
 
 interface ModifierPoolPanelProps {
   readonly explorer: PoolExplorer | null;
@@ -30,77 +23,79 @@ interface ModifierPoolPanelProps {
 
 /**
  * One explorer for every job: inspect the current item's pool for the active tool, pick a
- * modifier for the source, or pick a requirement for the target. The engine decides statuses;
- * this component only filters and displays them.
+ * modifier for the source, or pick a requirement for the target. Families on the left, a dense
+ * tier table on the right. The engine decides statuses; this component filters and displays them.
  */
 export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
   const { explorer, mode, view } = props;
   const editing = mode.kind !== 'inspect';
   const [tabId, setTabId] = useState<ExplorerTabId>(mode.kind === 'inspect' ? 'suffix' : mode.side);
   const [query, setQuery] = useState('');
+  const [tag, setTag] = useState('');
   const [statusFilter, setStatusFilter] = useState<ExplorerStatus | 'all'>(editing ? 'eligible' : 'all');
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
+  const [familyKey, setFamilyKey] = useState<string | null>(null);
 
   const tab = explorer?.tabs.find((t) => t.id === tabId) ?? explorer?.tabs[0];
-  const groups = useMemo(() => filterGroups(tab?.groups ?? [], query, statusFilter), [tab, query, statusFilter]);
-  const searching = query.trim().length > 0;
-  const toggle = (key: string) =>
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
+  const allTags = useMemo(
+    () => [...new Set(explorer?.tabs.flatMap((t) => t.groups.flatMap((g) => g.rows.flatMap((r) => r.entry.definition.tags))) ?? [])].sort(),
+    [explorer],
+  );
+  const groups = useMemo(() => filterGroups(tab?.groups ?? [], query, tag, statusFilter), [tab, query, tag, statusFilter]);
+  const shown = familyKey ? groups.filter((g) => g.key === familyKey) : groups;
 
   return (
     <Panel
+      index={5}
       title="Пул модов"
-      aside={<ModeChip mode={mode} toolLabel={props.toolLabel} onExit={props.onExit} />}
+      className="panel-pool"
+      aside={
+        <>
+          <label className="search-field search-compact">
+            <Icon name="search" size={15} />
+            <input type="search" name="pool-search" aria-label="Поиск мода" placeholder="Поиск модов…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          </label>
+          <select name="pool-tag" aria-label="Тег" value={tag} onChange={(e) => setTag(e.target.value)}>
+            <option value="">Все теги</option>
+            {allTags.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </>
+      }
     >
+      <ModeChip mode={mode} toolLabel={props.toolLabel} onExit={props.onExit} />
       {!explorer || !tab ? (
         <p className="empty">
           {mode.kind === 'inspect'
-            ? 'Выберите инструмент в палитре — здесь появится пул, из которого он добавляет моды.'
+            ? 'Возьмите валюту — здесь появится пул, из которого она добавляет моды.'
             : 'Пул не построен: нет предмета или база не найдена в CraftDB.'}
         </p>
       ) : (
         <>
-          <div className="tabs-row">
-            <div className="tabs" role="tablist" aria-label="Тип модов">
+          <div className="pool-bar">
+            <div className="segmented" role="tablist" aria-label="Тип модов">
               {explorer.tabs.map((t) => (
                 <button
                   key={t.id}
                   type="button"
                   role="tab"
                   aria-selected={t.id === tab.id}
-                  className={`tab${t.id === tab.id ? ' tab-active' : ''}`}
-                  onClick={() => setTabId(t.id)}
+                  aria-pressed={t.id === tab.id}
+                  onClick={() => {
+                    setTabId(t.id);
+                    setFamilyKey(null);
+                  }}
                 >
                   {TAB_LABEL[t.id]}
-                  <span className="tab-meta num">
-                    {t.counts.eligible} доступно
+                  <span className="seg-meta num">
+                    {t.counts.eligible}
                     {mode.kind === 'inspect' && t.share !== null && ` · ${formatPercent(t.share)}`}
                   </span>
                 </button>
               ))}
-              {FUTURE_TABS.map((name) => (
-                <span key={name} className="tab tab-disabled" title="Появится вместе с механикой">
-                  {name}
-                  <span className="tab-meta">скоро</span>
-                </span>
-              ))}
             </div>
-          </div>
-
-          <div className="pool-filters">
-            <input
-              type="search"
-              name="pool-search"
-              className="search-input"
-              placeholder="Поиск: текст, имя, тег…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
             <select
               name="pool-status"
               aria-label="Статус"
@@ -114,33 +109,72 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
                 </option>
               ))}
             </select>
-            <button
-              type="button"
-              className="link-btn"
-              onClick={() => setExpanded(expanded.size > 0 ? new Set() : new Set(groups.map((g) => g.key)))}
-            >
-              {expanded.size > 0 ? 'свернуть все' : 'развернуть все'}
-            </button>
           </div>
 
-          {groups.length === 0 ? (
-            <p className="empty">Ничего не найдено.</p>
-          ) : (
-            <ul className="families">
-              {groups.map((group) => (
-                <Family
-                  key={group.key}
-                  group={group}
-                  open={searching || expanded.has(group.key)}
-                  onToggle={() => toggle(group.key)}
-                  mode={mode}
-                  view={view}
-                  highlightIds={props.highlightIds}
-                  onPick={props.onPick}
-                />
+          <div className="pool-body">
+            <ul className="family-list" aria-label="Семейства модов">
+              <li>
+                <button type="button" className="family-item" aria-pressed={familyKey === null} onClick={() => setFamilyKey(null)}>
+                  <span>Все семейства</span>
+                  <span className="num muted">{groups.reduce((n, g) => n + g.rows.length, 0)}</span>
+                </button>
+              </li>
+              {groups.map((g) => (
+                <li key={g.key}>
+                  <button
+                    type="button"
+                    className={`family-item fam-${g.status}`}
+                    aria-pressed={familyKey === g.key}
+                    onClick={() => setFamilyKey(familyKey === g.key ? null : g.key)}
+                  >
+                    <span className="fam-dot" aria-hidden />
+                    <span className="fam-label">{g.label}</span>
+                    <span className="num muted">{g.rows.length}</span>
+                  </button>
+                </li>
               ))}
             </ul>
-          )}
+
+            <div className="table-scroll pool-table-wrap">
+              {shown.length === 0 ? (
+                <p className="empty">Ничего не найдено.</p>
+              ) : (
+                <table className="table pool-table">
+                  <thead>
+                    <tr>
+                      <th>Мод</th>
+                      <th className="right">Тир</th>
+                      <th className="right">ilvl</th>
+                      <th className="right hide-md">Ур. мода</th>
+                      <th className="right">Вес</th>
+                      {mode.kind === 'inspect' && <th className="right">Доля</th>}
+                      <th className="hide-md">Группа</th>
+                      <th className="hide-md">Теги</th>
+                      <th>Статус</th>
+                      {editing && <th aria-label="Выбор" />}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shown.flatMap((g) =>
+                      [...g.rows]
+                        .sort((a, b) => a.entry.definition.tier - b.entry.definition.tier)
+                        .map((row) => (
+                          <TierRow
+                            key={row.entry.definition.id}
+                            row={row}
+                            group={g}
+                            mode={mode}
+                            view={view}
+                            isTarget={props.highlightIds.has(row.entry.definition.id)}
+                            onPick={props.onPick}
+                          />
+                        )),
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
           {explorer.hiddenNotSpawnable > 0 && (
             <p className="hint">Скрыто {explorer.hiddenNotSpawnable} мод(ов) других классов предметов.</p>
           )}
@@ -152,98 +186,27 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
 
 function ModeChip({ mode, toolLabel, onExit }: { mode: ExplorerMode; toolLabel: string | null; onExit: () => void }) {
   if (mode.kind === 'inspect') {
-    return <span className="mode-chip">осмотр текущего{toolLabel ? ` · ${toolLabel}` : ''}</span>;
+    return <p className="mode-line">Осмотр текущего предмета{toolLabel ? ` · ${toolLabel}` : ''}</p>;
   }
   const label =
     mode.kind === 'edit-target'
-      ? 'добавление требования в цель'
+      ? 'Добавление требования в цель'
       : mode.replaceIndex !== undefined
-        ? 'замена мода исходного'
-        : 'добавление в исходный';
+        ? 'Замена мода исходного'
+        : 'Добавление мода в исходный';
   return (
-    <span className="mode-chip mode-chip-edit">
+    <p className="mode-line mode-line-edit">
       {label}
-      <button type="button" className="icon-btn" aria-label="Вернуться к осмотру" onClick={onExit}>
-        <Icon name="close" size={14} />
+      <button type="button" className="link-btn" onClick={onExit}>
+        вернуться к осмотру <kbd>Esc</kbd>
       </button>
-    </span>
-  );
-}
-
-function Family(props: {
-  group: ExplorerGroup;
-  open: boolean;
-  onToggle: () => void;
-  mode: ExplorerMode;
-  view: CraftDbView;
-  highlightIds: ReadonlySet<string>;
-  onPick: (definition: ModifierDefinition) => void;
-}) {
-  const { group, mode } = props;
-  const tags = [...new Set(group.rows.flatMap((r) => r.entry.definition.tags))];
-  const best = group.rows.reduce<ExplorerRow | null>(
-    (acc, r) => (!acc || r.entry.definition.tier < acc.entry.definition.tier ? r : acc),
-    null,
-  );
-  const hasTarget = group.rows.some((r) => props.highlightIds.has(r.entry.definition.id));
-  return (
-    <li className={`family family-${group.status}${hasTarget && mode.kind === 'inspect' ? ' is-target' : ''}`}>
-      <button type="button" className="family-head" aria-expanded={props.open} onClick={props.onToggle}>
-        <Icon name="chevron" size={14} className={`family-caret${props.open ? ' rot-90' : ''}`} />
-        <span className="family-name">
-          {best ? best.entry.definition.lines.map((l) => l.template).join(' / ') : group.label}
-          <span className="family-label">{group.label}</span>
-        </span>
-        <span className="family-tags">
-          {tags.map((t) => (
-            <span key={t} className="tag">
-              {t}
-            </span>
-          ))}
-        </span>
-        <span className="family-weight num">
-          {mode.kind === 'inspect' && group.share !== null ? formatPercent(group.share) : `${group.rows.length} тир.`}
-        </span>
-        <span className={`status status-${group.status}`}>{EXPLORER_STATUS_LABEL[group.status]}</span>
-      </button>
-      {props.open && (
-        <div className="table-scroll">
-          <table className="table tier-table">
-            <thead>
-              <tr>
-                <th>Тир</th>
-                <th>Мод</th>
-                <th className="right">ilvl</th>
-                <th className="right hide-sm">Ур. мода</th>
-                <th className="right">Вес</th>
-                {mode.kind === 'inspect' && <th className="right">Доля</th>}
-                <th>Статус</th>
-                {mode.kind !== 'inspect' && <th aria-label="Выбор" />}
-              </tr>
-            </thead>
-            <tbody>
-              {[...group.rows]
-                .sort((a, b) => a.entry.definition.tier - b.entry.definition.tier)
-                .map((row) => (
-                  <TierRow
-                    key={row.entry.definition.id}
-                    row={row}
-                    mode={mode}
-                    view={props.view}
-                    isTarget={props.highlightIds.has(row.entry.definition.id)}
-                    onPick={props.onPick}
-                  />
-                ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </li>
+    </p>
   );
 }
 
 function TierRow(props: {
   row: ExplorerRow;
+  group: ExplorerGroup;
   mode: ExplorerMode;
   view: CraftDbView;
   isTarget: boolean;
@@ -251,34 +214,37 @@ function TierRow(props: {
 }) {
   const { row, mode } = props;
   const d = row.entry.definition;
+  const reasons = row.status !== 'eligible' ? row.entry.reasons.map((r) => exclusionText(r, props.view)).join('; ') : undefined;
   return (
-    <tr className={`tier-row row-${row.status}${props.isTarget ? ' is-target' : ''}`}>
-      <td className="num">T{d.tier}</td>
+    <tr className={`tier-row row-${row.status}${props.isTarget ? ' is-target' : ''}`} title={reasons}>
       <td>
         <span className="pool-mod">{modifierText(d)}</span>
         <span className="pool-name">
           {d.name}
           {props.isTarget && mode.kind === 'inspect' && <span className="tag tag-target">цель</span>}
         </span>
-        {row.status !== 'eligible' && (
-          <span className="pool-reason">{row.entry.reasons.map((r) => exclusionText(r, props.view)).join('; ')}</span>
-        )}
       </td>
+      <td className="num right">T{d.tier}</td>
       <td className="num right">{d.requiredItemLevel}</td>
-      <td className="num right hide-sm">{d.modifierLevel}</td>
+      <td className="num right hide-md">{d.modifierLevel}</td>
       <td className="num right">{row.entry.weight === null ? <span className="bad">?</span> : formatInt(row.entry.weight)}</td>
       {mode.kind === 'inspect' && <td className="num right">{row.share === null ? '—' : formatPercent(row.share)}</td>}
+      <td className="hide-md">
+        <span className="cell-chip">{props.group.label}</span>
+      </td>
+      <td className="hide-md">
+        {d.tags.map((t) => (
+          <span key={t} className="cell-chip">
+            {t}
+          </span>
+        ))}
+      </td>
       <td>
         <span className={`status status-${row.status}`}>{EXPLORER_STATUS_LABEL[row.status]}</span>
       </td>
       {mode.kind !== 'inspect' && (
         <td className="right">
-          <button
-            type="button"
-            className="btn btn-small"
-            disabled={row.status !== 'eligible'}
-            onClick={() => props.onPick(d)}
-          >
+          <button type="button" className="btn btn-small" disabled={row.status !== 'eligible'} onClick={() => props.onPick(d)}>
             {mode.kind === 'edit-target' ? (d.tier === 1 ? 'T1' : `T${d.tier}+`) : 'Выбрать'}
           </button>
         </td>
@@ -287,15 +253,15 @@ function TierRow(props: {
   );
 }
 
-function filterGroups(groups: readonly ExplorerGroup[], query: string, status: ExplorerStatus | 'all'): ExplorerGroup[] {
+function filterGroups(groups: readonly ExplorerGroup[], query: string, tag: string, status: ExplorerStatus | 'all'): ExplorerGroup[] {
   const q = query.trim().toLowerCase();
   return groups.flatMap((group) => {
     const rows = group.rows.filter((r) => {
       if (status !== 'all' && r.status !== status) return false;
-      if (!q) return true;
       const d = r.entry.definition;
-      const haystack = [modifierText(d), d.name, group.label, ...d.tags].join(' ').toLowerCase();
-      return haystack.includes(q);
+      if (tag && !d.tags.includes(tag)) return false;
+      if (!q) return true;
+      return [modifierText(d), d.name, group.label, ...d.tags].join(' ').toLowerCase().includes(q);
     });
     return rows.length > 0 ? [{ ...group, rows }] : [];
   });

@@ -2,14 +2,54 @@
  * Wording for structured codes coming from the engines. Presentation only: the meaning
  * of each code is defined by the package that emits it.
  */
-import type { AffixSide, Confidence, DataSourceKind, Provenance, Rarity, UnresolvedReason } from '@poe2-craft/craft-domain';
+import type {
+  AffixSide,
+  ConsumableCategory,
+  Confidence,
+  DataSourceKind,
+  Provenance,
+  Rarity,
+  UnresolvedReason,
+} from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ParseDiagnostic } from '@poe2-craft/item-parser';
-import type { ApplyRejection, TargetModStatus } from '@poe2-craft/craft-session';
+import type { ApplyRejection, TargetModStatus, TargetRowState } from '@poe2-craft/craft-session';
 import type { ExclusionReason, ExplorerStatus, PoolCaveat, PoolIssue } from '@poe2-craft/probability-engine';
 
 export const SIDE_LABEL: Record<AffixSide, string> = { prefix: 'Префикс', suffix: 'Суффикс' };
 export const SIDE_SHORT: Record<AffixSide, string> = { prefix: 'P', suffix: 'S' };
+
+/** Target row state as the target panel names it. */
+export const TARGET_STATE_LABEL: Record<TargetRowState, string> = {
+  done: 'есть',
+  craft: 'докрафтить',
+  missing: 'не хватает',
+  'worse-tier': 'тир хуже',
+  'not-fractured': 'не fractured',
+  unknown: 'нет в версии',
+};
+
+export const TOOL_CATEGORY_LABEL: Record<ConsumableCategory, string> = {
+  currency: 'Валюта',
+  omen: 'Омены',
+  essence: 'Эссенции',
+  catalyst: 'Катализаторы',
+  rune: 'Руны',
+};
+
+/** Item class groups from data; unknown groups show their id. */
+export const ITEM_CATEGORY_LABEL: Readonly<Record<string, string>> = {
+  weapon: 'Оружие',
+  armour: 'Броня',
+  accessory: 'Аксессуары',
+};
+
+/** Base property names as the game writes them → interface wording. Unknown names stay as they are. */
+export const PROPERTY_LABEL: Readonly<Record<string, string>> = {
+  'Physical Damage': 'Физический урон',
+  'Critical Hit Chance': 'Шанс крит. удара',
+  'Attacks per Second': 'Атак в секунду',
+};
 
 /** Slot kinds come from data; known ones get a Russian label, others show their id. */
 export const SLOT_LABEL: Readonly<Record<string, string>> = { 'rune-socket': 'Сокеты рун' };

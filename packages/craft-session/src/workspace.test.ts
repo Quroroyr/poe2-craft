@@ -79,17 +79,17 @@ const click = (session: CraftSession, actionId = 'action.add-random-modifier', p
 };
 
 describe('crafting tool palette', () => {
-  it('offers only consumables some implemented action spends, grouped by category', () => {
+  it('lists every known consumable by category and marks the modelled ones (ADR 008)', () => {
     const palette = toolPalette(view);
-    expect(palette.byCategory.currency?.map((c) => c.name)).toEqual(['Exalted Orb', 'Perfect Exalted Orb']);
-    expect(palette.byCategory.omen?.map((c) => c.name)).toEqual([
-      'Omen of Dextral Exaltation',
-      'Omen of Sinistral Exaltation',
+    expect(palette.byCategory.currency?.map((c) => c.name)).toContain('Divine Orb');
+    expect(Object.keys(palette.byCategory).sort()).toEqual(['catalyst', 'currency', 'essence', 'omen', 'rune']);
+    // Only what an implemented action spends is modelled; everything else is shown but does nothing.
+    expect([...palette.modelled].sort()).toEqual([
+      'currency.exalted-orb',
+      'currency.perfect-exalted-orb',
+      'omen.dextral-exaltation',
+      'omen.sinistral-exaltation',
     ]);
-    // Priced in the cost editor, but not a tool: no action models them yet.
-    const all = Object.values(palette.byCategory).flat().map((c) => c.id);
-    expect(all).not.toContain('currency.perfect-chaos-orb');
-    expect(all).not.toContain('omen.whittling');
   });
 
   it('turns a currency + omen selection into the matching action', () => {

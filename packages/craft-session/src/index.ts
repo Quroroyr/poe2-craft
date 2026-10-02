@@ -4,5 +4,6 @@ export * from './session';
 export * from './compare';
 export * from './editing';
 export * from './item-setup';
+export * from './target-outlook';
 export * from './tools';
 export * from './pool-modes';

@@ -27,7 +27,12 @@
   --warn-bg: rgba(226, 163, 61, 0.08);
   --bad: #e8675a;
   --bad-bg: rgba(232, 103, 90, 0.08);
-  --radius: 6px;
+  --radius: 3px;
+  /* Gilded frame lines of the planner. */
+  --line: rgba(214, 170, 76, 0.24);
+  --line-soft: rgba(214, 170, 76, 0.12);
+  --gold-tick: rgba(231, 191, 99, 0.8);
+  --gold-text: #ead9ad;
   --font-body: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
   --font-item: var(--font-item-face, Georgia), Georgia, serif;
   --accent-strong: #e7bf63;

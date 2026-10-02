@@ -105,7 +105,15 @@ export function validateDataset(dataset: CraftDataset): string[] {
   for (const rule of dataset.affixLimits) {
     checkProvenance(`affix limit ${rule.rarity}`, rule.provenance);
   }
-  for (const c of dataset.consumables) checkProvenance(`consumable ${c.id}`, c.provenance);
+  for (const c of dataset.consumables) {
+    checkProvenance(`consumable ${c.id}`, c.provenance);
+    if (!c.modifies) continue;
+    checkProvenance(`consumable ${c.id} scope`, c.modifies.provenance);
+    if (c.category !== 'omen') problems.push(`consumable ${c.id}: only omens have a scope`);
+    for (const id of c.modifies.consumableIds) {
+      if (!consumableIds.has(id)) problems.push(`consumable ${c.id}: scope names unknown consumable "${id}"`);
+    }
+  }
 
   return problems;
 }

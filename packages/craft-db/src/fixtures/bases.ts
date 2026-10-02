@@ -56,12 +56,13 @@ const SOCKETS_UNVERIFIED: Provenance = {
 };
 
 export const itemClasses: ItemClass[] = [
-  { id: 'class.spear', name: 'Spear', clipboardName: 'Spears', versions: ALWAYS, provenance: KNOWN_NAME },
-  { id: 'class.bow', name: 'Bow', clipboardName: 'Bows', versions: ALWAYS, provenance: KNOWN_NAME },
+  { id: 'class.spear', name: 'Spear', clipboardName: 'Spears', category: 'weapon', versions: ALWAYS, provenance: KNOWN_NAME },
+  { id: 'class.bow', name: 'Bow', clipboardName: 'Bows', category: 'weapon', versions: ALWAYS, provenance: KNOWN_NAME },
   {
     id: 'class.quarterstaff',
     name: 'Quarterstaff',
     clipboardName: 'Quarterstaves',
+    category: 'weapon',
     versions: ALWAYS,
     provenance: KNOWN_NAME,
   },

@@ -28,6 +28,17 @@ describe('held tool', () => {
     expect(held?.icons[0]?.src).toBe('/icons/game/CurrencyAddModToRare.png');
   });
 
+  it('keeps showing the omen as a badge when the currency changes, with the right state', () => {
+    const withOmen = toggleOmen(EXALT, 'omen.dextral-exaltation');
+    const divine = heldTool(resolveTool(view, selectCurrency(withOmen, 'currency.divine-orb')), null);
+    expect(divine?.icons.map((i) => i.name)).toEqual(['Divine Orb', 'Omen of Dextral Exaltation']);
+    expect(divine).toMatchObject({ state: 'blocked', reason: 'Omen не действует на эту валюту' });
+    const perfect = heldTool(resolveTool(view, selectCurrency(withOmen, 'currency.perfect-exalted-orb')), null);
+    expect(perfect).toMatchObject({ state: 'blocked', reason: 'комбинация не смоделирована' });
+    // An omen alone is not held on the pointer: it waits for a currency in the active craft panel.
+    expect(heldTool(resolveTool(view, toggleOmen(EMPTY_TOOL, 'omen.dextral-exaltation')), null)).toBeNull();
+  });
+
   it('is blocked, with the reason, when the item cannot take the click or the combination has no model', () => {
     expect(heldTool(resolveTool(view, EXALT), 'Нет свободного суффикса.')).toMatchObject({
       state: 'blocked',
@@ -44,6 +55,13 @@ describe('held tool overlay', () => {
       <HeldToolGlyph tool={heldTool(resolveTool(view, EXALT), blocked ? 'нет слота' : null)!} pulseKey={1} />,
     );
 
+  it('draws the omen as a badge next to the held currency', () => {
+    const tool = heldTool(resolveTool(view, toggleOmen(EXALT, 'omen.dextral-exaltation')), null)!;
+    const html = renderToStaticMarkup(<HeldToolGlyph tool={tool} pulseKey={1} />);
+    expect(html).toMatch(/class="held-main"[^>]*CurrencyAddModToRare/);
+    expect(html).toMatch(/class="held-extra"[^>]*VoodooOmens3Yellow/);
+  });
+
   it('is hidden from assistive tech and contains nothing clickable or focusable', () => {
     for (const html of [markup(false), markup(true)]) {
       expect(html).toMatch(/<div class="held-cursor held-(ready|blocked)" aria-hidden="true"/);
@@ -53,7 +71,7 @@ describe('held tool overlay', () => {
   });
 
   it('lets pointer events through to the item underneath', () => {
-    const css = readFileSync(new URL('../app/workbench.css', import.meta.url), 'utf8');
+    const css = readFileSync(new URL('../app/planner.css', import.meta.url), 'utf8');
     const rule = /\.held-cursor\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
     expect(rule).toMatch(/pointer-events:\s*none/);
     expect(rule).toMatch(/position:\s*fixed/);

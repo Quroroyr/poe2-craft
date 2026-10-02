@@ -21,12 +21,14 @@ import {
   resetToSource,
   selectCurrency,
   sessionSpent,
+  sessionSpentByConsumable,
   setSource,
   targetForSource,
   undoLastStep,
   undoToStep,
   withTarget,
   type CraftSession,
+  type CraftStepRecord,
   type ToolSelection,
 } from '@poe2-craft/craft-session';
 import { calculateAttemptCost, calculateStageCost } from '@poe2-craft/economy';
@@ -47,10 +49,12 @@ import { BaseSelector } from './BaseSelector';
 import { CurrentItemPanel, type CraftFeedback } from './CurrentItemPanel';
 import { DataPanel } from './DataPanel';
 import { ExplanationPanel } from './ExplanationPanel';
+import { HistoryPanel } from './HistoryPanel';
+import { Masthead } from './Masthead';
 import { ModifierPoolPanel } from './ModifierPoolPanel';
 import { ProbabilityPanel } from './ProbabilityPanel';
-import { SessionPanel } from './SessionPanel';
 import { SourcePanel } from './SourcePanel';
+import { SpendingPanel } from './SpendingPanel';
 import { TargetPanel } from './TargetPanel';
 import { ToolPalette } from './ToolPalette';
 
@@ -82,6 +86,8 @@ export function Workspace() {
   const [feedback, setFeedback] = useState<CraftFeedback | null>(null);
   const [baseSelectorOpen, setBaseSelectorOpen] = useState(false);
   const explorerRef = useRef<HTMLDivElement>(null);
+  // When each step was applied. Kept by the page: the session itself stays free of clocks.
+  const stepTimes = useRef(new WeakMap<CraftStepRecord, number>());
 
   const analysis = useMemo(
     () => analyzeWorkspace({ session, tool, stageTargetKey, explorerMode }),
@@ -98,6 +104,7 @@ export function Workspace() {
     [probability, attemptCost],
   );
   const spent = useMemo(() => sessionSpent(session), [session]);
+  const spentLines = useMemo(() => sessionSpentByConsumable(session), [session]);
 
   /** Any history move ends the "just clicked" moment. */
   const clearMoment = () => {
@@ -131,11 +138,14 @@ export function Workspace() {
     setSession(result.session);
     setFeedback({ id, tone: result.status === 'applied' ? 'ok' : 'bad' });
     if (result.status === 'applied') {
+      stepTimes.current.set(result.step, Date.now());
       setNotice(applyNotice(result, view));
     } else if (result.reason === 'no-tool') {
-      setNotice({ tone: 'bad', text: 'Сначала возьмите валюту из палитры.' });
+      setNotice({ tone: 'bad', text: 'Сначала возьмите валюту в полосе инструментов.' });
+    } else if (result.reason === 'incompatible-tool') {
+      setNotice({ tone: 'bad', text: 'Выбранный Omen не действует на эту валюту — предмет не изменён, валюта не потрачена.' });
     } else if (result.reason === 'unsupported-tool') {
-      setNotice({ tone: 'bad', text: 'Эта комбинация инструментов не смоделирована — предмет не изменён, валюта не потрачена.' });
+      setNotice({ tone: 'bad', text: 'Эта механика ещё не смоделирована — предмет не изменён, валюта не потрачена.' });
     } else {
       setNotice({ tone: 'bad', text: `Предмет не изменён, валюта не потрачена. ${applyNotice(result, view).text}` });
     }
@@ -182,6 +192,15 @@ export function Workspace() {
     clearMoment();
   };
 
+  const undo = () => {
+    setSession(undoLastStep);
+    clearMoment();
+  };
+  const redo = () => {
+    setSession(redoStep);
+    clearMoment();
+  };
+
   const blockedReason = analysis.blockedBy ? applyRejectionText(analysis.blockedBy) : null;
   const held = heldTool(analysis.tool, blockedReason);
   const outOfSync = isSourceOutOfSync(session);
@@ -190,106 +209,73 @@ export function Workspace() {
 
   return (
     <div className="page">
-      <header className="masthead">
-        <div className="masthead-title">
-          <h1>PoE 2 Craft Planner</h1>
-          <p className="masthead-sub">Соберите исходный предмет, возьмите валюту и кликайте по текущему.</p>
-        </div>
-        <div className="masthead-side">
-          {view.info.kind === 'fixture' && (
-            <p className="fixture-banner" role="note">
-              <strong>Демо-данные.</strong> Тиры, уровни и веса модов придуманы; клик разыгрывает упрощённую модель, а не
-              механику PoE 2.
-            </p>
-          )}
-          <label className="inline-field">
-            Версия игры
-            <select name="game-version" value={session.gameVersion} onChange={(e) => changeVersion(e.target.value)}>
-              {craftDb.supportedVersions.map((v) => (
-                <option key={v} value={v}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </header>
+      <Masthead db={craftDb} gameVersion={session.gameVersion} fixture={view.info.kind === 'fixture'} onGameVersion={changeVersion} />
 
       <main className="layout">
-        <section className="workbench" aria-label="Верстак">
-          <div className="wb-source">
-            <SourcePanel
-              source={session.source}
-              view={view}
-              setup={analysis.sourceSetup}
-              explorerMode={explorerMode}
-              craftStarted={hasCraftHistory(session)}
-              onImport={(text) => editSource(importSource(text, session.gameVersion))}
-              onEdit={editSource}
-              onExplore={explore}
-              onChooseBase={() => setBaseSelectorOpen(true)}
-            />
-          </div>
-          <div className="wb-current">
-            <CurrentItemPanel
-              item={session.current}
-              view={view}
-              badges={currentItemBadges(session, comparison)}
-              stepCount={session.steps.length}
-              redoCount={session.redoStack.length}
-              tool={held}
-              toolbar={
-                <ToolPalette
-                  view={view}
-                  selection={tool}
-                  onSelect={setTool}
-                  resolved={analysis.tool}
-                  priceInputs={priceInputs}
-                  attemptCost={attemptCost}
-                  probability={probability}
-                  stageTargets={analysis.stageTargets}
-                  stageTargetKey={analysis.stageTarget?.key ?? null}
-                  onStageTarget={setStageTargetKey}
-                />
-              }
-              feedback={feedback}
-              freshIndex={freshIndex}
-              notice={notice}
-              sourceOutOfSync={outOfSync}
-              canReset={hasCraftHistory(session) || outOfSync}
-              onCraft={craft}
-              onUndo={() => {
-                setSession(undoLastStep);
-                clearMoment();
-              }}
-              onRedo={() => {
-                setSession(redoStep);
-                clearMoment();
-              }}
-              onReset={() => {
-                setSession(resetToSource);
-                clearMoment();
-              }}
-            />
-          </div>
-          <div className="wb-target">
-            <TargetPanel
-              target={session.target}
-              comparison={comparison}
-              view={view}
-              explorerMode={explorerMode}
-              baseCheck={analysis.targetBase}
-              sourceBaseName={session.source?.baseName ?? null}
-              onImport={(text) => editTarget(importTarget(text, session.gameVersion))}
-              onEdit={editTarget}
-              onCreate={() => editTarget(targetForSource(session.source))}
-              onExplore={explore}
-            />
-          </div>
+        <section className="row-items" aria-label="Предметы">
+          <SourcePanel
+            source={session.source}
+            view={view}
+            setup={analysis.sourceSetup}
+            explorerMode={explorerMode}
+            craftStarted={hasCraftHistory(session)}
+            onImport={(text) => editSource(importSource(text, session.gameVersion))}
+            onEdit={editSource}
+            onExplore={explore}
+            onChooseBase={chooseBase}
+            onOpenCatalog={() => setBaseSelectorOpen(true)}
+            onClear={() => {
+              const baseId = session.source?.baseId;
+              if (baseId) chooseBase(baseId);
+            }}
+          />
+          <CurrentItemPanel
+            item={session.current}
+            view={view}
+            badges={currentItemBadges(session, comparison)}
+            stepCount={session.steps.length}
+            redoCount={session.redoStack.length}
+            tool={held}
+            feedback={feedback}
+            freshIndex={freshIndex}
+            notice={notice}
+            sourceOutOfSync={outOfSync}
+            canReset={hasCraftHistory(session) || outOfSync}
+            onCraft={craft}
+            onUndo={undo}
+            onRedo={redo}
+            onReset={() => {
+              setSession(resetToSource);
+              clearMoment();
+            }}
+          />
+          <TargetPanel
+            target={session.target}
+            outlook={analysis.outlook}
+            view={view}
+            explorerMode={explorerMode}
+            baseCheck={analysis.targetBase}
+            sourceBaseName={session.source?.baseName ?? null}
+            onImport={(text) => editTarget(importTarget(text, session.gameVersion))}
+            onEdit={editTarget}
+            onCreate={() => editTarget(targetForSource(session.source))}
+            onExplore={explore}
+          />
         </section>
 
-        <div className="row-pool">
-          <div ref={explorerRef} className={explorerMode.kind === 'inspect' ? undefined : 'explorer-editing'}>
+        <ToolPalette
+          view={view}
+          palette={analysis.palette}
+          selection={tool}
+          onSelect={setTool}
+          resolved={analysis.tool}
+          priceInputs={priceInputs}
+          attemptCost={attemptCost}
+          probability={probability}
+        />
+
+        <section className="row-bottom" aria-label="Пул, история и затраты">
+          <div ref={explorerRef} className={`pool-slot${explorerMode.kind === 'inspect' ? '' : ' explorer-editing'}`}>
             <ModifierPoolPanel
               key={
                 explorerMode.kind === 'inspect'
@@ -305,34 +291,44 @@ export function Workspace() {
               onExit={() => setExplorerMode(INSPECT)}
             />
           </div>
-          <SessionPanel
+          <HistoryPanel
             session={session}
             view={view}
+            timeOf={(step) => stepTimes.current.get(step)}
+            onUndo={undo}
+            onRedo={redo}
+            onUndoTo={(index) => {
+              setSession((s) => undoToStep(s, index));
+              clearMoment();
+            }}
+          />
+          <SpendingPanel
+            view={view}
             spent={spent}
+            spentLines={spentLines}
             attemptCost={attemptCost}
             stageCost={stageCost}
+            probability={probability}
+            stageTargets={analysis.stageTargets}
+            stageTargetKey={analysis.stageTarget?.key ?? null}
+            onStageTarget={setStageTargetKey}
             priceInputs={priceInputs}
             pricesAreMock={!pricesEdited}
             onPrice={(id, text) => {
               setPriceInputs((prev) => ({ ...prev, [id]: text }));
               setPricesEdited(true);
             }}
-            onUndoTo={(index) => {
-              setSession((s) => undoToStep(s, index));
-              clearMoment();
-            }}
-            onRedo={() => {
-              setSession(redoStep);
-              clearMoment();
-            }}
           />
-        </div>
+        </section>
 
-        <div className="row-2">
-          <ProbabilityPanel result={probability} view={view} />
-          <ExplanationPanel steps={analysis.explanation} view={view} />
-        </div>
-        <DataPanel view={view} probability={probability} />
+        <details className="calc-details">
+          <summary>Как посчитано: вероятность, объяснение и источники данных</summary>
+          <div className="row-2">
+            <ProbabilityPanel result={probability} view={view} />
+            <ExplanationPanel steps={analysis.explanation} view={view} />
+          </div>
+          <DataPanel view={view} probability={probability} />
+        </details>
       </main>
 
       <BaseSelector
