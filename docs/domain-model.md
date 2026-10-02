@@ -37,6 +37,16 @@
 
 ## Состояние предмета
 
+Production расширяет определения без изменения fixture: `ItemBase` хранит `domain`, `dropLevel`,
+`implicitModifierIds`, `dataStatus`, `aliases`, `ambiguousName`; `ModifierDefinition` — `family`,
+`layer: explicit | desecrated`, `domain`, `statIds`. `tier` — справочный глобальный ранг;
+`CraftDbView.tierOf(id, baseId)` — реальный ранг на базе. `SpawnWeight.spawns` отделяет разрешение
+от неизвестного веса; числовые production-веса требуют `WeightEvidence` с источником и методом.
+`SpecialModifierDefinition` содержит implicit/corruption вне аффиксных слотов, включая скрытые statIds.
+`AffixLimitRule.itemClassIds` ограничивает правило классами; отсутствие правила означает неизвестные
+лимиты. `Consumable.craftStatus` различает catalogued/researched/modelled/verified/unsupported;
+modelled/verified требует действия, которое тратит расходник. Production-ссылки на fixture запрещены.
+
 ```ts
 ItemState {
   baseId | null, baseName, itemClassName, rarity, itemLevel,

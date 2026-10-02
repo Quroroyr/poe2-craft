@@ -9,7 +9,7 @@
       "revision": "b818b843337cae43b090b272fd98bbc0fd3a34f3",
       "gameClientVersion": "4.5.5.2",
       "license": "RePoE tooling: MIT (github.com/repoe-fork/repoe). Exported data: owned by Grinding Gear Games, used under their terms for a non-commercial fan tool.",
-      "fetchedAt": "2026-10-02T12:45:42.548Z",
+      "fetchedAt": "2026-10-02T13:18:56.217Z",
       "files": [
         {
           "path": "repoe-poe2/base_items.json",
@@ -56,7 +56,7 @@
       "revision": null,
       "gameClientVersion": null,
       "license": "Grinding Gear Games public trade API; reference data for a non-commercial fan tool.",
-      "fetchedAt": "2026-10-02T12:45:53.303Z",
+      "fetchedAt": "2026-10-02T13:19:06.989Z",
       "files": [
         {
           "path": "trade2/static.json",
@@ -74,7 +74,7 @@
           "path": "trade2/stats.json",
           "url": "https://www.pathofexile.com/api/trade2/data/stats",
           "bytes": 853425,
-          "sha256": "98e16e6a4e7d71a2a408da746a6e3c6be3242555f7d2234ec0bfc9c4aed5b931"
+          "sha256": "83bdadfd52d05727a83b2bde7a058dd68b3572f15c0796f9bcb7f78e5ffff689"
         }
       ]
     }

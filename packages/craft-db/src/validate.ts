@@ -17,10 +17,15 @@ export function validateDataset(dataset: CraftDataset): string[] {
   const groupIds = new Set(dataset.groups.map((g) => g.id));
   const modifierIds = new Set(dataset.modifiers.map((m) => m.id));
   const consumableIds = new Set(dataset.consumables.map((c) => c.id));
+  const specialIds = new Set((dataset.specialModifiers ?? []).filter((m) => m.layer === 'implicit').map((m) => m.id));
+  const fixtureSources = new Set(dataset.info.sources.filter((s) => s.kind === 'fixture').map((s) => s.id));
 
   const checkProvenance = (where: string, provenance: Provenance) => {
     if (!sourceIds.has(provenance.sourceId)) {
       problems.push(`${where}: unknown source "${provenance.sourceId}"`);
+    }
+    if (dataset.info.kind === 'production' && fixtureSources.has(provenance.sourceId)) {
+      problems.push(`${where}: production cannot reference a fixture source`);
     }
   };
 
@@ -29,6 +34,14 @@ export function validateDataset(dataset: CraftDataset): string[] {
   checkRevisions('modifier', dataset.modifiers, problems);
   checkRevisions('action', dataset.actions, problems);
   checkRevisions('consumable', dataset.consumables, problems);
+  checkRevisions('special modifier', dataset.specialModifiers ?? [], problems);
+  for (const [kind, records] of [['source', dataset.info.sources], ['group', dataset.groups], ['target', dataset.targets]] as const) {
+    const ids = new Set<string>();
+    for (const record of records) {
+      if (ids.has(record.id)) problems.push(`${kind} ${record.id}: duplicate id`);
+      ids.add(record.id);
+    }
+  }
 
   for (const c of dataset.itemClasses) checkProvenance(`item class ${c.id}`, c.provenance);
   for (const g of dataset.groups) checkProvenance(`group ${g.id}`, g.provenance);
@@ -40,6 +53,9 @@ export function validateDataset(dataset: CraftDataset): string[] {
       problems.push(`${where}: unknown item class "${base.itemClassId}"`);
     }
     if (base.details) checkProvenance(`${where} details`, base.details.provenance);
+    for (const id of base.implicitModifierIds ?? []) {
+      if (!specialIds.has(id)) problems.push(`${where}: unknown implicit modifier "${id}"`);
+    }
     const quality = base.setup?.quality;
     if (quality) {
       checkProvenance(`${where} quality rule`, quality.provenance);
@@ -59,14 +75,22 @@ export function validateDataset(dataset: CraftDataset): string[] {
     }
   }
 
-  for (const mod of dataset.modifiers) {
+  for (const mod of [...dataset.modifiers, ...(dataset.specialModifiers ?? [])]) {
     const where = `modifier ${mod.id}`;
     checkProvenance(where, mod.provenance);
-    if (mod.groupIds.length === 0) problems.push(`${where}: has no modifier group`);
+    if ('side' in mod) {
+      if (mod.side !== 'prefix' && mod.side !== 'suffix') problems.push(`${where}: invalid side`);
+      if (!Number.isInteger(mod.tier) || mod.tier <= 0) problems.push(`${where}: invalid tier`);
+      if (mod.layer !== undefined && mod.layer !== 'explicit' && mod.layer !== 'desecrated') problems.push(`${where}: invalid layer`);
+      if (mod.groupIds.length === 0) problems.push(`${where}: has no modifier group`);
+    } else if (mod.layer !== 'implicit' && mod.layer !== 'corruption') {
+      problems.push(`${where}: invalid special layer`);
+    }
     for (const g of mod.groupIds) {
       if (!groupIds.has(g)) problems.push(`${where}: unknown group "${g}"`);
     }
-    if (mod.lines.length === 0) problems.push(`${where}: has no lines`);
+    // Hidden base mechanics have stat ids but no display text in the client. Preserve their ids.
+    if (mod.lines.length === 0 && ('side' in mod || !mod.statIds?.length)) problems.push(`${where}: has no lines`);
     for (const line of mod.lines) {
       const placeholders = (line.template.match(/#/g) ?? []).length;
       if (placeholders !== line.ranges.length) {
@@ -75,12 +99,17 @@ export function validateDataset(dataset: CraftDataset): string[] {
         );
       }
       for (const r of line.ranges) {
-        if (r.min > r.max) problems.push(`${where}: range ${r.min}..${r.max} is inverted`);
+        if (!Number.isFinite(r.min) || !Number.isFinite(r.max) || r.min > r.max) problems.push(`${where}: range ${r.min}..${r.max} is invalid`);
       }
     }
     for (const w of mod.spawnWeights) {
       if (w.weight !== null && (!Number.isFinite(w.weight) || w.weight < 0)) {
         problems.push(`${where}: invalid weight ${w.weight} for tag "${w.tag}"`);
+      }
+      if (dataset.info.kind === 'production' && w.weight !== null && !w.evidence) problems.push(`${where}: numeric production weight needs evidence`);
+      if (w.evidence) {
+        checkProvenance(`${where} weight evidence`, w.evidence);
+        if (dataset.info.kind === 'production' && (w.evidence.method === 'fixture' || (w.weight !== null && w.evidence.method === 'unknown'))) problems.push(`${where}: invalid production weight evidence method`);
       }
     }
   }
@@ -88,6 +117,7 @@ export function validateDataset(dataset: CraftDataset): string[] {
   for (const action of dataset.actions) {
     checkProvenance(`action ${action.id}`, action.provenance);
     for (const cost of action.defaultCost) {
+      if (!Number.isFinite(cost.quantity) || cost.quantity <= 0) problems.push(`action ${action.id}: invalid cost quantity`);
       if (!consumableIds.has(cost.consumableId)) {
         problems.push(`action ${action.id}: unknown consumable "${cost.consumableId}"`);
       }
@@ -104,9 +134,14 @@ export function validateDataset(dataset: CraftDataset): string[] {
 
   for (const rule of dataset.affixLimits) {
     checkProvenance(`affix limit ${rule.rarity}`, rule.provenance);
+    for (const id of rule.itemClassIds ?? []) if (!classIds.has(id)) problems.push(`affix limit ${rule.rarity}: unknown item class "${id}"`);
+    if (![rule.maxPrefixes, rule.maxSuffixes].every((n) => Number.isInteger(n) && n >= 0)) problems.push(`affix limit ${rule.rarity}: invalid limits`);
   }
   for (const c of dataset.consumables) {
     checkProvenance(`consumable ${c.id}`, c.provenance);
+    if ((c.craftStatus === 'modelled' || c.craftStatus === 'verified') && !dataset.actions.some((a) => rangesOverlap(a.versions, c.versions) && a.defaultCost.some((cost) => cost.consumableId === c.id && cost.quantity > 0))) {
+      problems.push(`consumable ${c.id}: modelled status needs an action that spends it`);
+    }
     if (!c.modifies) continue;
     checkProvenance(`consumable ${c.id} scope`, c.modifies.provenance);
     if (c.category !== 'omen') problems.push(`consumable ${c.id}: only omens have a scope`);

@@ -1,8 +1,26 @@
 # Источники данных
 
-## Что сейчас в CraftDB (v0.4)
+## Production foundation (0.5.5 / клиент 4.5.5.2)
 
-Единственный набор — `packages/craft-db/src/fixtures/akoyan-spear.ts`, `kind: 'fixture'`; каталог баз
+Production-набор: `packages/craft-db/src/production`. Факты — RePoE PoE 2 export,
+ревизия `b818b843337cae43b090b272fd98bbc0fd3a34f3`; `trade2/data/items` и `static`
+подтверждают базы и каталог расходников. Хеши, даты и ревизии — `data/raw/manifest.json`.
+RePoE tooling — MIT, PyPoE — GPL-3.0; игровые данные и изображения принадлежат GGG.
+PoE2DB и Craft of Exile — только ручная сверка, их данные и веса не импортируются.
+
+Клиент содержит разрешения спавна 0/1, не вероятностные веса: в production это
+`spawns: boolean`, `weight: null`. Числовой вес принимается только с `WeightEvidence`.
+Тир зависит от базы. Соответствие клиента 4.5.5.2 игре 0.5.5 — допущение исследования.
+Скрытые implicit-механики сохраняют id/statIds без текста; пропуски explicit без текста — warnings.
+
+`pnpm data:refresh`: fetch → normalize → validate → report. Для закреплённого экспорта:
+`pnpm data:fetch:pinned`, затем normalize/validate/report. Отчёт — `data/coverage-report.json`.
+Сырые файлы не коммитятся, JSON и manifest коммитятся. Нужен Node ≥23.
+Подробности источников и лицензий — `docs/research/real-data-landscape.md`.
+
+## Demo / fixture (v0.4)
+
+Демонстрационный набор — `packages/craft-db/src/fixtures/akoyan-spear.ts`, `kind: 'fixture'`; каталог баз
 вынесен в `fixtures/bases.ts`, источники — в `fixtures/sources.ts`.
 
 | Данные | Статус | Источник | Confidence |
@@ -63,4 +81,3 @@ PoE 1 без подтверждения для PoE 2 не импортируют
 
 `apps/web/public/img/workshop.webp` — фон страницы, сгенерирован локально (ComfyUI, Z-Image-Turbo,
 лицензия Apache 2.0), исходник — `design/bg/bg_00001_.png`. Это не игровой ассет и не источник данных.
-

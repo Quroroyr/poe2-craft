@@ -1,0 +1,118 @@
+{
+  "gameVersion": "0.5.5",
+  "gameClientVersion": "4.5.5.2",
+  "upstream": [
+    {
+      "id": "repoe-poe2",
+      "revision": "b818b843337cae43b090b272fd98bbc0fd3a34f3",
+      "fetchedAt": "2026-10-02T13:18:56.217Z",
+      "repository": "https://github.com/repoe-fork/poe2"
+    },
+    {
+      "id": "official-trade2",
+      "revision": null,
+      "fetchedAt": "2026-10-02T13:19:06.989Z",
+      "repository": null
+    }
+  ],
+  "counts": {
+    "itemClasses": 31,
+    "bases": 1841,
+    "modifiers": 3281,
+    "specialModifiers": 353,
+    "groups": 599,
+    "consumables": 499
+  },
+  "baseStatuses": {
+    "validated": 1597,
+    "imported": 244
+  },
+  "modifierLayers": {
+    "explicit": 3040,
+    "desecrated": 241,
+    "implicit": 234,
+    "corruption": 119
+  },
+  "consumableCategories": {
+    "currency": 53,
+    "rune": 210,
+    "soul-core": 47,
+    "liquid-emotion": 26,
+    "catalyst": 26,
+    "omen": 39,
+    "abyssal-bone": 16,
+    "essence": 82
+  },
+  "consumableStatuses": {
+    "catalogued": 499
+  },
+  "weights": {
+    "known": 0,
+    "community": 0,
+    "unknown": 4570,
+    "forbidden": 4711
+  },
+  "hiddenSpecialModifiers": [
+    "AxeImplicitFireDamage1",
+    "MaceImplicitFireDamage1",
+    "SpearImplicitDisplaySpearThrow1",
+    "SpearImplicitLightningDamage1",
+    "SpearImplicitLightningDamageUnique1",
+    "DaggerImplicitColdDamage1",
+    "FlailImplicitColdDamage1",
+    "QuarterstaffImplicitBaseLightningDamage1",
+    "QuarterstaffImplicitBaseLightningDamage2",
+    "QuarterstaffImplicitBaseLightningDamage3",
+    "QuarterstaffImplicitFireDamageUnique1",
+    "QuarterstaffImplicitColdDamageUnique1",
+    "QuarterstaffImplicitLightningDamageUnique1",
+    "BowImplicitChaosDamage1",
+    "BowImplicitBaseChaosDamage1",
+    "BowImplicitBaseChaosDamage2",
+    "BowImplicitBaseChaosDamage3",
+    "CrossbowImplicitColdDamageUnique1",
+    "CrossbowImplicitLightningDamageUnique1",
+    "JewelRadiusImplicit",
+    "StormBladeImplicitLocalLightningDamage_1",
+    "HandWrapsImplicitLocalCopyPlayerLevelValue",
+    "FrostBreathVerisiumImplicitLocalColdConvert1",
+    "BrainRattlerVerisiumImplicitLightningConvert1",
+    "SaithaVerisiumImplicitLocalFireConvert1",
+    "PillarOfCagedGodVerisiumImplicitLocalColdConvert1",
+    "GatecrasherVerisiumImplicitLocalLightningConvert1",
+    "BrutusLeadSprinklerVerisiumImplicitLocalFireConvert1",
+    "OlrovasaraVerisiumWeaponImplicitDamageIsCold1",
+    "MjolnerVerisiumImplicitLocalLightningConvert1",
+    "TwistedEmpyreanVerisiumImplicitLocalColdConvert1"
+  ],
+  "warnings": [
+    "modifier LocalTrapThrowSpeed1: no stat text in the export — left out",
+    "modifier LocalTrapThrowSpeed2: no stat text in the export — left out",
+    "modifier LocalTrapThrowSpeed3: no stat text in the export — left out",
+    "modifier LocalTrapThrowSpeed4: no stat text in the export — left out",
+    "modifier LocalTrapThrowSpeed5: no stat text in the export — left out",
+    "modifier LocalTrapThrowSpeed6: no stat text in the export — left out",
+    "modifier LocalTrapThrowSpeed7: no stat text in the export — left out",
+    "modifier TrapTriggerRadius1: no stat text in the export — left out",
+    "modifier TrapTriggerRadius2: no stat text in the export — left out",
+    "modifier TrapTriggerRadius3: no stat text in the export — left out",
+    "modifier TrapTriggerRadius4: no stat text in the export — left out",
+    "modifier TrapTriggerRadius5: no stat text in the export — left out",
+    "modifier TrapCascadeSpeed1: no stat text in the export — left out",
+    "modifier TrapCascadeSpeed2: no stat text in the export — left out",
+    "modifier TrapCascadeSpeed3: no stat text in the export — left out",
+    "modifier TrapCascadeSpeed4: no stat text in the export — left out",
+    "modifier TrapCascadeSpeed5: no stat text in the export — left out",
+    "modifier EssenceGrantedPassive: no stat text in the export — left out",
+    "modifier ChaosLeechedAsLifeEssence1_: no stat text in the export — left out",
+    "modifier SocketedGemsAddPercentageOfPhysicalAsLightningEssence1: no stat text in the export — left out",
+    "modifier BurningGroundWhileMovingEssence1: no stat text in the export — left out",
+    "modifier SocketedSkillAlwaysIgniteEssence1: no stat text in the export — left out",
+    "modifier PoisonDamageEssence1: no stat text in the export — left out",
+    "modifier SpellBlockOnLowLifeEssence1: no stat text in the export — left out",
+    "modifier SpellBlockAmuletEssence1: no stat text in the export — left out",
+    "modifier StormBladeExplicitLocalIncreasedCriticalStrikeChance: no stat text in the export — left out",
+    "modifier StormBladeExplicitShockChance: no stat text in the export — left out",
+    "modifier StormBladeExplicitAttackLightningConvertToChaos: no stat text in the export — left out"
+  ]
+}

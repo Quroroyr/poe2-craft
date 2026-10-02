@@ -102,7 +102,7 @@ function lines(text: string | undefined) {
     .map((line) => {
       const ranges: { min: number; max: number }[] = [];
       const template = line.replace(RANGE, (_m, a: string, b: string) => {
-        ranges.push({ min: Number(a), max: Number(b) });
+        ranges.push({ min: Math.min(Number(a), Number(b)), max: Math.max(Number(a), Number(b)) });
         return '#';
       });
       return { template, ranges };
@@ -332,6 +332,7 @@ for (const group of tradeStatic) {
       id: e.id,
       name: e.text,
       category,
+      craftStatus: 'catalogued',
       ...(art ? { art } : {}),
       tradeGroup: group.id,
       versions: VERSIONS,

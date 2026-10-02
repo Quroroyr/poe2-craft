@@ -18,7 +18,10 @@
     "check": "pnpm test && pnpm typecheck && pnpm build",
     "data:fetch": "node scripts/data/fetch.ts",
     "data:fetch:pinned": "node scripts/data/fetch.ts --pinned",
-    "data:normalize": "node scripts/data/normalize.ts"
+    "data:normalize": "node scripts/data/normalize.ts",
+    "data:validate": "vitest run packages/craft-db/src/production/production.test.ts",
+    "data:report": "node scripts/data/report.ts",
+    "data:refresh": "pnpm data:fetch && pnpm data:normalize && pnpm data:validate && pnpm data:report"
   },
   "devDependencies": {
     "@poe2-craft/craft-db": "workspace:*",
