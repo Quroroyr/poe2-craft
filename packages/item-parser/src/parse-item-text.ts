@@ -37,6 +37,10 @@ export interface ParsedItemText {
   /** Lines of the first section after "Item Class"/"Rarity": item name and/or base name. */
   readonly nameLines: readonly string[];
   readonly itemLevel: number | null;
+  /** "Quality: +20% (augmented)" → 20; null when the line is absent. */
+  readonly quality: number | null;
+  /** Number of sockets on the "Sockets: S S" line; null when the line is absent. */
+  readonly socketCount: number | null;
   readonly explicitLines: readonly ParsedModifierLine[];
   readonly otherLines: readonly ParsedOtherLine[];
   readonly flags: {
@@ -100,6 +104,16 @@ export function parseItemText(input: string): ParsedItemText {
   });
   if (itemLevel === null && sections.length > 0) warnings.push('Item level not found');
 
+  // Quality and sockets live in the property sections before the item level.
+  let quality: number | null = null;
+  let socketCount: number | null = null;
+  for (const line of sections.slice(1, modifierSectionsStart).flat()) {
+    const q = /^Quality:\s*\+?(\d+)%/i.exec(line);
+    if (q?.[1]) quality = Number(q[1]);
+    const sockets = /^Sockets:\s*(.+)$/i.exec(line);
+    if (sockets?.[1]) socketCount = sockets[1].split(/[\s-]+/).filter(Boolean).length;
+  }
+
   const explicitLines: ParsedModifierLine[] = [];
   const otherLines: ParsedOtherLine[] = [];
   let blockCounter = 0;
@@ -147,6 +161,8 @@ export function parseItemText(input: string): ParsedItemText {
     rarity,
     nameLines,
     itemLevel,
+    quality,
+    socketCount,
     explicitLines,
     otherLines,
     flags: {

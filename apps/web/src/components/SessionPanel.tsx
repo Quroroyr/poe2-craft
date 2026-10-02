@@ -32,7 +32,7 @@ export function SessionPanel(props: SessionPanelProps) {
   );
 
   return (
-    <Panel title="История и затраты" step="6" aside={<span className="badge badge-warn">симуляция</span>}>
+    <Panel title="История и затраты" aside={<span className="badge badge-warn">симуляция</span>}>
       <div className="spend">
         <div className="cost-fact">
           <span className="kpi-label">Потрачено (факт)</span>

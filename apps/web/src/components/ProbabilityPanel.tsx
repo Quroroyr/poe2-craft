@@ -11,7 +11,7 @@ interface ProbabilityPanelProps {
 
 export function ProbabilityPanel({ result, view }: ProbabilityPanelProps) {
   return (
-    <Panel title="Вероятность цели шага" step="7">
+    <Panel title="Вероятность цели шага">
       <ProbabilityBody result={result} view={view} />
     </Panel>
   );

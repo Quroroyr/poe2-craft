@@ -2,19 +2,16 @@ import type { ReactNode } from 'react';
 
 interface PanelProps {
   readonly title: string;
-  readonly step?: string;
   readonly aside?: ReactNode;
+  readonly className?: string;
   readonly children: ReactNode;
 }
 
-export function Panel({ title, step, aside, children }: PanelProps) {
+export function Panel({ title, aside, className, children }: PanelProps) {
   return (
-    <section className="panel">
+    <section className={`panel${className ? ` ${className}` : ''}`}>
       <header className="panel-head">
-        <h2>
-          {step && <span className="panel-step">{step}</span>}
-          {title}
-        </h2>
+        <h2>{title}</h2>
         {aside}
       </header>
       <div className="panel-body">{children}</div>

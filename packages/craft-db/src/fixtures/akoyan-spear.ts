@@ -18,8 +18,6 @@ import type {
   Consumable,
   CraftAction,
   CraftTarget,
-  ItemBase,
-  ItemClass,
   ModifierDefinition,
   ModifierGroup,
   Provenance,
@@ -28,22 +26,18 @@ import type {
   VersionRange,
 } from '@poe2-craft/craft-domain';
 import type { CraftDataset } from '../dataset';
+import { bases, itemClasses } from './bases';
+import {
+  ALWAYS,
+  FIXTURE,
+  FIXTURE_SOURCES,
+  FIXTURE_SOURCE_ID,
+  GENERAL_KNOWLEDGE_SOURCE_ID,
+  KNOWN_NAME,
+  OFFICIAL_TRADE_DATA_SOURCE_ID,
+} from './sources';
 
-export const FIXTURE_SOURCE_ID = 'fixture.akoyan-spear-v0.1';
-export const GENERAL_KNOWLEDGE_SOURCE_ID = 'unverified.general-knowledge';
-export const OFFICIAL_TRADE_DATA_SOURCE_ID = 'official.trade2-data';
-
-const FIXTURE: Provenance = {
-  sourceId: FIXTURE_SOURCE_ID,
-  confidence: 'experimental',
-  notes: 'Invented demo value',
-};
-
-const KNOWN_NAME: Provenance = {
-  sourceId: GENERAL_KNOWLEDGE_SOURCE_ID,
-  confidence: 'experimental',
-  notes: 'Name believed to exist in PoE 2; not yet verified against PoE2DB or game data',
-};
+export { FIXTURE_SOURCE_ID, GENERAL_KNOWLEDGE_SOURCE_ID, OFFICIAL_TRADE_DATA_SOURCE_ID };
 
 /** Names (and art ids) confirmed against GGG's PoE 2 trade data endpoints. */
 const OFFICIAL_NAME: Provenance = {
@@ -52,44 +46,6 @@ const OFFICIAL_NAME: Provenance = {
   lastVerified: '2026-10-02',
   notes: 'Name and icon art taken from pathofexile.com/api/trade2/data/static; mechanics not covered by this source',
 };
-
-/** Base name confirmed officially; everything else on the record (spawn tags) is still fixture. */
-const OFFICIAL_BASE_NAME: Provenance = {
-  sourceId: OFFICIAL_TRADE_DATA_SOURCE_ID,
-  confidence: 'experimental',
-  lastVerified: '2026-10-02',
-  notes:
-    'Base name confirmed in pathofexile.com/api/trade2/data/items; spawn tags are fixture, so the record as a whole stays experimental',
-};
-
-const ALWAYS: VersionRange = { introducedIn: '0.4.0' };
-
-// ---------------------------------------------------------------- classes & bases
-
-const itemClasses: ItemClass[] = [
-  { id: 'class.spear', name: 'Spear', clipboardName: 'Spears', versions: ALWAYS, provenance: KNOWN_NAME },
-  { id: 'class.bow', name: 'Bow', clipboardName: 'Bows', versions: ALWAYS, provenance: KNOWN_NAME },
-];
-
-const bases: ItemBase[] = [
-  {
-    id: 'base.akoyan-spear',
-    name: 'Akoyan Spear',
-    itemClassId: 'class.spear',
-    // Tags are fixture: real spawn tags must come from game data.
-    tags: ['spear', 'one_hand_weapon', 'weapon', 'default'],
-    versions: ALWAYS,
-    provenance: OFFICIAL_BASE_NAME,
-  },
-  {
-    id: 'base.recurve-bow',
-    name: 'Recurve Bow',
-    itemClassId: 'class.bow',
-    tags: ['bow', 'two_hand_weapon', 'weapon', 'default'],
-    versions: ALWAYS,
-    provenance: OFFICIAL_BASE_NAME,
-  },
-];
 
 // ---------------------------------------------------------------- groups
 
@@ -557,30 +513,12 @@ const targets: CraftTarget[] = [
 export const akoyanSpearFixture: CraftDataset = {
   info: {
     id: 'fixture.akoyan-spear',
-    title: 'Akoyan Spear — demo dataset v0.1',
+    title: 'Akoyan Spear — demo dataset v0.4',
     kind: 'fixture',
     description:
-      'Hand-written demo data for the v0.1 vertical slice. Tiers, item levels and weights are invented.',
+      'Hand-written demo data. Tiers, item levels and weights of modifiers are invented; a few real base types (names, properties, art) form the base catalog.',
     gameVersions: ['0.4.0', '0.5.0'],
-    sources: [
-      {
-        id: FIXTURE_SOURCE_ID,
-        kind: 'fixture',
-        title: 'Hand-written demo data (NOT real PoE 2 numbers)',
-      },
-      {
-        id: GENERAL_KNOWLEDGE_SOURCE_ID,
-        kind: 'inferred',
-        title: 'General PoE 2 knowledge, pending verification against PoE2DB / game data',
-        url: 'https://poe2db.tw/',
-      },
-      {
-        id: OFFICIAL_TRADE_DATA_SOURCE_ID,
-        kind: 'official',
-        title: 'PoE 2 trade data endpoints by GGG (static, items, stats) — names, base names, icon art',
-        url: 'https://www.pathofexile.com/api/trade2/data/static',
-      },
-    ],
+    sources: FIXTURE_SOURCES,
   },
   itemClasses,
   bases,

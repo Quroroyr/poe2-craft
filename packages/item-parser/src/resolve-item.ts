@@ -63,6 +63,9 @@ export function resolveItem(parsed: ParsedItemText, catalog: ItemCatalog): ItemP
     itemClassName: parsed.itemClass,
     rarity: parsed.rarity,
     itemLevel: parsed.itemLevel,
+    quality: parsed.quality,
+    // The game lists sockets on weapons and armour as rune sockets ("S"); other kinds come later.
+    slots: parsed.socketCount === null ? [] : [{ kind: 'rune-socket', count: parsed.socketCount }],
     explicits,
     otherLines: parsed.otherLines.map((l) => ({ source: l.source, text: l.text })),
     corrupted: parsed.flags.corrupted,

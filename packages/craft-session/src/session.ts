@@ -7,9 +7,10 @@ import type {
   TargetSpec,
 } from '@poe2-craft/craft-domain';
 import type { CraftDb } from '@poe2-craft/craft-db';
-import type { AttemptCost } from '@poe2-craft/economy';
+import { calculateAttemptCost, type AttemptCost, type PriceSnapshot } from '@poe2-craft/economy';
 import { applyAction, type ApplyOutcome } from './apply-action';
 import { rollRng } from './rng';
+import { resolveTool, type ToolSelection } from './tools';
 
 /**
  * One crafting session. Three different things, never aliases of one another by accident:
@@ -83,10 +84,26 @@ export function setSource(session: CraftSession, source: ItemState | null): Craf
   return { ...session, source, current: untouched ? source : session.current, redoStack: untouched ? [] : session.redoStack };
 }
 
-/** The source changed after crafting started, so current no longer descends from it. */
+/**
+ * The item the current crafting branch started from: the `before` of the first step, also when
+ * every step was undone (the earliest undone step is the last one on the redo stack).
+ */
+function branchOrigin(session: CraftSession): ItemState | null {
+  const first = session.steps[0] ?? session.redoStack[session.redoStack.length - 1];
+  return first ? first.before : session.current;
+}
+
+/**
+ * The source changed after crafting started, so current no longer descends from it and only
+ * `resetToSource` brings them together again. Also true after undoing every step of such a branch.
+ */
 export function isSourceOutOfSync(session: CraftSession): boolean {
-  const first = session.steps[0];
-  return first !== undefined && first.before !== session.source;
+  return branchOrigin(session) !== session.source;
+}
+
+/** Crafting has started on this source: there are applied or undone steps. */
+export function hasCraftHistory(session: CraftSession): boolean {
+  return session.steps.length > 0 || session.redoStack.length > 0;
 }
 
 /** Reset craft: current = source, history and spending cleared. Source and target untouched. */
@@ -116,11 +133,13 @@ export type ApplyStepResult =
       /** Unchanged session: a rejected action spends nothing and alters nothing. */
       readonly session: CraftSession;
       readonly outcome: ApplyOutcome | null;
+      /** Set when the attempt never reached the action: no item, no tool, or a tool without a model. */
+      readonly reason?: 'no-item' | 'no-tool' | 'unsupported-tool';
     };
 
 /** Applies one action to the current item (demo simulation) and records it in the history. */
 export function applyStep(session: CraftSession, input: ApplyStepInput): ApplyStepResult {
-  if (!session.current) return { status: 'rejected', session, outcome: null };
+  if (!session.current) return { status: 'rejected', session, outcome: null, reason: 'no-item' };
 
   const outcome = applyAction({
     item: session.current,
@@ -160,6 +179,28 @@ export function applyStep(session: CraftSession, input: ApplyStepInput): ApplySt
       redoStack: [],
     },
   };
+}
+
+export interface ApplyToolInput {
+  readonly db: CraftDb;
+  readonly tool: ToolSelection;
+  readonly prices: PriceSnapshot;
+}
+
+/**
+ * One click on the current item with the held tool: resolves the tool to its action (data only,
+ * crafting invariant 30), prices the attempt and applies it. Anything that cannot be applied
+ * returns the unchanged session, so a failed click never spends.
+ */
+export function applyToolStep(session: CraftSession, input: ApplyToolInput): ApplyStepResult {
+  if (!session.current) return { status: 'rejected', session, outcome: null, reason: 'no-item' };
+  const resolved = resolveTool(input.db.forVersion(session.gameVersion), input.tool);
+  if (resolved.status === 'none') return { status: 'rejected', session, outcome: null, reason: 'no-tool' };
+  if (resolved.status === 'unsupported') {
+    return { status: 'rejected', session, outcome: null, reason: 'unsupported-tool' };
+  }
+  const cost = calculateAttemptCost(resolved.action.defaultCost, input.prices);
+  return applyStep(session, { db: input.db, actionId: resolved.action.id, cost });
 }
 
 /** Undoes the last step: current goes back to the item before it, its cost leaves "spent". */

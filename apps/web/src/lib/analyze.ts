@@ -10,6 +10,7 @@ import {
   explainCalculation,
   explorePool,
   type EligiblePool,
+  type ExclusionReason,
   type ExplanationStep,
   type PoolExplorer,
   type ProbabilityResult,
@@ -17,15 +18,22 @@ import {
 import {
   checkApplicable,
   compareToTarget,
+  itemSetupFields,
   outstandingTargetModifiers,
   poolForMode,
   resolveTool,
+  sourceModifierIssues,
+  sourceTierOptions,
+  targetBaseCheck,
   targetFromModifier,
   type ApplyRejection,
   type CraftSession,
   type ItemComparison,
+  type ItemSetupFields,
   type PoolMode,
   type ResolvedTool,
+  type TargetBaseCheck,
+  type TierOption,
   type ToolSelection,
 } from '@poe2-craft/craft-session';
 
@@ -65,8 +73,19 @@ export interface WorkspaceInput {
   readonly explorerMode: ExplorerMode;
 }
 
+/** What the source setup form needs: supported fields, per-modifier problems and tier choices. */
+export interface SourceSetupView {
+  /** null when the source base is not in this game version (e.g. an unrecognised import). */
+  readonly fields: ItemSetupFields | null;
+  readonly issues: ReadonlyMap<number, readonly ExclusionReason[]>;
+  readonly tierOptions: ReadonlyMap<number, readonly TierOption[]>;
+}
+
 export interface WorkspaceAnalysis {
   readonly view: CraftDbView;
+  readonly sourceSetup: SourceSetupView | null;
+  /** A target on another base is shown with a warning and never planned towards. */
+  readonly targetBase: TargetBaseCheck;
   readonly tool: ResolvedTool;
   /** Pool of the active tool on the current item (null without a ready tool). */
   readonly pool: EligiblePool | null;
@@ -96,13 +115,38 @@ export function analyzeWorkspace(input: WorkspaceInput): WorkspaceAnalysis {
 
   const comparison =
     session.current && session.target ? compareToTarget(session.current, session.target, view) : null;
-  const stageTargets = stageTargetOptions(view, comparison);
+  const targetBase = targetBaseCheck(session.source ?? session.current, session.target);
+  const stageTargets = stageTargetOptions(view, targetBase === 'mismatch' ? null : comparison);
   const stageTarget = stageTargets.find((o) => o.key === input.stageTargetKey) ?? stageTargets[0] ?? null;
   const probability = pool && stageTarget ? calculateTargetProbability(pool, stageTarget.target) : null;
   const explanation =
     pool && stageTarget && probability ? explainCalculation(pool, stageTarget.target, probability) : [];
 
-  return { view, tool, pool, blockedBy, explorer, comparison, stageTargets, stageTarget, probability, explanation };
+  return {
+    view,
+    sourceSetup: sourceSetupView(session),
+    targetBase,
+    tool,
+    pool,
+    blockedBy,
+    explorer,
+    comparison,
+    stageTargets,
+    stageTarget,
+    probability,
+    explanation,
+  };
+}
+
+function sourceSetupView(session: CraftSession): SourceSetupView | null {
+  const source = session.source;
+  if (!source) return null;
+  const { gameVersion } = session;
+  return {
+    fields: itemSetupFields(craftDb.forVersion(gameVersion), source),
+    issues: sourceModifierIssues(craftDb, gameVersion, source),
+    tierOptions: new Map(source.explicits.map((_, i) => [i, sourceTierOptions(craftDb, gameVersion, source, i)])),
+  };
 }
 
 function toPoolMode(mode: ExplorerMode, actionId: string | null): PoolMode {

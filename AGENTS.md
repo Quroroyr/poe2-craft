@@ -7,15 +7,15 @@
 
 | Путь | Назначение |
 |---|---|
-| `apps/web` | Next.js 16 (App Router). `src/lib/analyze.ts` — композиция (`analyzeWorkspace`); `src/components/Workspace.tsx` — состояние страницы; остальные компоненты — отображение |
+| `apps/web` | Next.js 16 (App Router). `src/lib/analyze.ts` — композиция (`analyzeWorkspace`); `src/components/Workspace.tsx` — состояние страницы; `src/lib/art-manifest.ts` — локальные картинки и их источники; остальные компоненты — отображение |
 | `packages/craft-domain` | Типы домена и чистые правила (версии, provenance, spawn-веса, ItemState) |
-| `packages/craft-db` | `CraftDataset`, валидация, `CraftDb.forVersion()`, fixture Akoyan Spear |
+| `packages/craft-db` | `CraftDataset`, валидация, `CraftDb.forVersion()`, fixture (моды — `akoyan-spear.ts`, каталог баз — `bases.ts`, источники — `sources.ts`) |
 | `packages/item-parser` | `parseItemText` (только текст) + `resolveItem` (сопоставление с каталогом) |
 | `packages/probability-engine` | `buildEligiblePool`, `calculateTargetProbability`, геометрия, `explainCalculation` |
 | `packages/economy` | `PriceSnapshot`, `calculateAttemptCost`, `calculateStageCost` |
-| `packages/craft-session` | `applyAction` + `checkApplicable` (демо-симуляция), `CraftSession` (undo/redo/reset), инструменты (`resolveTool`), ручная правка source, `poolForMode`, сравнение с `TargetSpec` |
+| `packages/craft-session` | `applyAction` + `checkApplicable` (демо-симуляция), `CraftSession` (undo/redo/reset), инструменты (`resolveTool`, `applyToolStep`), настройка source (`item-setup.ts`: база, ilvl, качество, слоты, fractured, тиры), `poolForMode`, сравнение с `TargetSpec` |
 | `docs/` | архитектура, доменная модель, инварианты, источники данных, ADR |
-| `tests/` | архитектурные границы, наличие иконок |
+| `tests/` | архитектурные границы, картинки (манифест + файлы); тесты сайта — `apps/web/src/**/*.test.tsx` |
 
 ## Команды
 
@@ -24,7 +24,7 @@ pnpm install
 pnpm dev         # сайт на :3000
 pnpm build       # production-сборка
 pnpm test        # vitest, все пакеты
-pnpm typecheck   # tsc по всем пакетам и сайту
+pnpm typecheck   # tsc по всем пакетам и сайту (у сайта без инкрементального кэша — он прятал ошибки)
 pnpm check       # test + typecheck + build
 ```
 
@@ -34,7 +34,10 @@ pnpm check       # test + typecheck + build
 
 - Направление зависимостей: `craft-domain` ← `craft-db` ← `probability-engine` ← `economy` ← `craft-session`;
   `item-parser` зависит только от `craft-domain`. Сайт зависит от всех.
-- Текущий предмет меняется только функциями `craft-session` (`applyStep`, `undoLastStep`, `redoStep`, `undoToStep`, `resetToSource`); source — только ручными правками (`setSource`), target — функциями `TargetSpec`.
+- Текущий предмет меняется только функциями `craft-session` (`applyStep` / `applyToolStep`, `undoLastStep`, `redoStep`, `undoToStep`, `resetToSource`); source — только настройкой (`setSource` + функции `item-setup.ts`), target — функциями `TargetSpec`.
+- Настройка исходного — не крафт: не пишет шагов и не стоит денег. Fractured при настройке — не Fracturing Orb (ADR 007).
+- `ItemState` ссылается на базу только `baseId`; арт, свойства и правила настройки — в `ItemBase`. Домен хранит id арта, путь к файлу знает только `art-manifest.ts`; новую картинку — скачать локально и записать источник.
+- Качество, слоты и другие записанные, но не смоделированные свойства не влияют на расчёт без отдельного проверенного правила в пакете.
 - Новые инструменты в палитре появляются только вместе с действием в данных (ADR 006).
 - Случайность — только через переданный `Rng`; `Math.random` в пакетах запрещён.
 - Симуляция подписывается как демо, пока механика не подтверждена данными.

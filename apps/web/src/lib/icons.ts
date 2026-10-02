@@ -1,20 +1,32 @@
 /**
- * Maps game art ids from CraftDB to icons stored in /public/icons/game.
- * Files were downloaded from GGG's official CDN (web.poecdn.com) via the PoE 2 trade
- * static data; the file name is the last segment of the art id. Icons © Grinding Gear Games.
+ * Resolves art ids from CraftDB records to the local images listed in art-manifest.ts.
+ * Components ask here; they never build image paths themselves.
  */
-import type { Consumable } from '@poe2-craft/craft-domain';
+import type { Consumable, ItemBase } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
+import { ART_MANIFEST, type ArtAsset } from './art-manifest';
 
 export const ICON_DIR = '/icons/game';
 
+export interface ResolvedArt extends ArtAsset {
+  readonly src: string;
+}
+
+export function resolveArt(artId: string | undefined): ResolvedArt | null {
+  const asset = artId ? ART_MANIFEST[artId] : undefined;
+  return asset ? { ...asset, src: `${ICON_DIR}/${asset.file}` } : null;
+}
+
 export function iconUrlForArt(art: string | undefined): string | null {
-  const file = art?.split('/').pop();
-  return file ? `${ICON_DIR}/${file}.png` : null;
+  return resolveArt(art)?.src ?? null;
 }
 
 export function consumableIconUrl(consumable: Consumable | undefined): string | null {
   return iconUrlForArt(consumable?.art);
+}
+
+export function baseArt(base: ItemBase | undefined): ResolvedArt | null {
+  return resolveArt(base?.artAssetId);
 }
 
 /** Price units are named after the currency they are counted in. */

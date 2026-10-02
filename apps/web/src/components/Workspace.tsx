@@ -1,12 +1,20 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { addRequirement, type ItemState, type ModifierDefinition, type TargetSpec } from '@poe2-craft/craft-domain';
+import {
+  addRequirement,
+  type ItemBaseId,
+  type ItemState,
+  type ModifierDefinition,
+  type TargetSpec,
+} from '@poe2-craft/craft-domain';
 import {
   EMPTY_TOOL,
   addSourceModifier,
-  applyStep,
+  applyToolStep,
+  createItemFromBase,
   createSession,
+  hasCraftHistory,
   isSourceOutOfSync,
   redoStep,
   replaceSourceModifier,
@@ -31,12 +39,12 @@ import {
   importTarget,
   type ExplorerMode,
 } from '@/lib/analyze';
-import { formatAttempts, formatCost, formatPercent } from '@/lib/format';
-import { consumableIconUrl } from '@/lib/icons';
+import { heldTool } from '@/lib/held-tool';
 import { INITIAL_PRICE_INPUTS, snapshotFromInputs, type PriceInputs } from '@/lib/prices';
 import { applyNotice, currentItemBadges, randomSeed, type WorkspaceNotice } from '@/lib/session-ui';
 import { applyRejectionText } from '@/lib/texts';
-import { CurrentItemPanel, type ActiveToolView } from './CurrentItemPanel';
+import { BaseSelector } from './BaseSelector';
+import { CurrentItemPanel, type CraftFeedback } from './CurrentItemPanel';
 import { DataPanel } from './DataPanel';
 import { ExplanationPanel } from './ExplanationPanel';
 import { ModifierPoolPanel } from './ModifierPoolPanel';
@@ -47,6 +55,7 @@ import { TargetPanel } from './TargetPanel';
 import { ToolPalette } from './ToolPalette';
 
 const INSPECT: ExplorerMode = { kind: 'inspect' };
+const DEFAULT_ITEM_LEVEL = 82;
 
 function initialSession(): CraftSession {
   return createSession({
@@ -70,6 +79,8 @@ export function Workspace() {
   const [priceInputs, setPriceInputs] = useState<PriceInputs>(INITIAL_PRICE_INPUTS);
   const [pricesEdited, setPricesEdited] = useState(false);
   const [notice, setNotice] = useState<WorkspaceNotice | null>(null);
+  const [feedback, setFeedback] = useState<CraftFeedback | null>(null);
+  const [baseSelectorOpen, setBaseSelectorOpen] = useState(false);
   const explorerRef = useRef<HTMLDivElement>(null);
 
   const analysis = useMemo(
@@ -88,6 +99,12 @@ export function Workspace() {
   );
   const spent = useMemo(() => sessionSpent(session), [session]);
 
+  /** Any history move ends the "just clicked" moment. */
+  const clearMoment = () => {
+    setNotice(null);
+    setFeedback(null);
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (isTyping(e.target)) return;
@@ -95,11 +112,11 @@ export function Workspace() {
       if ((e.ctrlKey || e.metaKey) && key === 'z' && !e.shiftKey) {
         e.preventDefault();
         setSession(undoLastStep);
-        setNotice(null);
+        clearMoment();
       } else if ((e.ctrlKey || e.metaKey) && ((key === 'z' && e.shiftKey) || key === 'y')) {
         e.preventDefault();
         setSession(redoStep);
-        setNotice(null);
+        clearMoment();
       } else if (key === 'escape') {
         setExplorerMode(INSPECT);
       }
@@ -109,21 +126,19 @@ export function Workspace() {
   }, []);
 
   const craft = () => {
-    if (analysis.tool.status === 'none') {
-      setNotice({ tone: 'bad', text: 'Сначала выберите валюту в палитре инструментов.' });
-      return;
-    }
-    if (analysis.tool.status === 'unsupported' || !action || !attemptCost) {
-      setNotice({ tone: 'bad', text: 'Эта комбинация инструментов не смоделирована — предмет не изменён.' });
-      return;
-    }
-    if (analysis.blockedBy) {
-      setNotice({ tone: 'bad', text: `Предмет не изменён. ${applyRejectionText(analysis.blockedBy)}` });
-      return;
-    }
-    const result = applyStep(session, { db: craftDb, actionId: action.id, cost: attemptCost });
+    const result = applyToolStep(session, { db: craftDb, tool, prices: snapshot });
+    const id = (feedback?.id ?? 0) + 1;
     setSession(result.session);
-    setNotice(applyNotice(result, view));
+    setFeedback({ id, tone: result.status === 'applied' ? 'ok' : 'bad' });
+    if (result.status === 'applied') {
+      setNotice(applyNotice(result, view));
+    } else if (result.reason === 'no-tool') {
+      setNotice({ tone: 'bad', text: 'Сначала возьмите валюту из палитры.' });
+    } else if (result.reason === 'unsupported-tool') {
+      setNotice({ tone: 'bad', text: 'Эта комбинация инструментов не смоделирована — предмет не изменён, валюта не потрачена.' });
+    } else {
+      setNotice({ tone: 'bad', text: `Предмет не изменён, валюта не потрачена. ${applyNotice(result, view).text}` });
+    }
   };
 
   const explore = (mode: ExplorerMode) => {
@@ -132,6 +147,20 @@ export function Workspace() {
   };
   const editSource = (source: ItemState | null) => setSession((s) => setSource(s, source));
   const editTarget = (target: TargetSpec | null) => setSession((s) => withTarget(s, target));
+
+  const chooseBase = (baseId: ItemBaseId) => {
+    const source = createItemFromBase(view, baseId, session.source?.itemLevel ?? DEFAULT_ITEM_LEVEL);
+    if (!source) return;
+    setSession((s) => {
+      const next = setSource(s, source);
+      // An empty target simply follows the new base; one with requirements is kept and warned about.
+      const followsBase = !s.target || s.target.requirements.length === 0;
+      return followsBase ? withTarget(next, targetForSource(source)) : next;
+    });
+    setBaseSelectorOpen(false);
+    setExplorerMode(INSPECT);
+    clearMoment();
+  };
 
   const pick = (definition: ModifierDefinition) => {
     if (explorerMode.kind === 'edit-source' && session.source) {
@@ -150,84 +179,107 @@ export function Workspace() {
   const changeVersion = (gameVersion: string) => {
     // Items refer to modifiers by stable id, so source and target survive; the crafted history does not.
     setSession((s) => createSession({ gameVersion, seed: s.seed, source: s.source, target: s.target }));
-    setNotice(null);
+    clearMoment();
   };
 
-  const toolView: ActiveToolView | null =
-    analysis.tool.status === 'none'
-      ? null
-      : {
-          label: analysis.tool.consumables.map((c) => c.name).join(' + '),
-          icons: analysis.tool.consumables.map((c) => ({ src: consumableIconUrl(c), name: c.name })),
-          costText: attemptCost ? formatCost(attemptCost.total, attemptCost.unit) : 'нет модели',
-          chanceText:
-            probability?.status === 'ok'
-              ? `${formatPercent(probability.probability)} · ≈${formatAttempts(probability.expectedAttempts)}`
-              : null,
-        };
-  const blockedReason =
-    analysis.tool.status === 'unsupported'
-      ? 'эта комбинация не смоделирована'
-      : analysis.blockedBy
-        ? applyRejectionText(analysis.blockedBy)
-        : null;
+  const blockedReason = analysis.blockedBy ? applyRejectionText(analysis.blockedBy) : null;
+  const held = heldTool(analysis.tool, blockedReason);
+  const outOfSync = isSourceOutOfSync(session);
+  const lastStep = session.steps[session.steps.length - 1];
+  const freshIndex = feedback?.tone === 'ok' && lastStep ? lastStep.after.explicits.length - 1 : null;
 
   return (
     <div className="page">
       <header className="masthead">
-        <div>
+        <div className="masthead-title">
           <h1>PoE 2 Craft Planner</h1>
-          <p className="masthead-sub">Исходный → текущий → цель. Выберите инструмент и кликайте по текущему предмету.</p>
+          <p className="masthead-sub">Соберите исходный предмет, возьмите валюту и кликайте по текущему.</p>
         </div>
-        {view.info.kind === 'fixture' && (
-          <p className="fixture-banner" role="note">
-            <strong>Демо-данные и демо-симуляция.</strong> Тиры, уровни и веса модов придуманы для проверки движка;
-            клик по предмету разыгрывает упрощённую модель, а не механику PoE 2.
-          </p>
-        )}
+        <div className="masthead-side">
+          {view.info.kind === 'fixture' && (
+            <p className="fixture-banner" role="note">
+              <strong>Демо-данные.</strong> Тиры, уровни и веса модов придуманы; клик разыгрывает упрощённую модель, а не
+              механику PoE 2.
+            </p>
+          )}
+          <label className="inline-field">
+            Версия игры
+            <select name="game-version" value={session.gameVersion} onChange={(e) => changeVersion(e.target.value)}>
+              {craftDb.supportedVersions.map((v) => (
+                <option key={v} value={v}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </header>
 
       <main className="layout">
-        <section className="workspace" aria-label="Рабочий стол">
-          <div className="ws-source">
+        <section className="workbench" aria-label="Верстак">
+          <div className="wb-source">
             <SourcePanel
               source={session.source}
               view={view}
+              setup={analysis.sourceSetup}
               explorerMode={explorerMode}
+              craftStarted={hasCraftHistory(session)}
               onImport={(text) => editSource(importSource(text, session.gameVersion))}
               onEdit={editSource}
               onExplore={explore}
+              onChooseBase={() => setBaseSelectorOpen(true)}
             />
           </div>
-          <div className="ws-current">
+          <div className="wb-current">
             <CurrentItemPanel
               item={session.current}
               view={view}
               badges={currentItemBadges(session, comparison)}
               stepCount={session.steps.length}
               redoCount={session.redoStack.length}
-              tool={toolView}
-              blockedReason={blockedReason}
+              tool={held}
+              toolbar={
+                <ToolPalette
+                  view={view}
+                  selection={tool}
+                  onSelect={setTool}
+                  resolved={analysis.tool}
+                  priceInputs={priceInputs}
+                  attemptCost={attemptCost}
+                  probability={probability}
+                  stageTargets={analysis.stageTargets}
+                  stageTargetKey={analysis.stageTarget?.key ?? null}
+                  onStageTarget={setStageTargetKey}
+                />
+              }
+              feedback={feedback}
+              freshIndex={freshIndex}
               notice={notice}
-              sourceOutOfSync={isSourceOutOfSync(session)}
+              sourceOutOfSync={outOfSync}
+              canReset={hasCraftHistory(session) || outOfSync}
               onCraft={craft}
               onUndo={() => {
                 setSession(undoLastStep);
-                setNotice(null);
+                clearMoment();
               }}
-              onRedo={() => setSession(redoStep)}
+              onRedo={() => {
+                setSession(redoStep);
+                clearMoment();
+              }}
               onReset={() => {
                 setSession(resetToSource);
-                setNotice(null);
+                clearMoment();
               }}
             />
           </div>
-          <div className="ws-target">
+          <div className="wb-target">
             <TargetPanel
               target={session.target}
               comparison={comparison}
               view={view}
               explorerMode={explorerMode}
+              baseCheck={analysis.targetBase}
+              sourceBaseName={session.source?.baseName ?? null}
               onImport={(text) => editTarget(importTarget(text, session.gameVersion))}
               onEdit={editTarget}
               onCreate={() => editTarget(targetForSource(session.source))}
@@ -236,31 +288,19 @@ export function Workspace() {
           </div>
         </section>
 
-        <ToolPalette
-          db={craftDb}
-          view={view}
-          selection={tool}
-          onSelect={setTool}
-          resolved={analysis.tool}
-          priceInputs={priceInputs}
-          attemptCost={attemptCost}
-          probability={probability}
-          stageTargets={analysis.stageTargets}
-          stageTargetKey={analysis.stageTarget?.key ?? null}
-          onStageTarget={setStageTargetKey}
-          gameVersion={session.gameVersion}
-          onGameVersion={changeVersion}
-        />
-
         <div className="row-pool">
           <div ref={explorerRef} className={explorerMode.kind === 'inspect' ? undefined : 'explorer-editing'}>
             <ModifierPoolPanel
-              key={explorerMode.kind === 'inspect' ? 'inspect' : `${explorerMode.kind}-${explorerMode.side}-${'replaceIndex' in explorerMode ? explorerMode.replaceIndex : ''}`}
+              key={
+                explorerMode.kind === 'inspect'
+                  ? 'inspect'
+                  : `${explorerMode.kind}-${explorerMode.side}-${'replaceIndex' in explorerMode ? explorerMode.replaceIndex : ''}`
+              }
               explorer={analysis.explorer}
               mode={explorerMode}
               view={view}
               highlightIds={new Set(analysis.stageTarget?.target.modifierIds ?? [])}
-              toolLabel={toolView?.label ?? null}
+              toolLabel={held ? held.icons.map((i) => i.name).join(' + ') : null}
               onPick={pick}
               onExit={() => setExplorerMode(INSPECT)}
             />
@@ -279,9 +319,12 @@ export function Workspace() {
             }}
             onUndoTo={(index) => {
               setSession((s) => undoToStep(s, index));
-              setNotice(null);
+              clearMoment();
             }}
-            onRedo={() => setSession(redoStep)}
+            onRedo={() => {
+              setSession(redoStep);
+              clearMoment();
+            }}
           />
         </div>
 
@@ -291,6 +334,15 @@ export function Workspace() {
         </div>
         <DataPanel view={view} probability={probability} />
       </main>
+
+      <BaseSelector
+        open={baseSelectorOpen}
+        view={view}
+        currentBaseId={session.source?.baseId ?? null}
+        dropsModifiers={(session.source?.explicits.length ?? 0) > 0}
+        onSelect={chooseBase}
+        onClose={() => setBaseSelectorOpen(false)}
+      />
     </div>
   );
 }

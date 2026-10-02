@@ -45,6 +45,7 @@ export interface CraftDbView {
   readonly info: DatasetInfo;
   getSource(id: DataSourceId): DataSource | undefined;
   getItemClass(id: ItemClassId): ItemClass | undefined;
+  listItemClasses(): readonly ItemClass[];
   findItemClassByClipboardName(name: string): ItemClass | undefined;
   getBase(id: ItemBaseId): ItemBase | undefined;
   listBases(): readonly ItemBase[];
@@ -140,6 +141,7 @@ function createView(dataset: CraftDataset, version: GameVersion): CraftDbView {
     info: dataset.info,
     getSource: (id) => sourceById.get(id),
     getItemClass: (id) => classById.get(id),
+    listItemClasses: () => itemClasses,
     findItemClassByClipboardName: (name) =>
       itemClasses.find((c) => normalise(c.clipboardName) === normalise(name)),
     getBase: (id) => baseById.get(id),

@@ -34,9 +34,28 @@ export function validateDataset(dataset: CraftDataset): string[] {
   for (const g of dataset.groups) checkProvenance(`group ${g.id}`, g.provenance);
 
   for (const base of dataset.bases) {
-    checkProvenance(`base ${base.id}`, base.provenance);
+    const where = `base ${base.id}`;
+    checkProvenance(where, base.provenance);
     if (!classIds.has(base.itemClassId)) {
-      problems.push(`base ${base.id}: unknown item class "${base.itemClassId}"`);
+      problems.push(`${where}: unknown item class "${base.itemClassId}"`);
+    }
+    if (base.details) checkProvenance(`${where} details`, base.details.provenance);
+    const quality = base.setup?.quality;
+    if (quality) {
+      checkProvenance(`${where} quality rule`, quality.provenance);
+      if (!Number.isInteger(quality.min) || !Number.isInteger(quality.max) || quality.min < 0 || quality.min > quality.max) {
+        problems.push(`${where}: invalid quality range ${quality.min}..${quality.max}`);
+      }
+    }
+    const kinds = new Set<string>();
+    for (const slot of base.setup?.slots ?? []) {
+      checkProvenance(`${where} slot rule ${slot.kind}`, slot.provenance);
+      if (kinds.has(slot.kind)) problems.push(`${where}: duplicate slot rule "${slot.kind}"`);
+      kinds.add(slot.kind);
+      const sorted = slot.options.every((n, i) => i === 0 || n > (slot.options[i - 1] ?? -1));
+      if (slot.options.length === 0 || !sorted || slot.options.some((n) => !Number.isInteger(n) || n < 0)) {
+        problems.push(`${where}: slot "${slot.kind}" needs ascending non-negative integer options`);
+      }
     }
   }
 

@@ -17,7 +17,8 @@
 | Понятие | Суть |
 |---|---|
 | `ItemClass` | класс предмета; `clipboardName` — значение строки `Item Class:` |
-| `ItemBase` | база (Akoyan Spear); `tags` — теги для spawn-весов |
+| `ItemBase` | **определение** базы (Akoyan Spear): `tags` — теги для spawn-весов; `artAssetId` — id игрового арта; `details` — свойства, требования, implicit-строки (только показ, свой `provenance`); `setup` — `ItemSetupRules` |
+| `ItemSetupRules` | что база позволяет настроить вручную: `quality` (`QualityRule` min/max) и `slots` (`SlotRule`: вид слота, подпись, допустимые количества); нет правила — свойство не предлагается |
 | `ModifierGroup` | группа коллизий: два мода с общей группой не уживаются на предмете |
 | `ModifierDefinition` | **один тир** мода: `id` (стабильный), `side`, `tier`, `groupIds[]`, `requiredItemLevel`, `modifierLevel`, `lines[]` (шаблон с `#` + диапазоны), `spawnWeights[]`, `tags`, `versions`, `provenance` |
 | `SpawnWeight` | `(tag, weight)`; `weight: null` = вес неизвестен |
@@ -39,6 +40,8 @@
 ```ts
 ItemState {
   baseId | null, baseName, itemClassName, rarity, itemLevel,
+  quality: number | null,              // v0.4: записано и показано, в расчёт не идёт
+  slots: { kind, count }[],            // v0.4: например { kind: 'rune-socket', count: 1 }
   explicits: (ResolvedModifier | UnresolvedModifier)[],
   otherLines: { source: implicit|rune|enchant|other, text }[],
   corrupted
@@ -50,7 +53,12 @@ UnresolvedModifier { sourceText, fractured, reason, sideHint?, groupIdsHint? }
 - Только stable id и выпавшие значения. Полное определение берётся из CraftDB той версии, в
   которой идёт расчёт.
 - `createItemState` глубоко замораживает объект. Изменение предмета = новый `ItemState`.
-- `fractured` — свойство конкретного мода на предмете, а не определения.
+- `fractured` — свойство конкретного мода на предмете, а не определения. Его ставит импорт или
+  ручная настройка исходного (`setSourceModifierFractured`); это не Fracturing Orb.
+- Определение базы (`ItemBase`) в состояние не копируется: арт, свойства, теги и правила настройки
+  берутся из CraftDB по `baseId`.
+- `quality` и `slots` — факты о предмете. Пока нет проверенного правила, пул и вероятности от них
+  не зависят (инвариант 37).
 - Нераспознанная строка не выбрасывается: она занимает слот, а если известна её сторона или
   группа, то блокирует их (осторожная оценка).
 
@@ -105,3 +113,18 @@ UnresolvedModifier { sourceText, fractured, reason, sideHint?, groupIdsHint? }
 - **Демо-симуляция:** что именно выпало при «Применить». Модель: один мод пропорционально весу и
   значения равномерно в диапазоне. Реальное поведение валют и Omen PoE 2 не проверено, а все числа
   в наборе — fixture.
+
+## Настройка исходного предмета (v0.4)
+
+| Понятие | Пакет | Суть |
+|---|---|---|
+| `createItemFromBase` / `blankItem` | craft-session | пустой редкий предмет базы: качество = минимум правила, слоты = первое допустимое значение |
+| `itemSetupFields` | craft-session | какие поля база поддерживает: ilvl (границы ввода 1–100), `QualityRule \| null`, `SlotRule[]` |
+| `setItemLevel`, `setQuality`, `setSlotCount` | craft-session | новые `ItemState`; значение вне правила — предмет без изменений |
+| `setSourceModifierFractured` | craft-session | «мод уже fractured на моей базе» (через `withExplicitFractured` из домена) |
+| `sourceTierOptions` | craft-session | тиры семейства мода с `allowed` и причинами — тот же manual-edit пул, что у обозревателя |
+| `sourceModifierIssues` | craft-session | почему стартовый мод уже не может стоять на предмете (после смены ilvl/базы); мод не удаляется |
+| `applyToolStep` | craft-session | клик инструментом: `ToolSelection` → действие из данных → `AttemptCost` → `applyStep`; отказы `no-item` / `no-tool` / `unsupported-tool` |
+| `targetBaseCheck` | craft-session | `match` / `mismatch` / `unknown`: цель на другой базе не планируется |
+| `TargetModStatus.not-fractured` | craft-session | требование fractured, а мод на предмете обычный |
+| `hasCraftHistory`, `isSourceOutOfSync` | craft-session | есть ли шаги (в т. ч. отменённые); current не происходит от source — нужен Reset |

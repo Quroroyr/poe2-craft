@@ -11,6 +11,7 @@ import type {
 import type { ExplorerMode } from '@/lib/analyze';
 import { formatInt, formatPercent } from '@/lib/format';
 import { EXPLORER_STATUS_LABEL, exclusionText } from '@/lib/texts';
+import { Icon } from './Icon';
 import { Panel } from './Panel';
 
 const TAB_LABEL: Record<ExplorerTabId, string> = { prefix: 'Префиксы', suffix: 'Суффиксы' };
@@ -54,7 +55,6 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
   return (
     <Panel
       title="Пул модов"
-      step="5"
       aside={<ModeChip mode={mode} toolLabel={props.toolLabel} onExit={props.onExit} />}
     >
       {!explorer || !tab ? (
@@ -164,7 +164,7 @@ function ModeChip({ mode, toolLabel, onExit }: { mode: ExplorerMode; toolLabel: 
     <span className="mode-chip mode-chip-edit">
       {label}
       <button type="button" className="icon-btn" aria-label="Вернуться к осмотру" onClick={onExit}>
-        ×
+        <Icon name="close" size={14} />
       </button>
     </span>
   );
@@ -189,9 +189,7 @@ function Family(props: {
   return (
     <li className={`family family-${group.status}${hasTarget && mode.kind === 'inspect' ? ' is-target' : ''}`}>
       <button type="button" className="family-head" aria-expanded={props.open} onClick={props.onToggle}>
-        <span className="family-caret" aria-hidden>
-          {props.open ? '▾' : '▸'}
-        </span>
+        <Icon name="chevron" size={14} className={`family-caret${props.open ? ' rot-90' : ''}`} />
         <span className="family-name">
           {best ? best.entry.definition.lines.map((l) => l.template).join(' / ') : group.label}
           <span className="family-label">{group.label}</span>

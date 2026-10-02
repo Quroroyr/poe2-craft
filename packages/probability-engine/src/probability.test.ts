@@ -50,6 +50,8 @@ const spear = (explicits: ExplicitModifier[], overrides: Partial<ItemState> = {}
     itemClassName: 'Spears',
     rarity: 'rare',
     itemLevel: 82,
+    quality: null,
+    slots: [],
     explicits,
     otherLines: [],
     corrupted: false,

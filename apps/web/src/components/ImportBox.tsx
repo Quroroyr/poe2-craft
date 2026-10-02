@@ -8,17 +8,18 @@ interface ImportBoxProps {
   /** Called with the pasted / typed / sample text; the parent decides what importing means. */
   readonly onImport: (text: string) => void;
   readonly defaultOpen?: boolean;
+  /** false: always open, without the disclosure summary (the parent already toggles it). */
+  readonly collapsible?: boolean;
 }
 
 /**
  * Collapsible "paste from the game" box. Importing replaces the item; manual edits made after
  * the import are lost on the next import, so importing is an explicit action.
  */
-export function ImportBox({ id, label, samples, onImport, defaultOpen = false }: ImportBoxProps) {
+export function ImportBox({ id, label, samples, onImport, defaultOpen = false, collapsible = true }: ImportBoxProps) {
   const [text, setText] = useState('');
-  return (
-    <details className="import-box" open={defaultOpen}>
-      <summary>{label}</summary>
+  const body = (
+    <>
       <textarea
         id={id}
         name={id}
@@ -47,6 +48,22 @@ export function ImportBox({ id, label, samples, onImport, defaultOpen = false }:
           </button>
         ))}
       </div>
+    </>
+  );
+  if (!collapsible) {
+    return (
+      <div className="import-box import-box-static">
+        <label className="field-label" htmlFor={id}>
+          {label}
+        </label>
+        {body}
+      </div>
+    );
+  }
+  return (
+    <details className="import-box" open={defaultOpen}>
+      <summary>{label}</summary>
+      {body}
     </details>
   );
 }

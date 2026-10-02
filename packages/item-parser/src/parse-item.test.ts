@@ -140,4 +140,33 @@ Item Level: 40
     expect(Object.isFrozen(state)).toBe(true);
     expect(Object.isFrozen(state.explicits[0])).toBe(true);
   });
+
+  it('reads quality and the socket count from the property sections', () => {
+    const text = `Item Class: Spears
+Rarity: Rare
+Test Name
+Akoyan Spear
+--------
+Spear
+Quality: +20% (augmented)
+Physical Damage: 40-75 (augmented)
+--------
+Requires: Level 78
+--------
+Sockets: S
+--------
+Item Level: 82
+--------
++4.12% to Critical Hit Chance`;
+    const { state } = parseItem(text, catalog);
+    expect(state.quality).toBe(20);
+    expect(state.slots).toEqual([{ kind: 'rune-socket', count: 1 }]);
+    expect(state.explicits).toHaveLength(1);
+  });
+
+  it('leaves quality unknown and slots empty when the text has neither line', () => {
+    const { state } = parseItem(AKOYAN_SPEAR_FRACTURED_CRIT, catalog);
+    expect(state.quality).toBeNull();
+    expect(state.slots).toEqual([]);
+  });
 });

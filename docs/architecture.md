@@ -48,6 +48,21 @@ React; сайт только вызывает их и показывает ре�
 Ctrl+Z / Ctrl+Shift+Z / откат к шагу / Reset ──► undoLastStep / redoStep / undoToStep / resetToSource
 ```
 
+### Конструктор базы и настройка исходного (v0.4)
+
+```
+«Новый предмет» ──► BaseSelector (CraftDbView.listBases / listItemClasses; поиск, класс, сортировка)
+выбор базы ──createItemFromBase──► source: пустой редкий предмет (baseId, ilvl, quality, slots)
+ilvl / качество / сокеты ──setItemLevel / setQuality / setSlotCount──► source'   (не крафт, 0 стоимости)
+«+ Добавить суффикс» ──► тот же ModifierPool, режим edit-source ──► addSourceModifier
+«Сделать fractured» ──setSourceModifierFractured──► source'   (не Fracturing Orb)
+тир в редакторе мода ◄── sourceTierOptions (manual-edit пул)  · предупреждения ◄── sourceModifierIssues
+клик по текущему с валютой в руке ──applyToolStep──► шаг | отказ без трат
+```
+
+Арт: `ItemBase.artAssetId` / `Consumable.art` (id) → `apps/web/src/lib/art-manifest.ts` (файл, размер,
+источник) → `/icons/game/*.png`. Домен не знает ни путей, ни URL.
+
 ## Пакеты и направление зависимостей
 
 | Пакет | Назначение | Зависит от |
@@ -74,9 +89,14 @@ Ctrl+Z / Ctrl+Shift+Z / откат к шагу / Reset ──► undoLastStep / 
 
 | Файл | Роль |
 |---|---|
-| `src/lib/analyze.ts` | `analyzeWorkspace`: парсинг обоих предметов, синхронизация сессии, пул, обозреватель, сравнение, цели шага, вероятность, объяснение |
+| `src/lib/analyze.ts` | `analyzeWorkspace`: пул, обозреватель, сравнение, проверка базы цели, цели шага, вероятность, объяснение, данные формы настройки исходного |
 | `src/lib/session-ui.ts` | seed (crypto), бейджи модов, текст уведомлений — без игровых правил |
-| `src/lib/texts.ts` | формулировки для кодов статусов, причин и отказов |
+| `src/lib/texts.ts` | формулировки для кодов статусов, причин и отказов, подписи источников |
+| `src/lib/icons.ts`, `src/lib/art-manifest.ts` | id игрового арта → локальный файл; манифест с источником каждой картинки |
+| `src/lib/base-catalog.ts` | поиск / фильтр по классу / сортировка в селекторе баз (без игровых правил) |
+| `src/lib/held-tool.ts` | что «держит» курсор: иконки и ready / blocked с причиной |
+| `src/components/BaseSelector.tsx` | модальное окно выбора базы (`<dialog>`) |
+| `src/components/HeldToolCursor.tsx` | оверлей валюты у курсора над предметом (портал, `pointer-events: none`) |
 | `src/components/Workspace.tsx` | состояние страницы и вызовы пакетов |
 | `src/components/*Panel.tsx`, `ItemCard.tsx` | отображение |
 

@@ -7,3 +7,4 @@ export {
   GENERAL_KNOWLEDGE_SOURCE_ID,
   OFFICIAL_TRADE_DATA_SOURCE_ID,
 } from './fixtures/akoyan-spear';
+export { OFFICIAL_TRADE_LISTINGS_SOURCE_ID } from './fixtures/sources';

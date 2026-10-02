@@ -1,15 +1,19 @@
 # Источники данных
 
-## Что сейчас в CraftDB (v0.1)
+## Что сейчас в CraftDB (v0.4)
 
-Единственный набор — `packages/craft-db/src/fixtures/akoyan-spear.ts`, `kind: 'fixture'`.
+Единственный набор — `packages/craft-db/src/fixtures/akoyan-spear.ts`, `kind: 'fixture'`; каталог баз
+вынесен в `fixtures/bases.ts`, источники — в `fixtures/sources.ts`.
 
 | Данные | Статус | Источник | Confidence |
 |---|---|---|---|
 | Тиры, диапазоны, item level, modifier level, spawn-веса всех модов | **придуманы** | `fixture.akoyan-spear-v0.1` | experimental |
 | Группы модов, теги баз | **придуманы** | fixture | experimental |
 | Тексты статов (`+# to Level of all Projectile Skills`, `#% to Critical Hit Chance` и др.) | текст существует в PoE 2, но привязка к стороне и тиры — fixture | сверено с trade2/data/stats 02.10.2026 | experimental (запись целиком) |
-| Названия баз Akoyan Spear, Recurve Bow | **реальные** | `official.trade2-data` (trade2/data/items), 02.10.2026 | experimental (теги — fixture) |
+| Названия 13 баз (5 копий, 5 луков, 3 посоха) | **реальные** | `official.trade2-data` (trade2/data/items), 02.10.2026 | experimental (запись целиком: теги — fixture) |
+| Свойства баз (урон, крит, скорость атаки), требования, implicit-строки, арт | **реальные**, наблюдение | `official.trade2-listings`: JSON одного обычного (normal) предмета без качества и сокетов на каждую базу, 02.10.2026 | verified (одно наблюдение, с файлами игры не сверено) |
+| Теги спавна баз | **придуманы** | fixture | experimental |
+| Диапазон качества 0–20 %, сокеты рун (1 у одноручных, 2 у двуручных) | общеизвестно, не сверено | `unverified.general-knowledge` | experimental |
 | Названия валют и Omen, их иконки | **реальные** | `official.trade2-data` (trade2/data/static), 02.10.2026 | official |
 | Лимиты аффиксов (magic 1/1, rare 3/3) | общеизвестно, не сверено | `unverified.general-knowledge` | experimental |
 | Действия (Exalted Orb и т. п.) | упрощённая модель «добавить 1 мод по весу»; реальные эффекты Omen **не закодированы** | fixture | experimental |
@@ -28,6 +32,12 @@
 - подтвердить, что названия расходников, баз и тексты статов существуют в PoE 2;
 - взять иконки (`image` → `https://web.poecdn.com/...`). Файлы скачаны в
   `apps/web/public/icons/game/` и раздаются сайтом сами, без хотлинка на CDN.
+
+`https://www.pathofexile.com/api/trade2/search` + `/fetch` (v0.4) — по одному запросу на базу, с
+паузами по лимитам API. Из JSON обычного предмета без качества и сокетов взяты свойства, требования,
+implicit-строки и арт базы (`official.trade2-listings`). Картинки предметов 47×188 / 94×188 px (размер
+CDN) — сайт показывает их в этом размере или меньше, не растягивая. Источник каждого файла записан в
+`apps/web/src/lib/art-manifest.ts`.
 
 Иконки © Grinding Gear Games, используются в некоммерческом фан-инструменте. Перед публичным
 запуском проверить актуальные правила GGG для фан-сайтов.

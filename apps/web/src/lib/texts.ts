@@ -2,7 +2,7 @@
  * Wording for structured codes coming from the engines. Presentation only: the meaning
  * of each code is defined by the package that emits it.
  */
-import type { AffixSide, Confidence, Rarity, UnresolvedReason } from '@poe2-craft/craft-domain';
+import type { AffixSide, Confidence, DataSourceKind, Provenance, Rarity, UnresolvedReason } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ParseDiagnostic } from '@poe2-craft/item-parser';
 import type { ApplyRejection, TargetModStatus } from '@poe2-craft/craft-session';
@@ -10,6 +10,27 @@ import type { ExclusionReason, ExplorerStatus, PoolCaveat, PoolIssue } from '@po
 
 export const SIDE_LABEL: Record<AffixSide, string> = { prefix: 'Префикс', suffix: 'Суффикс' };
 export const SIDE_SHORT: Record<AffixSide, string> = { prefix: 'P', suffix: 'S' };
+
+/** Slot kinds come from data; known ones get a Russian label, others show their id. */
+export const SLOT_LABEL: Readonly<Record<string, string>> = { 'rune-socket': 'Сокеты рун' };
+
+const SOURCE_KIND_LABEL: Record<DataSourceKind, string> = {
+  official: 'официальные данные GGG',
+  'game-data': 'файлы игры',
+  poe2db: 'PoE2DB',
+  'community-testing': 'тесты сообщества',
+  observation: 'наблюдение, официальный трейд',
+  inferred: 'общеизвестно, не сверено',
+  fixture: 'демо-данные',
+};
+
+/** One-line provenance: "наблюдение, официальный трейд · verified · 2026-10-02". */
+export function sourceTitle(view: CraftDbView, provenance: Provenance): string {
+  const source = view.getSource(provenance.sourceId);
+  const parts = [source ? SOURCE_KIND_LABEL[source.kind] : provenance.sourceId, provenance.confidence];
+  if (provenance.lastVerified) parts.push(provenance.lastVerified);
+  return parts.join(' · ');
+}
 
 export const RARITY_LABEL: Record<Rarity, string> = {
   normal: 'Обычный',
@@ -129,6 +150,7 @@ export const TARGET_STATUS_LABEL: Record<TargetModStatus, string> = {
   'better-tier': 'есть, тир лучше',
   'worse-tier': 'тир хуже',
   missing: 'не хватает',
+  'not-fractured': 'есть, но не fractured',
   unknown: 'не распознан',
 };
 

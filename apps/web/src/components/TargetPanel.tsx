@@ -7,10 +7,18 @@ import {
 } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import { SAMPLE_TARGET_ITEMS } from '@poe2-craft/item-parser';
-import { familyTiers, type ItemComparison, type RequirementComparison } from '@poe2-craft/craft-session';
+import {
+  familyTiers,
+  type ItemComparison,
+  type RequirementComparison,
+  type TargetBaseCheck,
+} from '@poe2-craft/craft-session';
 import type { ExplorerMode } from '@/lib/analyze';
+import { baseArt } from '@/lib/icons';
 import { SIDE_LABEL, TARGET_STATUS_LABEL } from '@/lib/texts';
+import { Icon } from './Icon';
 import { ImportBox } from './ImportBox';
+import { ItemArt } from './ItemArt';
 import { Panel } from './Panel';
 
 interface TargetPanelProps {
@@ -18,6 +26,8 @@ interface TargetPanelProps {
   readonly comparison: ItemComparison | null;
   readonly view: CraftDbView;
   readonly explorerMode: ExplorerMode;
+  readonly baseCheck: TargetBaseCheck;
+  readonly sourceBaseName: string | null;
   readonly onImport: (text: string) => void;
   readonly onEdit: (target: TargetSpec | null) => void;
   readonly onCreate: () => void;
@@ -29,6 +39,7 @@ const TONE: Record<string, string> = {
   'better-tier': 'ok',
   'worse-tier': 'warn',
   missing: 'bad',
+  'not-fractured': 'warn',
   unknown: 'warn',
 };
 
@@ -42,7 +53,6 @@ export function TargetPanel(props: TargetPanelProps) {
   return (
     <Panel
       title="Цель"
-      step="3"
       aside={
         comparison && (
           <span className="badge num" title="Требований выполнено на текущем предмете">
@@ -69,9 +79,29 @@ export function TargetPanel(props: TargetPanelProps) {
       ) : (
         <div className="target-spec">
           <div className="target-head">
-            <span className="target-base">{target.baseName ?? 'База исходного предмета'}</span>
-            <span className="muted small">ilvl {target.itemLevel ?? '—'} · требования «тир N или лучше»</span>
+            <ItemArt
+              art={baseArt(target.baseId ? view.getBase(target.baseId) : undefined)}
+              label={target.baseName ?? 'база цели'}
+              maxHeight={72}
+              className="target-art"
+            />
+            <div className="target-head-text">
+              <span className="target-base">{target.baseName ?? 'База исходного предмета'}</span>
+              <span className="muted small">ilvl {target.itemLevel ?? '—'} · требования «тир N или лучше»</span>
+            </div>
           </div>
+          {props.baseCheck === 'mismatch' && (
+            <div className="state-box state-bad target-mismatch" role="alert">
+              <strong>База цели не совпадает с базой исходного</strong>
+              <span>
+                Цель — {target.baseName ?? '?'}, исходный — {props.sourceBaseName ?? '?'}. Обычным крафтом базу не сменить,
+                поэтому шансы к этой цели не считаются.
+              </span>
+              <button type="button" className="btn btn-small" onClick={props.onCreate}>
+                Новая цель для {props.sourceBaseName ?? 'исходного'}
+              </button>
+            </div>
+          )}
           {(['prefix', 'suffix'] as const).map((side) => {
             const reqs = target.requirements.filter((r) => view.getModifier(r.modifierId)?.side === side);
             const max = side === 'prefix' ? limits?.maxPrefixes : limits?.maxSuffixes;
@@ -100,7 +130,8 @@ export function TargetPanel(props: TargetPanelProps) {
                   disabled={max !== undefined && reqs.length >= max}
                   onClick={() => props.onExplore({ kind: 'edit-target', side: side as AffixSide })}
                 >
-                  + Требование: {side === 'prefix' ? 'префикс' : 'суффикс'}
+                  <Icon name="plus" size={14} />
+                  Требование: {side === 'prefix' ? 'префикс' : 'суффикс'}
                 </button>
               </div>
             );
@@ -144,7 +175,7 @@ function RequirementRow(props: {
       <div className="req-row">
         <span className="bad">{props.modifierId}: нет в этой версии</span>
         <button type="button" className="icon-btn" aria-label="Удалить требование" onClick={props.onRemove}>
-          ×
+          <Icon name="close" size={14} />
         </button>
       </div>
     );
@@ -167,7 +198,12 @@ function RequirementRow(props: {
               </option>
             ))}
           </select>
-          {props.fractured && <span className="tag tag-fractured">fractured</span>}
+          {props.fractured && (
+            <span className="tag tag-fractured" title="Требуется fractured-мод: обычным добавлением не получить">
+              <Icon name="crack" size={12} />
+              fractured
+            </span>
+          )}
           {status && <span className={`tag tag-${TONE[status]}`}>{TARGET_STATUS_LABEL[status]}</span>}
           {props.row?.current && status !== 'matched' && (
             <span className="muted small">сейчас T{props.row.currentDefinition?.tier}</span>
@@ -175,7 +211,7 @@ function RequirementRow(props: {
         </span>
       </div>
       <button type="button" className="icon-btn" aria-label="Удалить требование" onClick={props.onRemove}>
-        ×
+        <Icon name="close" size={14} />
       </button>
     </div>
   );

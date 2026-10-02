@@ -26,6 +26,8 @@ const spear = (explicits: ExplicitModifier[]): ItemState =>
     itemClassName: 'Spears',
     rarity: 'rare',
     itemLevel: 82,
+    quality: null,
+    slots: [],
     explicits,
     otherLines: [],
     corrupted: false,

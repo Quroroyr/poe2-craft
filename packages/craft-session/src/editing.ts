@@ -6,7 +6,6 @@ import {
   withExplicitModifier,
   withoutExplicitAt,
   type CraftAction,
-  type ItemBase,
   type ItemState,
   type ModifierDefinition,
   type ResolvedModifier,
@@ -50,20 +49,6 @@ export function replaceSourceModifier(source: ItemState, index: number, definiti
   return replaceExplicitAt(source, index, manualModifier(definition, previous.fractured));
 }
 
-/** An empty rare item of a base, for building a source by hand. */
-export function blankItem(base: ItemBase, itemLevel: number): ItemState {
-  return createItemState({
-    baseId: base.id,
-    baseName: base.name,
-    itemClassName: null,
-    rarity: 'rare',
-    itemLevel,
-    explicits: [],
-    otherLines: [],
-    corrupted: false,
-  });
-}
-
 /**
  * Pool rules for "which modifiers could legally be on this item": any side, any rarity with
  * affix limits. Not a game action — it is only used to evaluate pools for manual editing and
@@ -91,6 +76,8 @@ export function targetAsItem(target: TargetSpec, fallback: ItemState | null): It
     itemClassName: fallback?.itemClassName ?? null,
     rarity: 'rare',
     itemLevel: target.itemLevel ?? fallback?.itemLevel ?? null,
+    quality: null,
+    slots: [],
     explicits: target.requirements.map(
       (r): ResolvedModifier => ({
         kind: 'resolved',

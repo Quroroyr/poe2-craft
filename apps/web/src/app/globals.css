@@ -1,5 +1,6 @@
 /* Neutral graphite base with a single gold accent. Game colours are kept only where they carry
-   meaning (rarity, explicit mods, fractured). A full visual redesign is a separate stage. */
+   meaning (rarity, explicit mods, fractured). Item names use a small-caps book face, the way
+   the game sets them; everything else is the interface face. */
 :root {
   --bg: #0b0c0e;
   --panel: #111317;
@@ -28,7 +29,9 @@
   --bad-bg: rgba(232, 103, 90, 0.08);
   --radius: 6px;
   --font-body: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
-  --font-item: Georgia, 'Times New Roman', serif;
+  --font-item: var(--font-item-face, Georgia), Georgia, serif;
+  --accent-strong: #e7bf63;
+  --shadow-raised: 0 18px 40px -12px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.4);
   --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   color-scheme: dark;
 }
@@ -51,6 +54,44 @@ body {
 
 a {
   color: var(--accent);
+  text-underline-offset: 3px;
+}
+
+::selection {
+  background: rgba(214, 170, 76, 0.32);
+  color: var(--heading);
+}
+
+html {
+  scrollbar-color: var(--border-strong) var(--bg);
+  accent-color: var(--accent);
+  caret-color: var(--accent);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 2px solid var(--bg);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--subtle);
+}
+
+.icon {
+  flex: none;
+  display: inline-block;
+  vertical-align: -0.15em;
+}
+
+.rot-90 {
+  transform: rotate(90deg);
 }
 
 code,
@@ -103,13 +144,13 @@ kbd {
 
 .fixture-banner {
   margin: 0;
-  max-width: 560px;
-  padding: 8px 12px;
-  border: 1px solid var(--border-strong);
-  border-left: 3px solid var(--warn);
+  max-width: 520px;
+  padding: 6px 12px;
+  border: 1px solid rgba(226, 163, 61, 0.35);
   border-radius: var(--radius);
-  background: var(--panel);
-  font-size: 13px;
+  background: var(--warn-bg);
+  font-size: 12.5px;
+  line-height: 1.45;
 }
 
 .fixture-banner strong {
@@ -147,19 +188,10 @@ kbd {
 
 .panel-head h2 {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
+  letter-spacing: -0.005em;
   color: var(--heading);
-}
-
-.panel-step {
-  display: inline-block;
-  min-width: 1.6em;
-  margin-right: 6px;
-  color: var(--subtle);
-  font-family: var(--font-mono);
-  font-weight: 400;
-  font-size: 12px;
 }
 
 .panel-body {
@@ -302,6 +334,9 @@ summary:focus-visible,
 }
 
 .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 6px 12px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
@@ -330,6 +365,9 @@ summary:focus-visible,
 }
 
 .link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 0;
   border: 0;
   background: none;
@@ -345,8 +383,11 @@ summary:focus-visible,
 }
 
 .icon-btn {
-  width: 24px;
-  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
   flex: none;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -368,9 +409,12 @@ summary:focus-visible,
 }
 
 .chip {
-  padding: 2px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 11px;
   border: 1px solid var(--border-strong);
-  border-radius: 12px;
+  border-radius: 999px;
   background: transparent;
   font-size: 12px;
   cursor: pointer;
@@ -378,6 +422,21 @@ summary:focus-visible,
 
 .chip:hover {
   border-color: var(--muted);
+}
+
+.chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--heading);
+}
+
+.chip-count {
+  color: var(--subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.chip[aria-pressed='true'] .chip-count {
+  color: var(--accent);
 }
 
 .samples {
@@ -441,93 +500,6 @@ summary:focus-visible,
   border-radius: var(--radius);
   font-family: var(--font-mono);
   font-size: 12px;
-}
-
-/* ---------------------------------------------------------------- item tooltip (game semantics live here) */
-.tooltip {
-  border: 1px solid var(--border-strong);
-  background: var(--sunken);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.tooltip-head {
-  padding: 10px 12px;
-  text-align: center;
-  border-bottom: 1px solid var(--border);
-  font-family: var(--font-item);
-  font-size: 17px;
-  line-height: 1.25;
-  background: var(--panel-raised);
-}
-
-.rarity-rare .tooltip-head {
-  color: var(--rare);
-}
-.rarity-magic .tooltip-head {
-  color: var(--magic);
-}
-.rarity-unique .tooltip-head {
-  color: var(--unique);
-}
-
-.tooltip-sub {
-  margin-top: 2px;
-  font-family: var(--font-body);
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.affix-block {
-  padding: 8px 12px 10px;
-  border-bottom: 1px solid var(--border);
-}
-
-.affix-block:last-child {
-  border-bottom: 0;
-}
-
-.affix-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
-.affix-empty {
-  font-size: 12px;
-  color: var(--subtle);
-}
-
-.mod-line {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 2px 12px;
-  padding: 3px 0;
-}
-
-.mod-text {
-  color: var(--mod);
-  white-space: pre-line;
-}
-
-.mod-fractured .mod-text {
-  color: var(--fractured);
-}
-
-.mod-unresolved .mod-text {
-  color: var(--bad);
-  text-decoration: underline dotted;
-}
-
-.mod-meta {
-  font-size: 12px;
-  color: var(--muted);
 }
 
 /* ---------------------------------------------------------------- probability panel */

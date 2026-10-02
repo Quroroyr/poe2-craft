@@ -13,6 +13,8 @@ const spear = (itemLevel = 82): ItemState =>
     itemClassName: 'Spears',
     rarity: 'rare',
     itemLevel,
+    quality: null,
+    slots: [],
     explicits: [
       {
         kind: 'resolved',

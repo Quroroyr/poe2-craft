@@ -15,9 +15,10 @@ import type { CraftDbView } from '@poe2-craft/craft-db';
  * - better-tier: a better tier than required (also satisfies the requirement);
  * - worse-tier: the family is there, but below the minimum acceptable tier;
  * - missing: nothing from the family is on the current item;
+ * - not-fractured: the requirement asks for a fractured modifier, the family is there but not fractured;
  * - unknown: the requirement points to a modifier this game version does not have.
  */
-export type TargetModStatus = 'matched' | 'better-tier' | 'worse-tier' | 'missing' | 'unknown';
+export type TargetModStatus = 'matched' | 'better-tier' | 'worse-tier' | 'missing' | 'not-fractured' | 'unknown';
 
 export interface RequirementComparison {
   readonly requirement: TargetRequirement;
@@ -68,10 +69,22 @@ export function compareToTarget(current: ItemState, target: TargetSpec, view: Cr
     if (!definition) {
       return { requirement, definition: null, status: 'unknown', current: null, currentDefinition: null };
     }
-    const candidate = available.find(
+    const family = available.filter(
       (c) => !used.has(c.mod) && c.definition !== null && sameFamily(c.definition, definition),
     );
+    // A fractured requirement is only met by a fractured modifier; a plain one by either kind.
+    const candidate = requirement.fractured ? family.find((c) => c.mod.fractured) : family[0];
     if (!candidate || !candidate.definition) {
+      const unfractured = requirement.fractured ? family[0] : undefined;
+      if (unfractured?.definition) {
+        return {
+          requirement,
+          definition,
+          status: 'not-fractured',
+          current: unfractured.mod,
+          currentDefinition: unfractured.definition,
+        };
+      }
       return { requirement, definition, status: 'missing', current: null, currentDefinition: null };
     }
     used.add(candidate.mod);
@@ -107,9 +120,25 @@ export function targetFromModifier(view: CraftDbView, modifierId: string): Craft
   };
 }
 
-/** Requirements still to obtain, in target order: missing or present in a worse tier. */
+/**
+ * Requirements still to obtain by adding modifiers, in target order: missing or present in a worse
+ * tier. Fractured requirements are left out: no implemented action produces a fractured modifier,
+ * so a chance to "add" one would be invented.
+ */
 export function outstandingTargetModifiers(comparison: ItemComparison): readonly ModifierDefinition[] {
   return comparison.rows
-    .filter((r) => r.status === 'missing' || r.status === 'worse-tier')
+    .filter((r) => !r.requirement.fractured && (r.status === 'missing' || r.status === 'worse-tier'))
     .flatMap((r) => (r.definition ? [r.definition] : []));
+}
+
+/**
+ * - match: the target is for the source's base;
+ * - mismatch: another base — not reachable by crafting the source, nothing is planned towards it;
+ * - unknown: either base is not known.
+ */
+export type TargetBaseCheck = 'match' | 'mismatch' | 'unknown';
+
+export function targetBaseCheck(source: ItemState | null, target: TargetSpec | null): TargetBaseCheck {
+  if (!source?.baseId || !target?.baseId) return 'unknown';
+  return source.baseId === target.baseId ? 'match' : 'mismatch';
 }
