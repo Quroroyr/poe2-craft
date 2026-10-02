@@ -115,10 +115,11 @@ export function checkApplicable(pool: EligiblePool): ApplyRejection | null {
   if (pool.action.effect.kind === 'operations') {
     const operations = pool.action.effect.operations;
     if (operations.length === 0) return { code: 'operation-not-applicable' };
+    if (pool.item.explicits.some((m) => m.kind === 'resolved' && !pool.entries.some((e) => e.definition.id === m.modifierId))) return { code: 'operation-not-applicable' };
     // Preflight every primitive before consuming any RNG or changing the item (Chaos is atomic).
     for (const op of operations) {
       if (op.kind === 'remove-random-mod' || op.kind === 'fracture-random-mod') {
-        const candidates = pool.item.explicits.filter((m) => !m.fractured && m.kind === 'resolved' && (!('allowedSides' in op) || !op.allowedSides || op.allowedSides.includes(pool.entries.find((e) => e.definition.id === m.modifierId)!.definition.side)));
+        const candidates = pool.item.explicits.filter((m) => !m.fractured && m.kind === 'resolved' && (!('allowedSides' in op) || !op.allowedSides || pool.entries.some((e) => e.definition.id === m.modifierId && op.allowedSides!.includes(e.definition.side))));
         if (pool.item.explicits.some((m) => m.kind === 'unresolved') || candidates.length < (op.kind === 'remove-random-mod' ? op.count : 1)) return { code: 'operation-not-applicable' };
       }
       if (op.kind === 'reroll-values' && (pool.item.explicits.some((m) => m.kind === 'unresolved') || !pool.item.explicits.some((m) => !m.fractured && m.kind === 'resolved' && pool.entries.find((e) => e.definition.id === m.modifierId)?.definition.lines.some((l) => l.ranges.length)))) return { code: 'operation-not-applicable' };

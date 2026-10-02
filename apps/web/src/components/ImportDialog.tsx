@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n/I18nProvider';
 import { Icon } from './Icon';
 
 interface ImportDialogProps {
+  readonly demo?: boolean;
   /** null: closed. `source` leads to the preview of a new craft; `target` sets the target. */
   readonly purpose: 'source' | 'target' | null;
   /** The last submitted text was not an item. */
@@ -82,14 +83,14 @@ export function ImportDialog(props: ImportDialogProps) {
               {props.error}
             </p>
           )}
-          <div className="samples">
+          {props.demo !== false && <div className="samples">
             <span className="muted small">{t('import.samples')}</span>
             {samples.map((sample) => (
               <button key={sample.id} type="button" className="chip" onClick={() => props.onSubmit(sample.text)}>
                 {sample.label}
               </button>
             ))}
-          </div>
+          </div>}
           <div className="confirm-actions">
             <button type="button" className="btn" onClick={props.onCancel}>
               {t('common.cancel')}

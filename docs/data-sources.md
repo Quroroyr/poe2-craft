@@ -18,6 +18,31 @@ PoE2DB и Craft of Exile — только ручная сверка, их дан
 Сырые файлы не коммитятся, JSON и manifest коммитятся. Нужен Node ≥23.
 Подробности источников и лицензий — `docs/research/real-data-landscape.md`.
 
+## Production mechanics, art and economy (2026-10-03)
+
+`production/mechanics.json` содержит 9 базовых действий и 8 модификаторов Omen.
+Источники — описания расходников из закреплённого RePoE `base_items.json`; точный текст
+и пояснение модели сохранены в description/mechanicNotes. Confidence — community,
+статус modelled, не verified. Равномерное удаление/выбор fracture и равномерные броски
+значений — явные допущения модели. Greater/Perfect currencies, эссенции, руны и остальные
+несмоделированные расходники не выполняют крафт. Клиентский текст не доказывает распределение.
+
+poe.ninja: [документация API](https://poe.ninja/docs/api), только публичная PoE 2 economy:
+`/poe2/api/economy/leagues`, `/poe2/api/economy/exchange/current/overview`.
+Типы: Currency, Ritual, Essences, Runes, SoulCores, Abyss, Delirium, Breach.
+Цена — `lines.primaryValue`, единица — `core.primary` (divine → div), id совпадает с trade id.
+Ошибка источника не заменяется mock-ценами. Сервер кэширует минимум 5 минут и учитывает ETag.
+Снимок и кэш не коммитятся. `pnpm data:prices [league]` пишет `data/prices/latest.json`.
+Лига выбирается из списка API, отдельно от версии клиента. Ручная цена сохраняется при refresh.
+
+`pnpm data:art`: 980 уникальных PNG / 41 701 239 bytes из
+`https://repoe-fork.github.io/poe2/<artAssetId>.png`. Игровые изображения © GGG;
+лицензия MIT tooling не передаёт права на игровой контент. Runtime не хотлинкает изображения.
+Манифест `apps/web/src/lib/production-art.json` и отчёт `data/art-report.json` коммитятся,
+`apps/web/public/art/` игнорируется и заполняется при build. У art-сайта нет закреплённого
+URL по ревизии: SHA256 фиксирует скачанные байты, однако доступность и будущие байты upstream
+могут измениться. Файлы в локальном кэше повторно не скачиваются.
+
 ## Demo / fixture (v0.4)
 
 Демонстрационный набор — `packages/craft-db/src/fixtures/akoyan-spear.ts`, `kind: 'fixture'`; каталог баз
@@ -62,14 +87,14 @@ CDN) — сайт показывает их в этом размере или м
 запуском проверить актуальные правила GGG для фан-сайтов.
 
 Ограничения источника: трейд не отдаёт стороны (префикс/суффикс), тиры, уровни и веса модов.
-Для них нужен PoE2DB или разбор файлов игры.
+Разбор клиента даёт слои, уровни, группы и теги, но не вероятностные веса.
 
 ## Будущие источники
 
 | Источник | Что даст | Confidence по умолчанию |
 |---|---|---|
-| Файлы игры (Mods.datc64 и др.) | моды, тиры, уровни, spawn-веса, группы | verified |
-| PoE2DB (poe2db.tw) | то же в готовом виде | community |
+| Файлы игры (Mods.datc64 и др.) | моды, уровни, разрешения спавна, группы; вероятностных весов нет | verified (извлечённые факты) |
+| PoE2DB (poe2db.tw) | ручная сверка; ingestion не используется | community |
 | Патчноуты GGG | изменения правил между версиями | official |
 | Тесты сообщества / свои наблюдения | веса там, где данных нет; поведение Omen | community / experimental |
 | poe.ninja / PoE2Scout | цены | — (ценам confidence не нужен; нужен `capturedAt`) |

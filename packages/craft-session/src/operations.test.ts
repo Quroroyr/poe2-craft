@@ -4,7 +4,7 @@ import { createItemState, renderModifierText } from '@poe2-craft/craft-domain';
 import { calculateAttemptCost } from '@poe2-craft/economy';
 import { applyAction, checkApplicable } from './apply-action';
 import { createItemFromBase } from './item-setup';
-import { createSession, applyToolStep, undoLastStep, redoStep, sessionSpent } from './session';
+import { createSession, applyStep, applyToolStep, undoLastStep, redoStep, sessionSpent, currentModifierMarks } from './session';
 import { resolveTool } from './tools';
 import { buildEligiblePool, calculateTargetProbability } from '@poe2-craft/probability-engine';
 
@@ -25,6 +25,11 @@ function itemWithMods(count = 4) {
   }) });
 }
 describe('production operations', () => {
+  it('refuses removal with stale modifier ids without throwing or consuming RNG', () => {
+    const item = createItemState({ ...blank, explicits:[{kind:'resolved',modifierId:'missing-mod',values:[],fractured:false,sourceText:'unknown'}] });
+    const result = applyAction({ db, context, item, actionId:'annul', rng:()=>{ throw new Error('sampled'); } });
+    expect(result.status).toBe('rejected'); expect(result.item).toBe(item);
+  });
   it.each(['exalted','transmute','aug','regal','alch','chaos'])('%s refuses unknown weights before sampling and preserves all state', (id) => {
     const rarity = id === 'transmute' || id === 'alch' ? 'normal' : id === 'aug' || id === 'regal' ? 'magic' : 'rare';
     const item = createItemState({ ...(id === 'chaos' ? itemWithMods() : blank), rarity });
@@ -81,5 +86,18 @@ describe('production operations', () => {
     const v=fixture.forVersion('0.5.0'); const item=createItemState({...createItemFromBase(v,v.listBases()[0]!.id,82)!,rarity:'normal'});
     const result=applyAction({db:fixture,context:{gameVersion:'0.5.0'},item,actionId:'ops',rng:()=>0.4});
     expect(result.status).toBe('applied'); expect(result.item.rarity).toBe('rare');expect(result.item.explicits).toHaveLength(4);
+  });
+  it('keeps origin marks on preserved fractured mods after clearing other modifiers', () => {
+    const fixture = createCraftDb({ ...akoyanSpearFixture, actions:[...akoyanSpearFixture.actions,{ ...akoyanSpearFixture.actions[0]!,id:'clear-and-add',requirements:{rarities:['magic']},effect:{kind:'operations',operations:[{kind:'set-rarity',rarity:'rare',clearModifiers:true},{kind:'add-random-mod',count:1,allowedSides:['prefix']}]}}] });
+    const v = fixture.forVersion('0.5.0'); const base = v.listBases()[0]!;
+    const defs = ['prefix','suffix'].map((side) => v.listModifiers({baseId:base.id}).find((m) => m.side === side)!);
+    const item = createItemState({ ...createItemFromBase(v,base.id,82)!,rarity:'magic',explicits:defs.map((d,i) => ({kind:'resolved',modifierId:d.id,values:d.lines.flatMap((l) => l.ranges.map((r) => r.min)),sourceText:d.name,fractured:i===1})) });
+    const session = createSession({gameVersion:'0.5.0',seed:42,source:item});
+    const cost = calculateAttemptCost([], {id:'test',source:'manual',capturedAt:'',unit:'div',prices:{}});
+    const result = applyStep(session,{db:fixture,actionId:'clear-and-add',cost});
+    expect(result.status).toBe('applied'); if(result.status !== 'applied') return;
+    expect(result.session.current!.explicits[0]).toEqual(item.explicits[1]);
+    expect(currentModifierMarks(result.session)).toEqual([{crafted:false,edited:false},{crafted:true,edited:false}]);
+    expect(currentModifierMarks(undoLastStep(result.session))).toEqual([{crafted:false,edited:false},{crafted:false,edited:false}]);
   });
 });

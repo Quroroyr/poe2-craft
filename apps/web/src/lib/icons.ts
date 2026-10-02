@@ -5,6 +5,7 @@
 import type { Consumable, ItemBase } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import { ART_MANIFEST, type ArtAsset } from './art-manifest';
+import productionArt from './production-art.json';
 
 export const ICON_DIR = '/icons/game';
 
@@ -14,7 +15,9 @@ export interface ResolvedArt extends ArtAsset {
 
 export function resolveArt(artId: string | undefined): ResolvedArt | null {
   const asset = artId ? ART_MANIFEST[artId] : undefined;
-  return asset ? { ...asset, src: `${ICON_DIR}/${asset.file}` } : null;
+  if (asset) return { ...asset, src: `${ICON_DIR}/${asset.file}` };
+  const production = artId ? (productionArt as Record<string, ArtAsset>)[artId] : undefined;
+  return production ? { ...production, src: `/art/${production.file}` } : null;
 }
 
 export function iconUrlForArt(art: string | undefined): string | null {
@@ -36,5 +39,5 @@ const UNIT_CONSUMABLE: Readonly<Record<string, string>> = {
 
 export function unitIconUrl(unit: string, view: CraftDbView): string | null {
   const id = UNIT_CONSUMABLE[unit];
-  return id ? consumableIconUrl(view.getConsumable(id)) : null;
+  return id ? consumableIconUrl(view.getConsumable(id) ?? view.getConsumable(unit === 'div' ? 'divine' : unit)) : null;
 }

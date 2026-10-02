@@ -2,7 +2,7 @@
  * Composition root of the web app: wires parser, CraftDB, probability engine and craft session.
  * Contains no game rules — only the order in which the packages are called.
  */
-import { akoyanSpearFixture, createCraftDb, type CraftDbView } from '@poe2-craft/craft-db';
+import { akoyanSpearFixture, productionDataset, createCraftDb, type CraftDb, type CraftDbView } from '@poe2-craft/craft-db';
 import { targetSpecFromItem, type CraftTarget, type GameVersion, type ItemState, type TargetSpec } from '@poe2-craft/craft-domain';
 import { parseItem, type ItemParseResult } from '@poe2-craft/item-parser';
 import {
@@ -44,29 +44,32 @@ import {
   type ToolSelection,
 } from '@poe2-craft/craft-session';
 
-export const craftDb = createCraftDb(akoyanSpearFixture);
+export const demoCraftDb = createCraftDb(akoyanSpearFixture);
+export const craftDb = demoCraftDb;
+export const realCraftDb = createCraftDb(productionDataset);
+export const REAL_GAME_VERSION = realCraftDb.supportedVersions.at(-1)!;
 export const DEFAULT_GAME_VERSION: GameVersion =
   craftDb.supportedVersions[craftDb.supportedVersions.length - 1] ?? '0.5.0';
 
-export function importItem(text: string, gameVersion: GameVersion): ItemParseResult | null {
-  return text.trim() ? parseItem(text, craftDb.forVersion(gameVersion)) : null;
+export function importItem(text: string, gameVersion: GameVersion, db: CraftDb = craftDb): ItemParseResult | null {
+  return text.trim() ? parseItem(text, db.forVersion(gameVersion)) : null;
 }
 
 /**
  * A pasted text is taken for a Path of Exile item only when the parser found its rarity or item
  * class header; anything else (a URL, a note) is ignored by the page-wide Ctrl+V.
  */
-export function recognizeItem(text: string, gameVersion: GameVersion): ItemParseResult | null {
-  const result = importItem(text, gameVersion);
+export function recognizeItem(text: string, gameVersion: GameVersion, db: CraftDb = craftDb): ItemParseResult | null {
+  const result = importItem(text, gameVersion, db);
   return result && (result.state.rarity !== null || result.state.itemClassName !== null) ? result : null;
 }
 
-export function importSource(text: string, gameVersion: GameVersion): ItemState | null {
-  return importItem(text, gameVersion)?.state ?? null;
+export function importSource(text: string, gameVersion: GameVersion, db: CraftDb = craftDb): ItemState | null {
+  return importItem(text, gameVersion, db)?.state ?? null;
 }
 
-export function importTarget(text: string, gameVersion: GameVersion): TargetSpec | null {
-  const parsed = importItem(text, gameVersion);
+export function importTarget(text: string, gameVersion: GameVersion, db: CraftDb = craftDb): TargetSpec | null {
+  const parsed = importItem(text, gameVersion, db);
   return parsed ? targetSpecFromItem(parsed.state) : null;
 }
 
@@ -122,7 +125,7 @@ export interface WorkspaceAnalysis {
   readonly explanation: readonly ExplanationStep[];
 }
 
-export function analyzeWorkspace(input: WorkspaceInput): WorkspaceAnalysis {
+export function analyzeWorkspace(input: WorkspaceInput, craftDb: CraftDb = demoCraftDb): WorkspaceAnalysis {
   const { session } = input;
   const view = craftDb.forVersion(session.gameVersion);
   const tool = resolveTool(view, input.tool);
@@ -135,7 +138,7 @@ export function analyzeWorkspace(input: WorkspaceInput): WorkspaceAnalysis {
   const mode = toPoolMode(input.explorerMode, actionId);
   const explorerPool = mode.kind === 'inspect' ? pool : poolForMode(session, craftDb, mode).pool;
   const explorer = explorerPool?.status === 'ready' ? explorePool(explorerPool, view) : null;
-  const picks = pickOptions(session, input.explorerMode);
+  const picks = pickOptions(session, input.explorerMode, craftDb);
 
   const comparison =
     session.current && session.target ? compareToTarget(session.current, session.target, view) : null;
@@ -150,7 +153,7 @@ export function analyzeWorkspace(input: WorkspaceInput): WorkspaceAnalysis {
 
   return {
     view,
-    sourceSetup: sourceSetupView(session),
+    sourceSetup: sourceSetupView(session, craftDb),
     targetBase,
     tool,
     pool,
@@ -167,7 +170,7 @@ export function analyzeWorkspace(input: WorkspaceInput): WorkspaceAnalysis {
   };
 }
 
-function sourceSetupView(session: CraftSession): SourceSetupView | null {
+function sourceSetupView(session: CraftSession, craftDb: CraftDb): SourceSetupView | null {
   const source = session.source;
   if (!source) return null;
   const { gameVersion } = session;
@@ -178,7 +181,7 @@ function sourceSetupView(session: CraftSession): SourceSetupView | null {
   };
 }
 
-function pickOptions(session: CraftSession, mode: ExplorerMode): PickOptions | null {
+function pickOptions(session: CraftSession, mode: ExplorerMode, craftDb: CraftDb): PickOptions | null {
   const { gameVersion } = session;
   if (mode.kind === 'edit-source' && session.source) {
     return sourcePickOptions(craftDb, gameVersion, session.source, mode.replaceIndex);

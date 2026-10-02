@@ -62,7 +62,7 @@ export function BaseSelector(props: BaseSelectorProps) {
             <h2 id="base-dialog-title">{t('bases.title')}</h2>
             <p className="base-sheet-sub">
               {fixture ? t('bases.fixtureLead', { count: total }) : ''}
-              {t('bases.lead')}
+              {t(fixture ? 'bases.lead' : 'bases.realLead')}
             </p>
           </div>
           <button type="button" className="icon-btn" aria-label={t('common.close')} onClick={props.onClose}>

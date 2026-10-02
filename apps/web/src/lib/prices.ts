@@ -17,17 +17,17 @@ export function parsePriceInput(text: string | undefined): number | null {
   return Number.isFinite(value) && value >= 0 ? value : null;
 }
 
-export function snapshotFromInputs(inputs: PriceInputs, edited: boolean): PriceSnapshot {
-  const prices: Record<ConsumableId, number> = {};
+export function snapshotFromInputs(inputs: PriceInputs, edited: boolean, reference: PriceSnapshot = MOCK_PRICE_SNAPSHOT): PriceSnapshot {
+  const prices: Record<ConsumableId, number> = { ...reference.prices };
   for (const [id, text] of Object.entries(inputs)) {
     const value = parsePriceInput(text);
     if (value !== null) prices[id] = value;
+    else delete prices[id];
   }
   return {
-    id: edited ? 'manual' : MOCK_PRICE_SNAPSHOT.id,
-    unit: MOCK_PRICE_SNAPSHOT.unit,
-    capturedAt: MOCK_PRICE_SNAPSHOT.capturedAt,
-    source: edited ? 'manual' : 'mock',
+    ...reference,
+    id: edited ? `${reference.id}:manual` : reference.id,
+    source: edited ? 'manual' : reference.source,
     prices,
   };
 }

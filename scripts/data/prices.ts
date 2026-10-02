@@ -1,0 +1,10 @@
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { economyLeagues, economySnapshot } from '../../apps/web/src/server/poe-ninja.ts';
+const root = new URL('../../',import.meta.url);
+const cache = fileURLToPath(new URL('apps/web/.cache/poe-ninja/',root));
+const league = process.argv[2] ?? (await economyLeagues(cache))[0]!.id;
+const snapshot = await economySnapshot(league,cache);
+mkdirSync(new URL('data/prices/',root),{recursive:true});
+writeFileSync(new URL('data/prices/latest.json',root),`${JSON.stringify(snapshot,null,2)}\n`);
+process.stdout.write(`${snapshot.league}: ${Object.keys(snapshot.prices).length} prices in ${snapshot.unit}, captured ${snapshot.capturedAt}\n`);

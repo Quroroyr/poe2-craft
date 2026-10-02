@@ -191,7 +191,7 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
 
             {tab.specials ? (
               <ul className="pick-list" style={{ gridColumn: '1 / -1' }}>
-                {tab.specials.map((m) => <li key={m.id} className="pick-row"><span>{m.lines.map((l) => l.template).join(' / ') || m.id}</span><span className="muted">{t('data.notModelled')}</span></li>)}
+                {tab.specials.map((m) => <li key={m.id} className="pick-row"><span>{modifierText(m) || m.id}</span><span className="muted">{t('data.notModelled')}</span></li>)}
               </ul>
             ) : editing ? (
               <div className="pick-scroll">
@@ -311,7 +311,7 @@ function TierRow(props: { row: ExplorerRow; group: ExplorerGroup; view: CraftDbV
       <td className="num right">T{row.tier}</td>
       <td className="num right">{d.requiredItemLevel}</td>
       <td className="num right hide-md">{d.modifierLevel}</td>
-      <td className="num right">{row.entry.weight === null ? <span className="bad">?</span> : formatInt(row.entry.weight, INTL_LOCALE[locale])}</td>
+      <td className="num right">{row.entry.weight === null ? <span className="bad" title={t('data.unknownWeight')}>?</span> : <span title={d.spawnWeights.some((w) => w.evidence && ['community-estimate', 'trade-observation', 'recombinator-observation'].includes(w.evidence.method)) ? t('data.communityWeight') : undefined}>{formatInt(row.entry.weight, INTL_LOCALE[locale])}</span>}</td>
       <td className="num right">{row.share === null ? '—' : formatPercent(row.share)}</td>
       <td className="hide-md">
         <span className="cell-chip">{props.group.label}</span>

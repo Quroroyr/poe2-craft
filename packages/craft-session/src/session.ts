@@ -376,11 +376,12 @@ export function currentModifierMarks(session: CraftSession): readonly CurrentMod
   for (const step of session.steps) {
     if (step.kind === 'craft') {
       if (step.changes) {
-        for (const change of step.changes) {
-          if (change.kind === 'remove-random-mod') marks = marks.filter((_, i) => i !== change.index);
-          if (change.kind === 'add-random-mod') marks.push({ crafted: true, edited: false });
-        }
-        marks = step.after.explicits.map((_, i) => marks[i] ?? { crafted: true, edited: false });
+        const added = new Set(step.changes.filter((c) => c.kind === 'add-random-mod').map((c) => c.modifierId));
+        marks = step.after.explicits.map((mod) => {
+          if (mod.kind === 'resolved' && added.has(mod.modifierId)) return { crafted: true, edited: false };
+          const previous = step.before.explicits.findIndex((m) => m.kind === mod.kind && (m.kind === 'resolved' && mod.kind === 'resolved' ? m.modifierId === mod.modifierId : m.sourceText === mod.sourceText));
+          return marks[previous] ?? { crafted: true, edited: false };
+        });
       } else marks = [...marks, ...step.after.explicits.slice(marks.length).map(() => ({ crafted: true, edited: false }))];
     } else if (step.operation === 'remove') {
       marks = marks.filter((_, i) => i !== step.modifierIndex);

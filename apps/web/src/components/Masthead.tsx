@@ -5,6 +5,8 @@ import { useI18n } from '@/i18n/I18nProvider';
 import { Icon } from './Icon';
 
 interface MastheadProps {
+  readonly dataset: 'real' | 'demo';
+  readonly onDataset: (dataset: 'real' | 'demo') => void;
   readonly db: CraftDb;
   readonly gameVersion: string;
   readonly fixture: boolean;
@@ -15,7 +17,7 @@ interface MastheadProps {
  * Brand, the one section that exists (crafting), game version, interface language and the demo
  * data warning. Sections that do not exist yet are not advertised.
  */
-export function Masthead({ db, gameVersion, fixture, onGameVersion }: MastheadProps) {
+export function Masthead({ db, gameVersion, fixture, onGameVersion, dataset, onDataset }: MastheadProps) {
   const { t, locale, setLocale } = useI18n();
   const [demoOpen, setDemoOpen] = useState(false);
   return (
@@ -35,6 +37,12 @@ export function Masthead({ db, gameVersion, fixture, onGameVersion }: MastheadPr
       </nav>
 
       <div className="masthead-tools">
+        <label className="inline-field">{t('data.dataset')}
+          <select name="dataset" value={dataset} onChange={(e) => onDataset(e.target.value as 'real' | 'demo')} title={t('data.switchHint')}>
+            <option value="real">{t('data.real')}</option><option value="demo">{t('data.demo')}</option>
+          </select>
+        </label>
+        {!fixture && <span className="badge">{t('data.realBadge')}</span>}
         <label className="inline-field">
           {t('masthead.gameVersion')}
           <select name="game-version" value={gameVersion} onChange={(e) => onGameVersion(e.target.value)}>

@@ -30,9 +30,9 @@ import {
   type SessionStep,
   type ToolSelection,
 } from '@poe2-craft/craft-session';
-import { calculateAttemptCost, calculateStageCost } from '@poe2-craft/economy';
+import { calculateAttemptCost, calculateStageCost, type PriceSnapshot } from '@poe2-craft/economy';
 import { useI18n } from '@/i18n/I18nProvider';
-import { DEFAULT_GAME_VERSION, analyzeWorkspace, craftDb, recognizeItem, type ExplorerMode } from '@/lib/analyze';
+import { REAL_GAME_VERSION, analyzeWorkspace, demoCraftDb, realCraftDb, recognizeItem, type ExplorerMode } from '@/lib/analyze';
 import { heldTool } from '@/lib/held-tool';
 import { buildModMenu, type MenuIntent, type ModMenuTarget } from '@/lib/mod-menu';
 import { INITIAL_PRICE_INPUTS, snapshotFromInputs, type PriceInputs } from '@/lib/prices';
@@ -56,10 +56,12 @@ import { StartStrip } from './StartStrip';
 import { TargetPanel } from './TargetPanel';
 import { ToolPalette } from './ToolPalette';
 
+const MANUAL_PRICES: PriceSnapshot = { id: 'manual:real', source: 'manual', unit: 'div', capturedAt: '', prices: {} };
+
 const INSPECT: ExplorerMode = { kind: 'inspect' };
 
 /** A first visit starts empty: no source, no current item, no target, no history. */
-export function emptySession(gameVersion = DEFAULT_GAME_VERSION): CraftSession {
+export function emptySession(gameVersion = REAL_GAME_VERSION): CraftSession {
   return createSession({ gameVersion, seed: randomSeed(), source: null, target: null });
 }
 
@@ -80,19 +82,29 @@ type Surface = { readonly kind: 'setup'; readonly purpose: 'create' | 'edit' } |
 interface WorkspaceProps {
   /** For tests and demos: start from a prepared session instead of an empty one. */
   readonly initialSession?: CraftSession;
+  readonly initialDataset?: 'real' | 'demo';
 }
 
 export function Workspace(props: WorkspaceProps) {
   const { t, locale } = useI18n();
-  const [session, setSession] = useState<CraftSession>(() => props.initialSession ?? emptySession());
+  const [dataset, setDataset] = useState<'real' | 'demo'>(props.initialDataset ?? 'real');
+  const craftDb = dataset === 'real' ? realCraftDb : demoCraftDb;
+  const [session, setSession] = useState<CraftSession>(() => props.initialSession ?? emptySession(craftDb.supportedVersions.at(-1)!));
   const [surface, setSurface] = useState<Surface>(null);
   const [importPurpose, setImportPurpose] = useState<'source' | 'target' | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [preview, setPreview] = useState<ItemParseResult | null>(null);
-  const [tool, setTool] = useState<ToolSelection>(() => selectCurrency(EMPTY_TOOL, 'currency.exalted-orb'));
+  const [tool, setTool] = useState<ToolSelection>(() => selectCurrency(EMPTY_TOOL, dataset === 'real' ? 'exalted' : 'currency.exalted-orb'));
   const [stageTargetKey, setStageTargetKey] = useState<string | null>(null);
   const [explorerMode, setExplorerMode] = useState<ExplorerMode>(INSPECT);
-  const [priceInputs, setPriceInputs] = useState<PriceInputs>(INITIAL_PRICE_INPUTS);
+  const [priceInputs, setPriceInputs] = useState<PriceInputs>(dataset === 'real' ? {} : INITIAL_PRICE_INPUTS);
+  const [market, setMarket] = useState<PriceSnapshot | null>(null);
+  const [leagues, setLeagues] = useState<readonly { id: string; name: string }[]>([]);
+  const [league, setLeague] = useState('');
+  const [priceLoading, setPriceLoading] = useState(false);
+  const [priceError, setPriceError] = useState(false);
+  const [basePrice, setBasePrice] = useState('');
+  const priceRequest = useRef(0);
   const [pricesEdited, setPricesEdited] = useState(false);
   const [notice, setNotice] = useState<WorkspaceNotice | null>(null);
   const [feedback, setFeedback] = useState<CraftFeedback | null>(null);
@@ -106,22 +118,46 @@ export function Workspace(props: WorkspaceProps) {
   const stepTimes = useRef(new WeakMap<SessionStep, number>());
 
   const analysis = useMemo(
-    () => analyzeWorkspace({ session, tool, stageTargetKey, explorerMode }),
-    [session, tool, stageTargetKey, explorerMode],
+    () => analyzeWorkspace({ session, tool, stageTargetKey, explorerMode }, craftDb),
+    [session, tool, stageTargetKey, explorerMode, craftDb],
   );
   const { view, probability, comparison } = analysis;
   const action = analysis.tool.status === 'ready' ? analysis.tool.action : null;
   const hasItem = session.current !== null;
 
-  const snapshot = useMemo(() => snapshotFromInputs(priceInputs, pricesEdited), [priceInputs, pricesEdited]);
+  const snapshot = useMemo(() => snapshotFromInputs(priceInputs, pricesEdited, dataset === 'real' ? market ?? MANUAL_PRICES : undefined), [priceInputs, pricesEdited, dataset, market]);
   const attemptCost = useMemo(() => (action ? calculateAttemptCost(action.defaultCost, snapshot) : null), [action, snapshot]);
   const stageCost = useMemo(
     () =>
-      probability?.status === 'ok' && attemptCost ? calculateStageCost(probability.probability, attemptCost.total) : null,
+      probability?.status === 'ok' && attemptCost?.complete ? calculateStageCost(probability.probability, attemptCost.total) : null,
     [probability, attemptCost],
   );
   const spent = useMemo(() => sessionSpent(session), [session]);
   const spentLines = useMemo(() => sessionSpentByConsumable(session), [session]);
+
+  const refreshPrices = async (selected: string) => {
+    const request = ++priceRequest.current;
+    setPriceLoading(true); setPriceError(false);
+    try {
+      const response = await fetch(`/api/prices?league=${encodeURIComponent(selected)}`);
+      if (!response.ok) throw new Error('price-api');
+      const next = await response.json() as PriceSnapshot;
+      if (request === priceRequest.current) setMarket(next);
+    } catch { if (request === priceRequest.current) setPriceError(true); }
+    finally { if (request === priceRequest.current) setPriceLoading(false); }
+  };
+  useEffect(() => {
+    if (dataset !== 'real') return;
+    let active = true;
+    fetch('/api/prices').then(async (response) => {
+      if (!response.ok) throw new Error('price-api');
+      const list = await response.json() as { id: string; name: string }[];
+      if (!active) return;
+      setLeagues(list);
+      if (list[0]) { setLeague(list[0].id); void refreshPrices(list[0].id); }
+    }).catch(() => { if (active) setPriceError(true); });
+    return () => { active = false; priceRequest.current++; };
+  }, [dataset]);
 
   /** Any history move ends the "just clicked" moment. */
   const clearMoment = () => {
@@ -167,7 +203,7 @@ export function Workspace(props: WorkspaceProps) {
 
   /** One entry for Ctrl+V, the Import button and the demo examples: recognise, then preview. */
   const beginImport = (text: string): boolean => {
-    const result = recognizeItem(text, session.gameVersion);
+    const result = recognizeItem(text, session.gameVersion, craftDb);
     if (!result) return false;
     setImportPurpose(null);
     setImportError(null);
@@ -176,7 +212,7 @@ export function Workspace(props: WorkspaceProps) {
   };
   const submitImport = (text: string) => {
     if (importPurpose === 'target') {
-      const result = recognizeItem(text, session.gameVersion);
+      const result = recognizeItem(text, session.gameVersion, craftDb);
       if (!result) return setImportError(t('import.notItem'));
       editTarget(targetSpecFromItem(result.state));
       setImportPurpose(null);
@@ -290,7 +326,7 @@ export function Workspace(props: WorkspaceProps) {
     setPoolFocus((prev) => ({
       modifierId,
       tab: definition.side,
-      familyKey: definition.groupIds.join('+'),
+      familyKey: definition.family ?? definition.groupIds.join('+'),
       nonce: (prev?.nonce ?? 0) + 1,
     }));
     scrollToPool();
@@ -354,7 +390,7 @@ export function Workspace(props: WorkspaceProps) {
   const held = heldTool(t, analysis.tool, blockedReason);
   const outOfSync = isSourceOutOfSync(session);
   const lastStep = session.steps[session.steps.length - 1];
-  const freshIndex = feedback?.tone === 'ok' && lastStep?.kind === 'craft' ? lastStep.after.explicits.length - 1 : null;
+  const freshIndex = feedback?.tone === 'ok' && lastStep?.kind === 'craft' && lastStep.added ? lastStep.after.explicits.findIndex((m) => m.kind === 'resolved' && m.modifierId === lastStep.added?.modifierId) : null;
 
   const pool = (
     <div ref={explorerRef} className={`pool-slot${explorerMode.kind === 'inspect' ? '' : ' explorer-editing'}`}>
@@ -380,11 +416,17 @@ export function Workspace(props: WorkspaceProps) {
 
   return (
     <div className="page">
-      <Masthead db={craftDb} gameVersion={session.gameVersion} fixture={view.info.kind === 'fixture'} onGameVersion={changeVersion} />
+      <Masthead dataset={dataset} onDataset={(next) => {
+        setDataset(next); const db = next === 'real' ? realCraftDb : demoCraftDb;
+        setSession(emptySession(db.supportedVersions.at(-1)!)); setTool(selectCurrency(EMPTY_TOOL, next === 'real' ? 'exalted' : 'currency.exalted-orb'));
+        setImportPurpose(null); setPreview(null); setPendingEdit(null); setImportError(null); setMarket(null); setBasePrice(''); priceRequest.current++;
+        setPriceInputs(next === 'real' ? {} : INITIAL_PRICE_INPUTS); setPricesEdited(false); setSurface(null); setExplorerMode(INSPECT); setStageTargetKey(null); setMenu(null); setPoolFocus(null); clearMoment();
+      }} db={craftDb} gameVersion={session.gameVersion} fixture={view.info.kind === 'fixture'} onGameVersion={changeVersion} />
 
       <main className="layout">
         {surface ? (
           <SourceSetupSurface
+            db={craftDb}
             purpose={surface.purpose}
             initial={surface.purpose === 'edit' ? session.source : null}
             gameVersion={session.gameVersion}
@@ -458,12 +500,13 @@ export function Workspace(props: WorkspaceProps) {
             {hasItem && (
               <>
                 <ToolPalette
+                  priceUnit={snapshot.unit}
                   view={view}
                   palette={analysis.palette}
                   selection={tool}
                   onSelect={setTool}
                   resolved={analysis.tool}
-                  priceInputs={priceInputs}
+                  priceInputs={{ ...Object.fromEntries(Object.entries(snapshot.prices).map(([id, price]) => [id, String(price)])), ...priceInputs }}
                   attemptCost={attemptCost}
                   probability={probability}
                 />
@@ -492,8 +535,17 @@ export function Workspace(props: WorkspaceProps) {
                     stageTargets={analysis.stageTargets}
                     stageTargetKey={analysis.stageTarget?.key ?? null}
                     onStageTarget={setStageTargetKey}
-                    priceInputs={priceInputs}
-                    pricesAreMock={!pricesEdited}
+                    priceInputs={{ ...Object.fromEntries(Object.entries(snapshot.prices).map(([id, price]) => [id, String(price)])), ...priceInputs }}
+                    pricesAreMock={dataset === 'demo' && !pricesEdited}
+                    unit={snapshot.unit}
+                    basePrice={basePrice} onBasePrice={setBasePrice}
+                    priceControls={dataset === 'real' ? <div className="price-controls">
+                      <label className="field"><span className="field-label">{t('prices.league')}</span><select name="economy-league" value={league} onChange={(e) => { setLeague(e.target.value); setMarket(null); void refreshPrices(e.target.value); }}>{leagues.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
+                      <button type="button" className="btn" disabled={!league || priceLoading} onClick={() => void refreshPrices(league)}>{t(priceLoading ? 'prices.loading' : 'prices.refresh')}</button>
+                      <p className="hint">{t('prices.source')}: {market?.source ?? t('prices.manual')} · {t('prices.captured')}: {market?.capturedAt ?? '—'}</p>
+                      <p className="hint">{t('prices.override')}</p>
+                      {priceError && <p role="alert" className="state-box state-warn">{t('prices.failed')}</p>}
+                    </div> : undefined}
                     onPrice={(id, text) => {
                       setPriceInputs((prev) => ({ ...prev, [id]: text }));
                       setPricesEdited(true);
@@ -528,6 +580,7 @@ export function Workspace(props: WorkspaceProps) {
         onCancel={() => setPendingEdit(null)}
       />
       <ImportDialog
+        demo={dataset === 'demo'}
         purpose={importPurpose}
         error={importError}
         onSubmit={submitImport}

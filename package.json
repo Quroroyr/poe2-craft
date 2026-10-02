@@ -6,11 +6,11 @@
   "description": "PoE 2 Craft Planner — web service for Path of Exile 2 crafting analysis",
   "packageManager": "pnpm@10.34.6",
   "engines": {
-    "node": ">=20"
+    "node": ">=23"
   },
   "scripts": {
     "dev": "pnpm --filter @poe2-craft/web dev",
-    "build": "pnpm --filter @poe2-craft/web build",
+    "build": "pnpm data:art && pnpm --filter @poe2-craft/web build",
     "start": "pnpm --filter @poe2-craft/web start",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -21,6 +21,8 @@
     "data:normalize": "node scripts/data/normalize.ts",
     "data:validate": "vitest run packages/craft-db/src/production/production.test.ts",
     "data:golden": "node scripts/data/golden.ts",
+    "data:prices": "node scripts/data/prices.ts",
+    "data:art": "node scripts/data/art.ts",
     "data:report": "node scripts/data/report.ts",
     "data:refresh": "pnpm data:fetch && pnpm data:normalize && pnpm data:validate && pnpm data:report"
   },

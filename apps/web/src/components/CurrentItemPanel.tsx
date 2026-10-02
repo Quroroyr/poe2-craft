@@ -182,6 +182,13 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
               </div>
             </div>
 
+            <div className="base-implicit">
+              {item.otherLines.some((l) => l.source === 'implicit')
+                ? item.otherLines.filter((l) => l.source === 'implicit').map((l, i) => <p key={i}>{l.text}</p>)
+                : base?.details?.implicits.map((text, i) => <p key={i}>{text}</p>)}
+              {item.otherLines.filter((l) => l.source === 'enchant').map((l, i) => <p key={`enchant-${i}`}>{l.text}</p>)}
+            </div>
+
             <ul className="current-mods">
               {ordered.length === 0 && <li className="current-mods-empty">{t('current.noMods')}</li>}
               {ordered.map(({ mod, index }) => (
@@ -228,9 +235,7 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
         </p>
       )}
       <p className="hint current-hint">
-        {t('current.demoHintLead')}
-        <b>{t('current.demoHintStrong')}</b>
-        {t('current.demoHintRest')}
+        {view.info.kind === 'fixture' ? <>{t('current.demoHintLead')}<b>{t('current.demoHintStrong')}</b>{t('current.demoHintRest')}</> : t('current.realHint')}
       </p>
     </Panel>
   );
@@ -290,4 +295,3 @@ function CurrentMod(props: {
     </li>
   );
 }
-

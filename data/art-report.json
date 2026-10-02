@@ -1,0 +1,20 @@
+{
+  "upstream": [
+    {
+      "id": "repoe-poe2",
+      "revision": "b818b843337cae43b090b272fd98bbc0fd3a34f3",
+      "fetchedAt": "2026-10-02T13:18:56.217Z",
+      "repository": "https://github.com/repoe-fork/poe2"
+    },
+    {
+      "id": "official-trade2",
+      "revision": null,
+      "fetchedAt": "2026-10-02T13:19:06.989Z",
+      "repository": null
+    }
+  ],
+  "requested": 980,
+  "downloaded": 980,
+  "bytes": 41701239,
+  "failed": []
+}

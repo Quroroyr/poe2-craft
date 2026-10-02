@@ -14,9 +14,10 @@ export interface ArtAsset {
   readonly width: number;
   readonly height: number;
   /** DataSource id the art was taken through. */
-  readonly source: 'official.trade2-data' | 'official.trade2-listings';
+  readonly source: 'official.trade2-data' | 'official.trade2-listings' | 'repoe-poe2';
   /** CDN address the copy was made from (attribution only, never requested by the site). */
   readonly origin: string;
+  readonly sha256?: string;
 }
 
 export const ART_RETRIEVED = '2026-10-02';

@@ -141,18 +141,19 @@ export function rangeDecimals(range: StatRange): number {
 export function renderModifierText(definition: ModifierDefinition, values: readonly number[]): string {
   let i = 0;
   return definition.lines
-    .map((line) =>
-      line.template.replace(/#/g, () => {
-        const range = line.ranges[i];
+    .map((line) => {
+      let rangeIndex = 0;
+      return line.template.replace(/#/g, () => {
+        const range = line.ranges[rangeIndex++];
         const value = values[i++];
         if (value === undefined || !range) return '#';
         return value.toFixed(rangeDecimals(range));
-      }),
-    )
+      });
+    })
     .join('\n');
 }
 
-export function modifierText(definition: ModifierDefinition): string {
+export function modifierText(definition: Pick<ModifierDefinition, 'lines'>): string {
   return definition.lines
     .map((line) => {
       let i = 0;

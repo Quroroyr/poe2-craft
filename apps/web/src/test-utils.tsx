@@ -34,14 +34,14 @@ export interface Mounted {
 }
 
 /** `locale` undefined: the provider decides (English, or what localStorage holds). */
-export async function renderWorkspace(options: { locale?: Locale; session?: CraftSession } = {}): Promise<Mounted> {
+export async function renderWorkspace(options: { locale?: Locale; session?: CraftSession; dataset?: 'real' | 'demo' } = {}): Promise<Mounted> {
   const container = document.createElement('div');
   document.body.append(container);
   const root = createRoot(container);
   await act(async () =>
     root.render(
       <I18nProvider initialLocale={options.locale}>
-        <Workspace initialSession={options.session} />
+        <Workspace initialDataset={options.dataset ?? 'demo'} initialSession={options.session} />
       </I18nProvider>,
     ),
   );

@@ -9,3 +9,6 @@ next-env.d.ts
 
 # Raw upstream game data: re-fetch with `pnpm data:fetch --pinned` (see data/raw/manifest.json)
 data/raw/*/
+.cache/
+/apps/web/public/art/
+data/prices/

@@ -24,8 +24,9 @@
     "consumables": 499
   },
   "baseStatuses": {
-    "validated": 1597,
-    "imported": 244
+    "crafting-supported": 1559,
+    "imported": 243,
+    "unsupported": 39
   },
   "modifierLayers": {
     "explicit": 3040,
@@ -44,8 +45,39 @@
     "essence": 82
   },
   "consumableStatuses": {
-    "catalogued": 499
+    "catalogued": 482,
+    "modelled": 17
   },
+  "actions": [
+    "exalted",
+    "transmute",
+    "aug",
+    "regal",
+    "alch",
+    "chaos",
+    "annul",
+    "divine",
+    "fracturing-orb"
+  ],
+  "modelledConsumables": [
+    "transmute",
+    "aug",
+    "alch",
+    "chaos",
+    "regal",
+    "exalted",
+    "divine",
+    "annul",
+    "fracturing-orb",
+    "omen-of-whittling",
+    "omen-of-sinistral-erasure",
+    "omen-of-dextral-erasure",
+    "omen-of-greater-exaltation",
+    "omen-of-sinistral-exaltation",
+    "omen-of-dextral-exaltation",
+    "omen-of-sinistral-annulment",
+    "omen-of-dextral-annulment"
+  ],
   "weights": {
     "known": 0,
     "community": 0,

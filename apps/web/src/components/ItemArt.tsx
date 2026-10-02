@@ -25,7 +25,7 @@ export function ItemArt({ art, label, maxHeight, className }: ItemArtProps) {
   return (
     <span className={`item-art ${className ?? ''}`}>
       {/* Plain <img>: small local PNGs at intrinsic size or smaller; next/image optimisation buys nothing. */}
-      <img src={art.src} alt={label} width={width} height={height} draggable={false} />
+      <img src={art.src} alt={label} width={width} height={height} draggable={false} loading="lazy" />
     </span>
   );
 }

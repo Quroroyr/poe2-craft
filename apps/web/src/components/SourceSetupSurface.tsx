@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ItemBaseId, ItemState, ModifierDefinition } from '@poe2-craft/craft-domain';
 import { EMPTY_TOOL, applySourcePick, createItemFromBase, createSession } from '@poe2-craft/craft-session';
 import { useI18n } from '@/i18n/I18nProvider';
-import { analyzeWorkspace, craftDb, type ExplorerMode } from '@/lib/analyze';
+import type { CraftDb } from '@poe2-craft/craft-db';
+import { analyzeWorkspace, type ExplorerMode } from '@/lib/analyze';
 import { buildModMenu, type MenuIntent } from '@/lib/mod-menu';
 import { BaseSelector } from './BaseSelector';
 import { ContextMenu } from './ContextMenu';
@@ -14,6 +15,7 @@ const DEFAULT_ITEM_LEVEL = 82;
 const NO_HIGHLIGHT: ReadonlySet<string> = new Set();
 
 interface SourceSetupSurfaceProps {
+  readonly db: CraftDb;
   /** create: a new item from a base; edit: the starting item of the active craft. */
   readonly purpose: 'create' | 'edit';
   readonly initial: ItemState | null;
@@ -30,6 +32,7 @@ interface SourceSetupSurfaceProps {
  */
 export function SourceSetupSurface(props: SourceSetupSurfaceProps) {
   const { t } = useI18n();
+  const craftDb = props.db;
   const [draft, setDraft] = useState<ItemState | null>(props.initial);
   const [mode, setMode] = useState<ExplorerMode>(INSPECT);
   const [catalogOpen, setCatalogOpen] = useState(props.initial === null);
@@ -41,8 +44,8 @@ export function SourceSetupSurface(props: SourceSetupSurfaceProps) {
     [draft, props.gameVersion],
   );
   const analysis = useMemo(
-    () => analyzeWorkspace({ session: draftSession, tool: EMPTY_TOOL, stageTargetKey: null, explorerMode: mode }),
-    [draftSession, mode],
+    () => analyzeWorkspace({ session: draftSession, tool: EMPTY_TOOL, stageTargetKey: null, explorerMode: mode }, craftDb),
+    [draftSession, mode, craftDb],
   );
   const { view } = analysis;
 

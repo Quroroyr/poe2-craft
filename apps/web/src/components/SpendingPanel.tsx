@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import { toolPalette, type SessionSpent, type SpentLine } from '@poe2-craft/craft-session';
@@ -6,7 +7,7 @@ import type { ProbabilityResult } from '@poe2-craft/probability-engine';
 import type { StageTargetOption } from '@/lib/analyze';
 import { formatAttempts, formatCost, formatPercent, formatQuantile } from '@/lib/format';
 import { consumableIconUrl, unitIconUrl } from '@/lib/icons';
-import type { PriceInputs } from '@/lib/prices';
+import { parsePriceInput, type PriceInputs } from '@/lib/prices';
 import { INTL_LOCALE } from '@/i18n/core';
 import { useI18n } from '@/i18n/I18nProvider';
 import { GameIcon } from './GameIcon';
@@ -14,6 +15,10 @@ import { Icon } from './Icon';
 import { Panel } from './Panel';
 
 interface SpendingPanelProps {
+  readonly unit?: string;
+  readonly priceControls?: ReactNode;
+  readonly basePrice?: string;
+  readonly onBasePrice?: (text: string) => void;
   readonly view: CraftDbView;
   readonly spent: SessionSpent;
   readonly spentLines: readonly SpentLine[];
@@ -39,7 +44,8 @@ export function SpendingPanel(props: SpendingPanelProps) {
   const { t, locale } = useI18n();
   const intl = INTL_LOCALE[locale];
   const [tab, setTab] = useState<'costs' | 'prices'>('costs');
-  const unit = attemptCost?.unit ?? spent.unit ?? 'div';
+  const unit = props.unit ?? attemptCost?.unit ?? spent.unit ?? 'div';
+  const basePrice = parsePriceInput(props.basePrice);
   const unitIcon = <GameIcon src={unitIconUrl(unit, view)} label={unit} size={16} />;
 
   return (
@@ -55,7 +61,7 @@ export function SpendingPanel(props: SpendingPanelProps) {
       </div>
 
       {tab === 'prices' ? (
-        <PriceEditor view={view} priceInputs={props.priceInputs} onPrice={props.onPrice} />
+        <>{props.priceControls}<PriceEditor unit={unit} view={view} priceInputs={props.priceInputs} onPrice={props.onPrice} /></>
       ) : (
         <>
           <h3 className="sub-head">{t('spending.spentHead')}</h3>
@@ -112,11 +118,12 @@ export function SpendingPanel(props: SpendingPanelProps) {
             </div>
             <div className="money money-est">
               <span className="money-label">{t('spending.nextClick')}</span>
-              <span className="money-value num">{attemptCost ? formatCost(attemptCost.total, attemptCost.unit) : '—'}</span>
-              <span className="money-note">{t('spending.estimate')}</span>
+              <span className="money-value num">{attemptCost?.complete ? formatCost(attemptCost.total, attemptCost.unit) : '—'}</span>
+              <span className="money-note">{t(attemptCost && !attemptCost.complete ? 'prices.partial' : 'spending.estimate')}</span>
             </div>
           </div>
 
+          {props.onBasePrice && <label className="field"><span className="field-label">{t('prices.base')} ({unit})</span><input name="base-price" inputMode="decimal" value={props.basePrice ?? ''} onChange={(e) => props.onBasePrice?.(e.target.value)} /></label>}
           <h3 className="sub-head">{t('spending.stageHead')}</h3>
           <label className="field">
             <span className="field-label">{t('spending.stageTarget')}</span>
@@ -163,6 +170,7 @@ export function SpendingPanel(props: SpendingPanelProps) {
               <dd className="num accent">{stageCost ? `~ ${formatCost(stageCost.expectedCost, unit)}` : '—'}</dd>
             </div>
           </dl>
+          {props.onBasePrice && <p className="money-note">{t('prices.totalBase')}: {stageCost && basePrice !== null ? formatCost(stageCost.expectedCost + basePrice, unit) : '—'}</p>}
           {stageCost && (
             <details className="quantiles">
               <summary>{t('spending.spread')}</summary>
@@ -193,7 +201,7 @@ export function SpendingPanel(props: SpendingPanelProps) {
   );
 }
 
-function PriceEditor(props: { view: CraftDbView; priceInputs: PriceInputs; onPrice: (id: string, text: string) => void }) {
+function PriceEditor(props: { unit: string; view: CraftDbView; priceInputs: PriceInputs; onPrice: (id: string, text: string) => void }) {
   const { t } = useI18n();
   const { modelled } = toolPalette(props.view);
   const consumables = [...props.view.listConsumables()].sort((a, b) => Number(modelled.has(b.id)) - Number(modelled.has(a.id)));
@@ -214,7 +222,7 @@ function PriceEditor(props: { view: CraftDbView; priceInputs: PriceInputs; onPri
             placeholder={t('spending.pricePlaceholder')}
             onChange={(e) => props.onPrice(c.id, e.target.value)}
           />
-          <span className="muted small">div</span>
+          <span className="muted small">{props.unit}</span>
         </label>
       ))}
     </div>

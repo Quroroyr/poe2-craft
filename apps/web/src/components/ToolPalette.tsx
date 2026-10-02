@@ -21,7 +21,7 @@ import { GameIcon } from './GameIcon';
 import { Icon } from './Icon';
 import { Panel } from './Panel';
 
-const CATEGORIES: readonly ConsumableCategory[] = ['currency', 'omen', 'essence', 'catalyst', 'rune'];
+const CATEGORIES: readonly ConsumableCategory[] = ['currency', 'omen', 'essence', 'catalyst', 'rune', 'soul-core', 'liquid-emotion', 'abyssal-bone'];
 
 interface ToolPaletteProps {
   readonly view: CraftDbView;
@@ -30,6 +30,7 @@ interface ToolPaletteProps {
   readonly onSelect: (selection: ToolSelection) => void;
   readonly resolved: ResolvedTool;
   readonly priceInputs: PriceInputs;
+  readonly priceUnit?: string;
   readonly attemptCost: AttemptCost | null;
   readonly probability: ProbabilityResult | null;
 }
@@ -62,7 +63,7 @@ export function ToolPalette(props: ToolPaletteProps) {
       aside={
         <>
           <div className="tool-tabs" role="tablist" aria-label={t('tools.categories')}>
-            {CATEGORIES.map((c) => (
+            {CATEGORIES.filter((c) => palette.byCategory[c]?.length).map((c) => (
               <button
                 key={c}
                 type="button"
@@ -121,12 +122,12 @@ export function ToolPalette(props: ToolPaletteProps) {
                   role="option"
                   aria-selected={isSelected(c)}
                   className={`tool-tile${modelled ? '' : ' tool-tile-dim'}${c.category === 'omen' ? ' tool-tile-omen' : ''}`}
-                  title={`${modelled ? c.name : t('tools.notModelledTitle', { name: c.name })}${price === null ? '' : ` · ${formatCost(price, 'div')}`}`}
+                  title={`${modelled ? c.name : t('tools.notModelledTitle', { name: c.name })}${price === null ? '' : ` · ${formatCost(price, props.priceUnit ?? 'div')}`}`}
                   onClick={() => props.onSelect(pickTool(selection, c))}
                 >
                   <GameIcon src={consumableIconUrl(c)} label={c.name} size={44} />
                   <span className="tool-name">{c.name.replace(/^Omen of /, '')}</span>
-                  {!modelled && <span className="tool-flag">{t('tools.notModelled')}</span>}
+                  <span className="tool-flag">{t(modelled ? 'data.modelled' : 'tools.notModelled')}</span>
                 </button>
               );
             })}
@@ -186,7 +187,7 @@ function ActiveCraft(props: ToolPaletteProps) {
           <dl className="active-facts">
             <div>
               <dt>{t('active.clickCost')}</dt>
-              <dd className="num">{attemptCost ? formatCost(attemptCost.total, attemptCost.unit) : '—'}</dd>
+              <dd className="num">{attemptCost?.complete ? formatCost(attemptCost.total, attemptCost.unit) : '—'}</dd>
             </div>
             <div>
               <dt>{t('active.stepChance')}</dt>

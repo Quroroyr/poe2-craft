@@ -2332,6 +2332,23 @@ select:hover,
   margin-bottom: 8px;
 }
 
+.pool-bar > .segmented {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.masthead-tools {
+  flex-wrap: wrap;
+}
+
+.price-controls {
+  margin-bottom: 12px;
+}
+
+.price-controls select {
+  width: 100%;
+}
+
 .pool-body {
   display: grid;
   grid-template-columns: 180px minmax(0, 1fr);

@@ -1,10 +1,9 @@
 import type { ConsumableId } from '@poe2-craft/craft-domain';
 
 /**
- * Where prices came from. v0.1 has only user input and built-in mock values;
- * live sources (poe.ninja, PoE2Scout) will be additional kinds.
+ * Where prices came from. Live acquisition and caching stay outside this pure package.
  */
-export type PriceSource = 'manual' | 'mock';
+export type PriceSource = 'manual' | 'mock' | 'poe.ninja';
 
 /**
  * Prices of consumables at one moment, all in one `unit` (e.g. "div").
@@ -15,6 +14,7 @@ export interface PriceSnapshot {
   readonly unit: string;
   readonly capturedAt: string;
   readonly source: PriceSource;
+  readonly league?: string;
   readonly prices: Readonly<Record<ConsumableId, number>>;
 }
 

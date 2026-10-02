@@ -116,6 +116,18 @@ export function validateDataset(dataset: CraftDataset): string[] {
 
   for (const action of dataset.actions) {
     checkProvenance(`action ${action.id}`, action.provenance);
+    const where = `action ${action.id}`;
+    for (const n of [action.requirements.minModifiers, action.requirements.maxModifiers]) if (n !== undefined && (!Number.isInteger(n) || n < 0)) problems.push(`${where}: invalid modifier count requirement`);
+    if (action.effect.kind === 'operations') {
+      if (!action.effect.operations.length) problems.push(`${where}: empty operations`);
+      for (const op of action.effect.operations) {
+        if (!['set-rarity', 'add-random-mod', 'remove-random-mod', 'reroll-values', 'fracture-random-mod', 'corrupt'].includes(op.kind)) problems.push(`${where}: unknown operation`);
+        if ('count' in op && (!Number.isInteger(op.count) || op.count <= 0)) problems.push(`${where}: invalid operation count`);
+        if ('allowedSides' in op && op.allowedSides && (!op.allowedSides.length || op.allowedSides.some((side) => !['prefix', 'suffix'].includes(side)))) problems.push(`${where}: invalid operation sides`);
+        if (op.kind === 'set-rarity' && !['normal', 'magic', 'rare'].includes(op.rarity)) problems.push(`${where}: invalid rarity`);
+        if (op.kind === 'add-random-mod' && op.layer && !['explicit', 'desecrated'].includes(op.layer)) problems.push(`${where}: invalid operation layer`);
+      }
+    }
     for (const cost of action.defaultCost) {
       if (!Number.isFinite(cost.quantity) || cost.quantity <= 0) problems.push(`action ${action.id}: invalid cost quantity`);
       if (!consumableIds.has(cost.consumableId)) {
