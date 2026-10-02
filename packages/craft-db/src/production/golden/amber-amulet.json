@@ -1,0 +1,2323 @@
+{
+  "name": "Amber Amulet",
+  "baseId": "Metadata/Items/Amulets/FourAmulet3",
+  "itemLevel": 82,
+  "gameVersion": "0.5.5",
+  "revision": "b818b843337cae43b090b272fd98bbc0fd3a34f3",
+  "details": {
+    "properties": [],
+    "requirements": {},
+    "implicits": [
+      "+(10–15) to Strength"
+    ],
+    "provenance": {
+      "sourceId": "repoe-poe2",
+      "confidence": "verified",
+      "lastVerified": "2026-10-02"
+    }
+  },
+  "implicitModifierIds": [
+    "AmuletImplicitStrength1"
+  ],
+  "eligible": [
+    {
+      "id": "AllAttributes1",
+      "side": "suffix",
+      "family": "AllAttributes",
+      "tier": 9,
+      "level": 1,
+      "groups": [
+        "AllAttributes"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllAttributes2",
+      "side": "suffix",
+      "family": "AllAttributes",
+      "tier": 8,
+      "level": 11,
+      "groups": [
+        "AllAttributes"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllAttributes3",
+      "side": "suffix",
+      "family": "AllAttributes",
+      "tier": 7,
+      "level": 22,
+      "groups": [
+        "AllAttributes"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllAttributes4",
+      "side": "suffix",
+      "family": "AllAttributes",
+      "tier": 6,
+      "level": 33,
+      "groups": [
+        "AllAttributes"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllAttributes5",
+      "side": "suffix",
+      "family": "AllAttributes",
+      "tier": 5,
+      "level": 44,
+      "groups": [
+        "AllAttributes"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllAttributes6",
+      "side": "suffix",
+      "family": "AllAttributes",
+      "tier": 4,
+      "level": 55,
+      "groups": [
+        "AllAttributes"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllAttributes7",
+      "side": "suffix",
+      "family": "AllAttributes",
+      "tier": 3,
+      "level": 66,
+      "groups": [
+        "AllAttributes"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllAttributes8",
+      "side": "suffix",
+      "family": "AllAttributes",
+      "tier": 2,
+      "level": 75,
+      "groups": [
+        "AllAttributes"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllAttributes9_",
+      "side": "suffix",
+      "family": "AllAttributes",
+      "tier": 1,
+      "level": 82,
+      "groups": [
+        "AllAttributes"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllResistances1",
+      "side": "suffix",
+      "family": "AllResistances",
+      "tier": 6,
+      "level": 12,
+      "groups": [
+        "AllResistances"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllResistances2",
+      "side": "suffix",
+      "family": "AllResistances",
+      "tier": 5,
+      "level": 26,
+      "groups": [
+        "AllResistances"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllResistances3",
+      "side": "suffix",
+      "family": "AllResistances",
+      "tier": 4,
+      "level": 40,
+      "groups": [
+        "AllResistances"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllResistances4",
+      "side": "suffix",
+      "family": "AllResistances",
+      "tier": 3,
+      "level": 54,
+      "groups": [
+        "AllResistances"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllResistances5",
+      "side": "suffix",
+      "family": "AllResistances",
+      "tier": 2,
+      "level": 68,
+      "groups": [
+        "AllResistances"
+      ],
+      "weight": null
+    },
+    {
+      "id": "AllResistances6",
+      "side": "suffix",
+      "family": "AllResistances",
+      "tier": 1,
+      "level": 80,
+      "groups": [
+        "AllResistances"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CastSpeedJewellery1",
+      "side": "suffix",
+      "family": "IncreasedCastSpeed",
+      "tier": 6,
+      "level": 1,
+      "groups": [
+        "IncreasedCastSpeed"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CastSpeedJewellery2",
+      "side": "suffix",
+      "family": "IncreasedCastSpeed",
+      "tier": 5,
+      "level": 18,
+      "groups": [
+        "IncreasedCastSpeed"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CastSpeedJewellery3",
+      "side": "suffix",
+      "family": "IncreasedCastSpeed",
+      "tier": 4,
+      "level": 35,
+      "groups": [
+        "IncreasedCastSpeed"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CastSpeedJewellery4",
+      "side": "suffix",
+      "family": "IncreasedCastSpeed",
+      "tier": 3,
+      "level": 51,
+      "groups": [
+        "IncreasedCastSpeed"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CastSpeedJewellery5",
+      "side": "suffix",
+      "family": "IncreasedCastSpeed",
+      "tier": 2,
+      "level": 60,
+      "groups": [
+        "IncreasedCastSpeed"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CastSpeedJewellery6",
+      "side": "suffix",
+      "family": "IncreasedCastSpeed",
+      "tier": 1,
+      "level": 66,
+      "groups": [
+        "IncreasedCastSpeed"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ChaosResist1",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 6,
+      "level": 16,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ChaosResist2",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 5,
+      "level": 30,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ChaosResist3",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 4,
+      "level": 44,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ChaosResist4",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 3,
+      "level": 56,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ChaosResist5",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 2,
+      "level": 68,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ChaosResist6",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 1,
+      "level": 81,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist1",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist2",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 7,
+      "level": 14,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist3",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 6,
+      "level": 26,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist4",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 5,
+      "level": 38,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist5",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 4,
+      "level": 50,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist6",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 3,
+      "level": 60,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist7",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 2,
+      "level": 71,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist8",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 1,
+      "level": 82,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalMultiplier1",
+      "side": "suffix",
+      "family": "CriticalStrikeMultiplier",
+      "tier": 6,
+      "level": 8,
+      "groups": [
+        "CriticalStrikeMultiplier"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalMultiplier2",
+      "side": "suffix",
+      "family": "CriticalStrikeMultiplier",
+      "tier": 5,
+      "level": 21,
+      "groups": [
+        "CriticalStrikeMultiplier"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalMultiplier3",
+      "side": "suffix",
+      "family": "CriticalStrikeMultiplier",
+      "tier": 4,
+      "level": 31,
+      "groups": [
+        "CriticalStrikeMultiplier"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalMultiplier4",
+      "side": "suffix",
+      "family": "CriticalStrikeMultiplier",
+      "tier": 3,
+      "level": 45,
+      "groups": [
+        "CriticalStrikeMultiplier"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalMultiplier5",
+      "side": "suffix",
+      "family": "CriticalStrikeMultiplier",
+      "tier": 2,
+      "level": 59,
+      "groups": [
+        "CriticalStrikeMultiplier"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalMultiplier6",
+      "side": "suffix",
+      "family": "CriticalStrikeMultiplier",
+      "tier": 1,
+      "level": 74,
+      "groups": [
+        "CriticalStrikeMultiplier"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalStrikeChance1",
+      "side": "suffix",
+      "family": "CriticalStrikeChance",
+      "tier": 6,
+      "level": 5,
+      "groups": [
+        "CriticalStrikeChanceIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalStrikeChance2",
+      "side": "suffix",
+      "family": "CriticalStrikeChance",
+      "tier": 5,
+      "level": 20,
+      "groups": [
+        "CriticalStrikeChanceIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalStrikeChance3",
+      "side": "suffix",
+      "family": "CriticalStrikeChance",
+      "tier": 4,
+      "level": 30,
+      "groups": [
+        "CriticalStrikeChanceIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalStrikeChance4",
+      "side": "suffix",
+      "family": "CriticalStrikeChance",
+      "tier": 3,
+      "level": 44,
+      "groups": [
+        "CriticalStrikeChanceIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalStrikeChance5",
+      "side": "suffix",
+      "family": "CriticalStrikeChance",
+      "tier": 2,
+      "level": 58,
+      "groups": [
+        "CriticalStrikeChanceIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "CriticalStrikeChance6",
+      "side": "suffix",
+      "family": "CriticalStrikeChance",
+      "tier": 1,
+      "level": 72,
+      "groups": [
+        "CriticalStrikeChanceIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "DamageTakenGainedAsLife1___",
+      "side": "suffix",
+      "family": "DamageTakenGainedAsLife",
+      "tier": 5,
+      "level": 30,
+      "groups": [
+        "DamageTakenGainedAsLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "DamageTakenGainedAsLife2",
+      "side": "suffix",
+      "family": "DamageTakenGainedAsLife",
+      "tier": 4,
+      "level": 44,
+      "groups": [
+        "DamageTakenGainedAsLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "DamageTakenGainedAsLife3",
+      "side": "suffix",
+      "family": "DamageTakenGainedAsLife",
+      "tier": 3,
+      "level": 56,
+      "groups": [
+        "DamageTakenGainedAsLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "DamageTakenGainedAsLife4_",
+      "side": "suffix",
+      "family": "DamageTakenGainedAsLife",
+      "tier": 2,
+      "level": 68,
+      "groups": [
+        "DamageTakenGainedAsLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "DamageTakenGainedAsLife5",
+      "side": "suffix",
+      "family": "DamageTakenGainedAsLife",
+      "tier": 1,
+      "level": 79,
+      "groups": [
+        "DamageTakenGainedAsLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "DamageTakenGainedAsMana1",
+      "side": "suffix",
+      "family": "PercentDamageGoesToMana",
+      "tier": 5,
+      "level": 31,
+      "groups": [
+        "PercentDamageGoesToMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "DamageTakenGainedAsMana2",
+      "side": "suffix",
+      "family": "PercentDamageGoesToMana",
+      "tier": 4,
+      "level": 45,
+      "groups": [
+        "PercentDamageGoesToMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "DamageTakenGainedAsMana3",
+      "side": "suffix",
+      "family": "PercentDamageGoesToMana",
+      "tier": 3,
+      "level": 57,
+      "groups": [
+        "PercentDamageGoesToMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "DamageTakenGainedAsMana4",
+      "side": "suffix",
+      "family": "PercentDamageGoesToMana",
+      "tier": 2,
+      "level": 69,
+      "groups": [
+        "PercentDamageGoesToMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "DamageTakenGainedAsMana5",
+      "side": "suffix",
+      "family": "PercentDamageGoesToMana",
+      "tier": 1,
+      "level": 80,
+      "groups": [
+        "PercentDamageGoesToMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity1",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity2",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 7,
+      "level": 11,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity3",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 6,
+      "level": 22,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity4",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 5,
+      "level": 33,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity5",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 4,
+      "level": 44,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity6",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 3,
+      "level": 55,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity7",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 2,
+      "level": 66,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity8",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 1,
+      "level": 74,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist1",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist2",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 7,
+      "level": 12,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist3",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 6,
+      "level": 24,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist4",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 5,
+      "level": 36,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist5",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 4,
+      "level": 48,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist6",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 3,
+      "level": 60,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist7",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 2,
+      "level": 71,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist8",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 1,
+      "level": 82,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalMeleeSkillGemLevel1",
+      "side": "suffix",
+      "family": "GlobalIncreaseMeleeSkillGemLevel",
+      "tier": 3,
+      "level": 5,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalMeleeSkillGemLevel2",
+      "side": "suffix",
+      "family": "GlobalIncreaseMeleeSkillGemLevel",
+      "tier": 2,
+      "level": 41,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalMeleeSkillGemLevel3",
+      "side": "suffix",
+      "family": "GlobalIncreaseMeleeSkillGemLevel",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalMinionSpellSkillGemLevel1",
+      "side": "suffix",
+      "family": "GlobalIncreaseMinionSpellSkillGemLevel",
+      "tier": 3,
+      "level": 5,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalMinionSpellSkillGemLevel2",
+      "side": "suffix",
+      "family": "GlobalIncreaseMinionSpellSkillGemLevel",
+      "tier": 2,
+      "level": 41,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalMinionSpellSkillGemLevel3",
+      "side": "suffix",
+      "family": "GlobalIncreaseMinionSpellSkillGemLevel",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalProjectileSkillGemLevel1",
+      "side": "suffix",
+      "family": "GlobalIncreaseProjectileSkillGemLevel",
+      "tier": 3,
+      "level": 5,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalProjectileSkillGemLevel2",
+      "side": "suffix",
+      "family": "GlobalIncreaseProjectileSkillGemLevel",
+      "tier": 2,
+      "level": 41,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalProjectileSkillGemLevel3",
+      "side": "suffix",
+      "family": "GlobalIncreaseProjectileSkillGemLevel",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalSpellGemsLevel1",
+      "side": "suffix",
+      "family": "GlobalIncreaseSpellSkillGemLevel",
+      "tier": 3,
+      "level": 10,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalSpellGemsLevel2",
+      "side": "suffix",
+      "family": "GlobalIncreaseSpellSkillGemLevel",
+      "tier": 2,
+      "level": 41,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "GlobalSpellGemsLevel3",
+      "side": "suffix",
+      "family": "GlobalIncreaseSpellSkillGemLevel",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "IncreaseSocketedGemLevel"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedAccuracy1",
+      "side": "prefix",
+      "family": "IncreasedAccuracy",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "IncreasedAccuracy"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedAccuracy2",
+      "side": "prefix",
+      "family": "IncreasedAccuracy",
+      "tier": 7,
+      "level": 11,
+      "groups": [
+        "IncreasedAccuracy"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedAccuracy3",
+      "side": "prefix",
+      "family": "IncreasedAccuracy",
+      "tier": 6,
+      "level": 18,
+      "groups": [
+        "IncreasedAccuracy"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedAccuracy4",
+      "side": "prefix",
+      "family": "IncreasedAccuracy",
+      "tier": 5,
+      "level": 26,
+      "groups": [
+        "IncreasedAccuracy"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedAccuracy5",
+      "side": "prefix",
+      "family": "IncreasedAccuracy",
+      "tier": 4,
+      "level": 36,
+      "groups": [
+        "IncreasedAccuracy"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedAccuracy6",
+      "side": "prefix",
+      "family": "IncreasedAccuracy",
+      "tier": 3,
+      "level": 48,
+      "groups": [
+        "IncreasedAccuracy"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedAccuracy7",
+      "side": "prefix",
+      "family": "IncreasedAccuracy",
+      "tier": 2,
+      "level": 58,
+      "groups": [
+        "IncreasedAccuracy"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedAccuracy8",
+      "side": "prefix",
+      "family": "IncreasedAccuracy",
+      "tier": 1,
+      "level": 67,
+      "groups": [
+        "IncreasedAccuracy"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShield1",
+      "side": "prefix",
+      "family": "EnergyShield",
+      "tier": 10,
+      "level": 1,
+      "groups": [
+        "IncreasedEnergyShield"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShield10",
+      "side": "prefix",
+      "family": "EnergyShield",
+      "tier": 1,
+      "level": 80,
+      "groups": [
+        "IncreasedEnergyShield"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShield2",
+      "side": "prefix",
+      "family": "EnergyShield",
+      "tier": 9,
+      "level": 11,
+      "groups": [
+        "IncreasedEnergyShield"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShield3",
+      "side": "prefix",
+      "family": "EnergyShield",
+      "tier": 8,
+      "level": 16,
+      "groups": [
+        "IncreasedEnergyShield"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShield4",
+      "side": "prefix",
+      "family": "EnergyShield",
+      "tier": 7,
+      "level": 25,
+      "groups": [
+        "IncreasedEnergyShield"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShield5",
+      "side": "prefix",
+      "family": "EnergyShield",
+      "tier": 6,
+      "level": 33,
+      "groups": [
+        "IncreasedEnergyShield"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShield6",
+      "side": "prefix",
+      "family": "EnergyShield",
+      "tier": 5,
+      "level": 46,
+      "groups": [
+        "IncreasedEnergyShield"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShield7",
+      "side": "prefix",
+      "family": "EnergyShield",
+      "tier": 4,
+      "level": 54,
+      "groups": [
+        "IncreasedEnergyShield"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShield8",
+      "side": "prefix",
+      "family": "EnergyShield",
+      "tier": 3,
+      "level": 65,
+      "groups": [
+        "IncreasedEnergyShield"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShield9",
+      "side": "prefix",
+      "family": "EnergyShield",
+      "tier": 2,
+      "level": 70,
+      "groups": [
+        "IncreasedEnergyShield"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShieldPercent1",
+      "side": "prefix",
+      "family": "GlobalEnergyShieldPercent",
+      "tier": 7,
+      "level": 2,
+      "groups": [
+        "EnergyShieldPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShieldPercent2",
+      "side": "prefix",
+      "family": "GlobalEnergyShieldPercent",
+      "tier": 6,
+      "level": 16,
+      "groups": [
+        "EnergyShieldPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShieldPercent3",
+      "side": "prefix",
+      "family": "GlobalEnergyShieldPercent",
+      "tier": 5,
+      "level": 33,
+      "groups": [
+        "EnergyShieldPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShieldPercent4",
+      "side": "prefix",
+      "family": "GlobalEnergyShieldPercent",
+      "tier": 4,
+      "level": 46,
+      "groups": [
+        "EnergyShieldPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShieldPercent5",
+      "side": "prefix",
+      "family": "GlobalEnergyShieldPercent",
+      "tier": 3,
+      "level": 54,
+      "groups": [
+        "EnergyShieldPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShieldPercent6",
+      "side": "prefix",
+      "family": "GlobalEnergyShieldPercent",
+      "tier": 2,
+      "level": 65,
+      "groups": [
+        "EnergyShieldPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEnergyShieldPercent7",
+      "side": "prefix",
+      "family": "GlobalEnergyShieldPercent",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "EnergyShieldPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEvasionRatingPercent1",
+      "side": "prefix",
+      "family": "GlobalEvasionRatingPercent",
+      "tier": 7,
+      "level": 2,
+      "groups": [
+        "EvasionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEvasionRatingPercent2",
+      "side": "prefix",
+      "family": "GlobalEvasionRatingPercent",
+      "tier": 6,
+      "level": 16,
+      "groups": [
+        "EvasionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEvasionRatingPercent3",
+      "side": "prefix",
+      "family": "GlobalEvasionRatingPercent",
+      "tier": 5,
+      "level": 33,
+      "groups": [
+        "EvasionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEvasionRatingPercent4",
+      "side": "prefix",
+      "family": "GlobalEvasionRatingPercent",
+      "tier": 4,
+      "level": 46,
+      "groups": [
+        "EvasionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEvasionRatingPercent5",
+      "side": "prefix",
+      "family": "GlobalEvasionRatingPercent",
+      "tier": 3,
+      "level": 54,
+      "groups": [
+        "EvasionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEvasionRatingPercent6",
+      "side": "prefix",
+      "family": "GlobalEvasionRatingPercent",
+      "tier": 2,
+      "level": 70,
+      "groups": [
+        "EvasionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedEvasionRatingPercent7",
+      "side": "prefix",
+      "family": "GlobalEvasionRatingPercent",
+      "tier": 1,
+      "level": 77,
+      "groups": [
+        "EvasionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife1",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 9,
+      "level": 1,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife2",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 8,
+      "level": 6,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife3",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 7,
+      "level": 16,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife4",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 6,
+      "level": 24,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife5",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 5,
+      "level": 33,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife6",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 4,
+      "level": 38,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife7",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 3,
+      "level": 46,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife8",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 2,
+      "level": 54,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife9",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 1,
+      "level": 60,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana1",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 13,
+      "level": 1,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana10",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 4,
+      "level": 65,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana11",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 3,
+      "level": 70,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana12",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 2,
+      "level": 75,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana13",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 1,
+      "level": 82,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana2",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 12,
+      "level": 6,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana3",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 11,
+      "level": 16,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana4",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 10,
+      "level": 25,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana5",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 9,
+      "level": 33,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana6",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 8,
+      "level": 38,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana7",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 7,
+      "level": 46,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana8",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 6,
+      "level": 54,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana9",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 5,
+      "level": 60,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedPhysicalDamageReductionRatingPercent1",
+      "side": "prefix",
+      "family": "GlobalPhysicalDamageReductionRatingPercent",
+      "tier": 7,
+      "level": 2,
+      "groups": [
+        "IncreasedPhysicalDamageReductionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedPhysicalDamageReductionRatingPercent2",
+      "side": "prefix",
+      "family": "GlobalPhysicalDamageReductionRatingPercent",
+      "tier": 6,
+      "level": 16,
+      "groups": [
+        "IncreasedPhysicalDamageReductionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedPhysicalDamageReductionRatingPercent3",
+      "side": "prefix",
+      "family": "GlobalPhysicalDamageReductionRatingPercent",
+      "tier": 5,
+      "level": 33,
+      "groups": [
+        "IncreasedPhysicalDamageReductionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedPhysicalDamageReductionRatingPercent4",
+      "side": "prefix",
+      "family": "GlobalPhysicalDamageReductionRatingPercent",
+      "tier": 4,
+      "level": 46,
+      "groups": [
+        "IncreasedPhysicalDamageReductionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedPhysicalDamageReductionRatingPercent5",
+      "side": "prefix",
+      "family": "GlobalPhysicalDamageReductionRatingPercent",
+      "tier": 3,
+      "level": 54,
+      "groups": [
+        "IncreasedPhysicalDamageReductionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedPhysicalDamageReductionRatingPercent6",
+      "side": "prefix",
+      "family": "GlobalPhysicalDamageReductionRatingPercent",
+      "tier": 2,
+      "level": 65,
+      "groups": [
+        "IncreasedPhysicalDamageReductionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedPhysicalDamageReductionRatingPercent7",
+      "side": "prefix",
+      "family": "GlobalPhysicalDamageReductionRatingPercent",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "IncreasedPhysicalDamageReductionRatingPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedSpirit1",
+      "side": "prefix",
+      "family": "BaseSpirit",
+      "tier": 5,
+      "level": 16,
+      "groups": [
+        "BaseSpirit"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedSpirit2",
+      "side": "prefix",
+      "family": "BaseSpirit",
+      "tier": 4,
+      "level": 25,
+      "groups": [
+        "BaseSpirit"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedSpirit3",
+      "side": "prefix",
+      "family": "BaseSpirit",
+      "tier": 3,
+      "level": 33,
+      "groups": [
+        "BaseSpirit"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedSpirit4",
+      "side": "prefix",
+      "family": "BaseSpirit",
+      "tier": 2,
+      "level": 46,
+      "groups": [
+        "BaseSpirit"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedSpirit5",
+      "side": "prefix",
+      "family": "BaseSpirit",
+      "tier": 1,
+      "level": 54,
+      "groups": [
+        "BaseSpirit"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Intelligence1",
+      "side": "suffix",
+      "family": "Intelligence",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "Intelligence"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Intelligence2",
+      "side": "suffix",
+      "family": "Intelligence",
+      "tier": 7,
+      "level": 11,
+      "groups": [
+        "Intelligence"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Intelligence3",
+      "side": "suffix",
+      "family": "Intelligence",
+      "tier": 6,
+      "level": 22,
+      "groups": [
+        "Intelligence"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Intelligence4",
+      "side": "suffix",
+      "family": "Intelligence",
+      "tier": 5,
+      "level": 33,
+      "groups": [
+        "Intelligence"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Intelligence5",
+      "side": "suffix",
+      "family": "Intelligence",
+      "tier": 4,
+      "level": 44,
+      "groups": [
+        "Intelligence"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Intelligence6",
+      "side": "suffix",
+      "family": "Intelligence",
+      "tier": 3,
+      "level": 55,
+      "groups": [
+        "Intelligence"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Intelligence7",
+      "side": "suffix",
+      "family": "Intelligence",
+      "tier": 2,
+      "level": 66,
+      "groups": [
+        "Intelligence"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Intelligence8",
+      "side": "suffix",
+      "family": "Intelligence",
+      "tier": 1,
+      "level": 74,
+      "groups": [
+        "Intelligence"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ItemFoundRarityIncrease1",
+      "side": "suffix",
+      "family": "ItemFoundRarityIncrease",
+      "tier": 3,
+      "level": 3,
+      "groups": [
+        "ItemFoundRarityIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ItemFoundRarityIncrease2",
+      "side": "suffix",
+      "family": "ItemFoundRarityIncrease",
+      "tier": 2,
+      "level": 24,
+      "groups": [
+        "ItemFoundRarityIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ItemFoundRarityIncrease3",
+      "side": "suffix",
+      "family": "ItemFoundRarityIncrease",
+      "tier": 1,
+      "level": 40,
+      "groups": [
+        "ItemFoundRarityIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ItemFoundRarityIncreasePrefix1",
+      "side": "prefix",
+      "family": "ItemFoundRarityIncreasePrefix",
+      "tier": 3,
+      "level": 10,
+      "groups": [
+        "ItemFoundRarityIncreasePrefix"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ItemFoundRarityIncreasePrefix2",
+      "side": "prefix",
+      "family": "ItemFoundRarityIncreasePrefix",
+      "tier": 2,
+      "level": 29,
+      "groups": [
+        "ItemFoundRarityIncreasePrefix"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ItemFoundRarityIncreasePrefix3",
+      "side": "prefix",
+      "family": "ItemFoundRarityIncreasePrefix",
+      "tier": 1,
+      "level": 47,
+      "groups": [
+        "ItemFoundRarityIncreasePrefix"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration1",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 10,
+      "level": 1,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration10__",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration2",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 9,
+      "level": 5,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration3",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 8,
+      "level": 11,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration4",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 7,
+      "level": 17,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration5",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 6,
+      "level": 26,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration6",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 5,
+      "level": 35,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration7",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 4,
+      "level": 47,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration8_",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 3,
+      "level": 58,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration9",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 2,
+      "level": 68,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist1",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist2",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 7,
+      "level": 13,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist3",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 6,
+      "level": 25,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist4",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 5,
+      "level": 37,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist5",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 4,
+      "level": 49,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist6",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 3,
+      "level": 60,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist7",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 2,
+      "level": 71,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist8",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 1,
+      "level": 82,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ManaRegeneration1",
+      "side": "suffix",
+      "family": "ManaRegeneration",
+      "tier": 6,
+      "level": 1,
+      "groups": [
+        "ManaRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ManaRegeneration2",
+      "side": "suffix",
+      "family": "ManaRegeneration",
+      "tier": 5,
+      "level": 18,
+      "groups": [
+        "ManaRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ManaRegeneration3",
+      "side": "suffix",
+      "family": "ManaRegeneration",
+      "tier": 4,
+      "level": 29,
+      "groups": [
+        "ManaRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ManaRegeneration4",
+      "side": "suffix",
+      "family": "ManaRegeneration",
+      "tier": 3,
+      "level": 42,
+      "groups": [
+        "ManaRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ManaRegeneration5",
+      "side": "suffix",
+      "family": "ManaRegeneration",
+      "tier": 2,
+      "level": 55,
+      "groups": [
+        "ManaRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ManaRegeneration6",
+      "side": "suffix",
+      "family": "ManaRegeneration",
+      "tier": 1,
+      "level": 79,
+      "groups": [
+        "ManaRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MaximumLifeIncrease1",
+      "side": "prefix",
+      "family": "MaximumLifeIncreasePercent",
+      "tier": 3,
+      "level": 33,
+      "groups": [
+        "MaximumLifeIncreasePercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MaximumLifeIncrease2",
+      "side": "prefix",
+      "family": "MaximumLifeIncreasePercent",
+      "tier": 2,
+      "level": 60,
+      "groups": [
+        "MaximumLifeIncreasePercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MaximumLifeIncrease3",
+      "side": "prefix",
+      "family": "MaximumLifeIncreasePercent",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "MaximumLifeIncreasePercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MaximumManaIncrease1",
+      "side": "prefix",
+      "family": "MaximumManaIncreasePercent",
+      "tier": 3,
+      "level": 33,
+      "groups": [
+        "MaximumManaIncreasePercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MaximumManaIncrease2",
+      "side": "prefix",
+      "family": "MaximumManaIncreasePercent",
+      "tier": 2,
+      "level": 60,
+      "groups": [
+        "MaximumManaIncreasePercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MaximumManaIncrease3",
+      "side": "prefix",
+      "family": "MaximumManaIncreasePercent",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "MaximumManaIncreasePercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "SpellDamage1",
+      "side": "prefix",
+      "family": "SpellDamage",
+      "tier": 6,
+      "level": 1,
+      "groups": [
+        "SpellDamage"
+      ],
+      "weight": null
+    },
+    {
+      "id": "SpellDamage2",
+      "side": "prefix",
+      "family": "SpellDamage",
+      "tier": 5,
+      "level": 16,
+      "groups": [
+        "SpellDamage"
+      ],
+      "weight": null
+    },
+    {
+      "id": "SpellDamage3",
+      "side": "prefix",
+      "family": "SpellDamage",
+      "tier": 4,
+      "level": 33,
+      "groups": [
+        "SpellDamage"
+      ],
+      "weight": null
+    },
+    {
+      "id": "SpellDamage4",
+      "side": "prefix",
+      "family": "SpellDamage",
+      "tier": 3,
+      "level": 46,
+      "groups": [
+        "SpellDamage"
+      ],
+      "weight": null
+    },
+    {
+      "id": "SpellDamage5",
+      "side": "prefix",
+      "family": "SpellDamage",
+      "tier": 2,
+      "level": 60,
+      "groups": [
+        "SpellDamage"
+      ],
+      "weight": null
+    },
+    {
+      "id": "SpellDamage6",
+      "side": "prefix",
+      "family": "SpellDamage",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "SpellDamage"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Strength1",
+      "side": "suffix",
+      "family": "Strength",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "Strength"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Strength2",
+      "side": "suffix",
+      "family": "Strength",
+      "tier": 7,
+      "level": 11,
+      "groups": [
+        "Strength"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Strength3",
+      "side": "suffix",
+      "family": "Strength",
+      "tier": 6,
+      "level": 22,
+      "groups": [
+        "Strength"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Strength4",
+      "side": "suffix",
+      "family": "Strength",
+      "tier": 5,
+      "level": 33,
+      "groups": [
+        "Strength"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Strength5",
+      "side": "suffix",
+      "family": "Strength",
+      "tier": 4,
+      "level": 44,
+      "groups": [
+        "Strength"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Strength6",
+      "side": "suffix",
+      "family": "Strength",
+      "tier": 3,
+      "level": 55,
+      "groups": [
+        "Strength"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Strength7",
+      "side": "suffix",
+      "family": "Strength",
+      "tier": 2,
+      "level": 66,
+      "groups": [
+        "Strength"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Strength8",
+      "side": "suffix",
+      "family": "Strength",
+      "tier": 1,
+      "level": 74,
+      "groups": [
+        "Strength"
+      ],
+      "weight": null
+    }
+  ]
+}

@@ -20,6 +20,7 @@
     "data:fetch:pinned": "node scripts/data/fetch.ts --pinned",
     "data:normalize": "node scripts/data/normalize.ts",
     "data:validate": "vitest run packages/craft-db/src/production/production.test.ts",
+    "data:golden": "node scripts/data/golden.ts",
     "data:report": "node scripts/data/report.ts",
     "data:refresh": "pnpm data:fetch && pnpm data:normalize && pnpm data:validate && pnpm data:report"
   },

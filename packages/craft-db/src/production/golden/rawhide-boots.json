@@ -1,0 +1,1446 @@
+{
+  "name": "Rawhide Boots",
+  "baseId": "Metadata/Items/Armours/Boots/FourBootsDex1",
+  "itemLevel": 82,
+  "gameVersion": "0.5.5",
+  "revision": "b818b843337cae43b090b272fd98bbc0fd3a34f3",
+  "details": {
+    "properties": [
+      {
+        "name": "Evasion Rating",
+        "value": "15"
+      }
+    ],
+    "requirements": {
+      "level": 1
+    },
+    "implicits": [],
+    "provenance": {
+      "sourceId": "repoe-poe2",
+      "confidence": "verified",
+      "lastVerified": "2026-10-02"
+    }
+  },
+  "implicitModifierIds": [],
+  "eligible": [
+    {
+      "id": "ChaosResist1",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 6,
+      "level": 16,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ChaosResist2",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 5,
+      "level": 30,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ChaosResist3",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 4,
+      "level": 44,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ChaosResist4",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 3,
+      "level": 56,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ChaosResist5",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 2,
+      "level": 68,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ChaosResist6",
+      "side": "suffix",
+      "family": "ChaosResistance",
+      "tier": 1,
+      "level": 81,
+      "groups": [
+        "ChaosResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist1",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist2",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 7,
+      "level": 14,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist3",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 6,
+      "level": 26,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist4",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 5,
+      "level": 38,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist5",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 4,
+      "level": 50,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist6",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 3,
+      "level": 60,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist7",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 2,
+      "level": 71,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ColdResist8",
+      "side": "suffix",
+      "family": "ColdResistance",
+      "tier": 1,
+      "level": 82,
+      "groups": [
+        "ColdResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity1",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity2",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 7,
+      "level": 11,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity3",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 6,
+      "level": 22,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity4",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 5,
+      "level": 33,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity5",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 4,
+      "level": 44,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity6",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 3,
+      "level": 55,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity7",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 2,
+      "level": 66,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "Dexterity8",
+      "side": "suffix",
+      "family": "Dexterity",
+      "tier": 1,
+      "level": 74,
+      "groups": [
+        "Dexterity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "EvasionGrantsDeflection1",
+      "side": "suffix",
+      "family": "EvasionAppliesToDeflection",
+      "tier": 5,
+      "level": 1,
+      "groups": [
+        "EvasionAppliesToDeflection"
+      ],
+      "weight": null
+    },
+    {
+      "id": "EvasionGrantsDeflection2",
+      "side": "suffix",
+      "family": "EvasionAppliesToDeflection",
+      "tier": 4,
+      "level": 16,
+      "groups": [
+        "EvasionAppliesToDeflection"
+      ],
+      "weight": null
+    },
+    {
+      "id": "EvasionGrantsDeflection3",
+      "side": "suffix",
+      "family": "EvasionAppliesToDeflection",
+      "tier": 3,
+      "level": 36,
+      "groups": [
+        "EvasionAppliesToDeflection"
+      ],
+      "weight": null
+    },
+    {
+      "id": "EvasionGrantsDeflection4",
+      "side": "suffix",
+      "family": "EvasionAppliesToDeflection",
+      "tier": 2,
+      "level": 48,
+      "groups": [
+        "EvasionAppliesToDeflection"
+      ],
+      "weight": null
+    },
+    {
+      "id": "EvasionGrantsDeflection5",
+      "side": "suffix",
+      "family": "EvasionAppliesToDeflection",
+      "tier": 1,
+      "level": 66,
+      "groups": [
+        "EvasionAppliesToDeflection"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist1",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist2",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 7,
+      "level": 12,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist3",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 6,
+      "level": 24,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist4",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 5,
+      "level": 36,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist5",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 4,
+      "level": 48,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist6",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 3,
+      "level": 60,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist7",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 2,
+      "level": 71,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "FireResist8",
+      "side": "suffix",
+      "family": "FireResistance",
+      "tier": 1,
+      "level": 82,
+      "groups": [
+        "FireResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife1",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 9,
+      "level": 1,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife2",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 8,
+      "level": 6,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife3",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 7,
+      "level": 16,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife4",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 6,
+      "level": 24,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife5",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 5,
+      "level": 33,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife6",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 4,
+      "level": 38,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife7",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 3,
+      "level": 46,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife8",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 2,
+      "level": 54,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedLife9",
+      "side": "prefix",
+      "family": "IncreasedLife",
+      "tier": 1,
+      "level": 60,
+      "groups": [
+        "IncreasedLife"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana1",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 9,
+      "level": 1,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana2",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 8,
+      "level": 6,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana3",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 7,
+      "level": 16,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana4",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 6,
+      "level": 25,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana5",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 5,
+      "level": 33,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana6",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 4,
+      "level": 38,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana7",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 3,
+      "level": 46,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana8",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 2,
+      "level": 54,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "IncreasedMana9",
+      "side": "prefix",
+      "family": "IncreasedMana",
+      "tier": 1,
+      "level": 60,
+      "groups": [
+        "IncreasedMana"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ItemFoundRarityIncrease1",
+      "side": "suffix",
+      "family": "ItemFoundRarityIncrease",
+      "tier": 3,
+      "level": 3,
+      "groups": [
+        "ItemFoundRarityIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ItemFoundRarityIncrease2",
+      "side": "suffix",
+      "family": "ItemFoundRarityIncrease",
+      "tier": 2,
+      "level": 24,
+      "groups": [
+        "ItemFoundRarityIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ItemFoundRarityIncrease3",
+      "side": "suffix",
+      "family": "ItemFoundRarityIncrease",
+      "tier": 1,
+      "level": 40,
+      "groups": [
+        "ItemFoundRarityIncrease"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration1",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration2",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 7,
+      "level": 5,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration3",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 6,
+      "level": 11,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration4",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 5,
+      "level": 17,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration5",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 4,
+      "level": 26,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration6",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 3,
+      "level": 35,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration7",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 2,
+      "level": 47,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LifeRegeneration8_",
+      "side": "suffix",
+      "family": "LifeRegeneration",
+      "tier": 1,
+      "level": 58,
+      "groups": [
+        "LifeRegeneration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist1",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 8,
+      "level": 1,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist2",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 7,
+      "level": 13,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist3",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 6,
+      "level": 25,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist4",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 5,
+      "level": 37,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist5",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 4,
+      "level": 49,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist6",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 3,
+      "level": 60,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist7",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 2,
+      "level": 71,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LightningResist8",
+      "side": "suffix",
+      "family": "LightningResistance",
+      "tier": 1,
+      "level": 82,
+      "groups": [
+        "LightningResistance"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalEvasionAndStunThreshold1",
+      "side": "prefix",
+      "family": "LocalEvasionAndStunThreshold",
+      "tier": 6,
+      "level": 10,
+      "groups": [
+        "DefencesPercentAndStunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalEvasionAndStunThreshold2",
+      "side": "prefix",
+      "family": "LocalEvasionAndStunThreshold",
+      "tier": 5,
+      "level": 19,
+      "groups": [
+        "DefencesPercentAndStunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalEvasionAndStunThreshold3",
+      "side": "prefix",
+      "family": "LocalEvasionAndStunThreshold",
+      "tier": 4,
+      "level": 38,
+      "groups": [
+        "DefencesPercentAndStunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalEvasionAndStunThreshold4",
+      "side": "prefix",
+      "family": "LocalEvasionAndStunThreshold",
+      "tier": 3,
+      "level": 48,
+      "groups": [
+        "DefencesPercentAndStunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalEvasionAndStunThreshold5",
+      "side": "prefix",
+      "family": "LocalEvasionAndStunThreshold",
+      "tier": 2,
+      "level": 63,
+      "groups": [
+        "DefencesPercentAndStunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalEvasionAndStunThreshold6",
+      "side": "prefix",
+      "family": "LocalEvasionAndStunThreshold",
+      "tier": 1,
+      "level": 74,
+      "groups": [
+        "DefencesPercentAndStunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRating1",
+      "side": "prefix",
+      "family": "LocalEvasionRating",
+      "tier": 7,
+      "level": 1,
+      "groups": [
+        "BaseLocalDefences"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRating2",
+      "side": "prefix",
+      "family": "LocalEvasionRating",
+      "tier": 6,
+      "level": 8,
+      "groups": [
+        "BaseLocalDefences"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRating3",
+      "side": "prefix",
+      "family": "LocalEvasionRating",
+      "tier": 5,
+      "level": 16,
+      "groups": [
+        "BaseLocalDefences"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRating4",
+      "side": "prefix",
+      "family": "LocalEvasionRating",
+      "tier": 4,
+      "level": 25,
+      "groups": [
+        "BaseLocalDefences"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRating5",
+      "side": "prefix",
+      "family": "LocalEvasionRating",
+      "tier": 3,
+      "level": 33,
+      "groups": [
+        "BaseLocalDefences"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRating6",
+      "side": "prefix",
+      "family": "LocalEvasionRating",
+      "tier": 2,
+      "level": 46,
+      "groups": [
+        "BaseLocalDefences"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRating7_",
+      "side": "prefix",
+      "family": "LocalEvasionRating",
+      "tier": 1,
+      "level": 54,
+      "groups": [
+        "BaseLocalDefences"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRatingPercent1",
+      "side": "prefix",
+      "family": "LocalEvasionRatingIncreasePercent",
+      "tier": 7,
+      "level": 2,
+      "groups": [
+        "DefencesPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRatingPercent2",
+      "side": "prefix",
+      "family": "LocalEvasionRatingIncreasePercent",
+      "tier": 6,
+      "level": 16,
+      "groups": [
+        "DefencesPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRatingPercent3",
+      "side": "prefix",
+      "family": "LocalEvasionRatingIncreasePercent",
+      "tier": 5,
+      "level": 33,
+      "groups": [
+        "DefencesPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRatingPercent4",
+      "side": "prefix",
+      "family": "LocalEvasionRatingIncreasePercent",
+      "tier": 4,
+      "level": 46,
+      "groups": [
+        "DefencesPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRatingPercent5",
+      "side": "prefix",
+      "family": "LocalEvasionRatingIncreasePercent",
+      "tier": 3,
+      "level": 54,
+      "groups": [
+        "DefencesPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRatingPercent6",
+      "side": "prefix",
+      "family": "LocalEvasionRatingIncreasePercent",
+      "tier": 2,
+      "level": 60,
+      "groups": [
+        "DefencesPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "LocalIncreasedEvasionRatingPercent7",
+      "side": "prefix",
+      "family": "LocalEvasionRatingIncreasePercent",
+      "tier": 1,
+      "level": 65,
+      "groups": [
+        "DefencesPercent"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MovementVelocity1",
+      "side": "prefix",
+      "family": "MovementVelocity",
+      "tier": 6,
+      "level": 1,
+      "groups": [
+        "MovementVelocity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MovementVelocity2",
+      "side": "prefix",
+      "family": "MovementVelocity",
+      "tier": 5,
+      "level": 16,
+      "groups": [
+        "MovementVelocity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MovementVelocity3",
+      "side": "prefix",
+      "family": "MovementVelocity",
+      "tier": 4,
+      "level": 33,
+      "groups": [
+        "MovementVelocity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MovementVelocity4",
+      "side": "prefix",
+      "family": "MovementVelocity",
+      "tier": 3,
+      "level": 46,
+      "groups": [
+        "MovementVelocity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MovementVelocity5",
+      "side": "prefix",
+      "family": "MovementVelocity",
+      "tier": 2,
+      "level": 65,
+      "groups": [
+        "MovementVelocity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "MovementVelocity6",
+      "side": "prefix",
+      "family": "MovementVelocity",
+      "tier": 1,
+      "level": 82,
+      "groups": [
+        "MovementVelocity"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedChillDuration1",
+      "side": "suffix",
+      "family": "ReducedChillDuration",
+      "tier": 5,
+      "level": 20,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedChillDuration2",
+      "side": "suffix",
+      "family": "ReducedChillDuration",
+      "tier": 4,
+      "level": 36,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedChillDuration3",
+      "side": "suffix",
+      "family": "ReducedChillDuration",
+      "tier": 3,
+      "level": 49,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedChillDuration4",
+      "side": "suffix",
+      "family": "ReducedChillDuration",
+      "tier": 2,
+      "level": 63,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedChillDuration5",
+      "side": "suffix",
+      "family": "ReducedChillDuration",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedFreezeDuration1",
+      "side": "suffix",
+      "family": "ReducedFreezeDuration",
+      "tier": 5,
+      "level": 20,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedFreezeDuration2",
+      "side": "suffix",
+      "family": "ReducedFreezeDuration",
+      "tier": 4,
+      "level": 36,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedFreezeDuration3",
+      "side": "suffix",
+      "family": "ReducedFreezeDuration",
+      "tier": 3,
+      "level": 49,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedFreezeDuration4",
+      "side": "suffix",
+      "family": "ReducedFreezeDuration",
+      "tier": 2,
+      "level": 63,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedFreezeDuration5",
+      "side": "suffix",
+      "family": "ReducedFreezeDuration",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedLocalAttributeRequirements1",
+      "side": "suffix",
+      "family": "LocalAttributeRequirements",
+      "tier": 5,
+      "level": 24,
+      "groups": [
+        "LocalAttributeRequirements"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedLocalAttributeRequirements2",
+      "side": "suffix",
+      "family": "LocalAttributeRequirements",
+      "tier": 4,
+      "level": 32,
+      "groups": [
+        "LocalAttributeRequirements"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedLocalAttributeRequirements3",
+      "side": "suffix",
+      "family": "LocalAttributeRequirements",
+      "tier": 3,
+      "level": 40,
+      "groups": [
+        "LocalAttributeRequirements"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedLocalAttributeRequirements4",
+      "side": "suffix",
+      "family": "LocalAttributeRequirements",
+      "tier": 2,
+      "level": 52,
+      "groups": [
+        "LocalAttributeRequirements"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedLocalAttributeRequirements5",
+      "side": "suffix",
+      "family": "LocalAttributeRequirements",
+      "tier": 1,
+      "level": 60,
+      "groups": [
+        "LocalAttributeRequirements"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedShockDuration1",
+      "side": "suffix",
+      "family": "ReducedShockDuration",
+      "tier": 5,
+      "level": 20,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedShockDuration2",
+      "side": "suffix",
+      "family": "ReducedShockDuration",
+      "tier": 4,
+      "level": 36,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedShockDuration3",
+      "side": "suffix",
+      "family": "ReducedShockDuration",
+      "tier": 3,
+      "level": 49,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedShockDuration4",
+      "side": "suffix",
+      "family": "ReducedShockDuration",
+      "tier": 2,
+      "level": 63,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "ReducedShockDuration5",
+      "side": "suffix",
+      "family": "ReducedShockDuration",
+      "tier": 1,
+      "level": 75,
+      "groups": [
+        "ReducedAilmentDuration"
+      ],
+      "weight": null
+    },
+    {
+      "id": "StunThreshold1",
+      "side": "suffix",
+      "family": "StunThreshold",
+      "tier": 11,
+      "level": 1,
+      "groups": [
+        "StunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "StunThreshold10",
+      "side": "suffix",
+      "family": "StunThreshold",
+      "tier": 2,
+      "level": 72,
+      "groups": [
+        "StunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "StunThreshold11",
+      "side": "suffix",
+      "family": "StunThreshold",
+      "tier": 1,
+      "level": 80,
+      "groups": [
+        "StunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "StunThreshold2",
+      "side": "suffix",
+      "family": "StunThreshold",
+      "tier": 10,
+      "level": 8,
+      "groups": [
+        "StunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "StunThreshold3",
+      "side": "suffix",
+      "family": "StunThreshold",
+      "tier": 9,
+      "level": 15,
+      "groups": [
+        "StunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "StunThreshold4",
+      "side": "suffix",
+      "family": "StunThreshold",
+      "tier": 8,
+      "level": 22,
+      "groups": [
+        "StunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "StunThreshold5",
+      "side": "suffix",
+      "family": "StunThreshold",
+      "tier": 7,
+      "level": 29,
+      "groups": [
+        "StunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "StunThreshold6",
+      "side": "suffix",
+      "family": "StunThreshold",
+      "tier": 6,
+      "level": 36,
+      "groups": [
+        "StunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "StunThreshold7",
+      "side": "suffix",
+      "family": "StunThreshold",
+      "tier": 5,
+      "level": 45,
+      "groups": [
+        "StunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "StunThreshold8",
+      "side": "suffix",
+      "family": "StunThreshold",
+      "tier": 4,
+      "level": 54,
+      "groups": [
+        "StunThreshold"
+      ],
+      "weight": null
+    },
+    {
+      "id": "StunThreshold9",
+      "side": "suffix",
+      "family": "StunThreshold",
+      "tier": 3,
+      "level": 63,
+      "groups": [
+        "StunThreshold"
+      ],
+      "weight": null
+    }
+  ]
+}
