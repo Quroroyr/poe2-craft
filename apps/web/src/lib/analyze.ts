@@ -23,15 +23,18 @@ import {
   poolForMode,
   resolveTool,
   sourceModifierIssues,
+  sourcePickOptions,
   sourceTierOptions,
   targetBaseCheck,
   targetFromModifier,
   targetOutlook,
+  targetPickOptions,
   toolPalette,
   type ApplyRejection,
   type CraftSession,
   type ItemComparison,
   type ItemSetupFields,
+  type PickOptions,
   type PoolMode,
   type ResolvedTool,
   type TargetBaseCheck,
@@ -96,6 +99,8 @@ export interface WorkspaceAnalysis {
   /** Why clicking the current item would do nothing; null when the click would apply. */
   readonly blockedBy: ApplyRejection | null;
   readonly explorer: PoolExplorer | null;
+  /** What a click on each tier does while editing the source or the target; null in inspect mode. */
+  readonly picks: PickOptions | null;
   readonly comparison: ItemComparison | null;
   /** Per-requirement state against the current item and target progress. */
   readonly outlook: TargetOutlook | null;
@@ -119,6 +124,7 @@ export function analyzeWorkspace(input: WorkspaceInput): WorkspaceAnalysis {
   const mode = toPoolMode(input.explorerMode, actionId);
   const explorerPool = mode.kind === 'inspect' ? pool : poolForMode(session, craftDb, mode).pool;
   const explorer = explorerPool?.status === 'ready' ? explorePool(explorerPool, view) : null;
+  const picks = pickOptions(session, input.explorerMode);
 
   const comparison =
     session.current && session.target ? compareToTarget(session.current, session.target, view) : null;
@@ -139,6 +145,7 @@ export function analyzeWorkspace(input: WorkspaceInput): WorkspaceAnalysis {
     pool,
     blockedBy,
     explorer,
+    picks,
     comparison,
     outlook,
     palette: toolPalette(view),
@@ -158,6 +165,17 @@ function sourceSetupView(session: CraftSession): SourceSetupView | null {
     issues: sourceModifierIssues(craftDb, gameVersion, source),
     tierOptions: new Map(source.explicits.map((_, i) => [i, sourceTierOptions(craftDb, gameVersion, source, i)])),
   };
+}
+
+function pickOptions(session: CraftSession, mode: ExplorerMode): PickOptions | null {
+  const { gameVersion } = session;
+  if (mode.kind === 'edit-source' && session.source) {
+    return sourcePickOptions(craftDb, gameVersion, session.source, mode.replaceIndex);
+  }
+  if (mode.kind === 'edit-target' && session.target) {
+    return targetPickOptions(craftDb, gameVersion, session.target, session.source);
+  }
+  return null;
 }
 
 function toPoolMode(mode: ExplorerMode, actionId: string | null): PoolMode {

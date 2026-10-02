@@ -7,3 +7,4 @@ export * from './item-setup';
 export * from './target-outlook';
 export * from './tools';
 export * from './pool-modes';
+export * from './pick';

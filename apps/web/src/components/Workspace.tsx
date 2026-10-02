@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  addRequirement,
   type ItemBaseId,
   type ItemState,
   type ModifierDefinition,
@@ -10,14 +9,14 @@ import {
 } from '@poe2-craft/craft-domain';
 import {
   EMPTY_TOOL,
-  addSourceModifier,
+  applySourcePick,
+  applyTargetPick,
   applyToolStep,
   createItemFromBase,
   createSession,
   hasCraftHistory,
   isSourceOutOfSync,
   redoStep,
-  replaceSourceModifier,
   resetToSource,
   selectCurrency,
   sessionSpent,
@@ -172,17 +171,14 @@ export function Workspace() {
     clearMoment();
   };
 
+  /** A click on a tier while editing. The pool stays open on the same tab, family and filters. */
   const pick = (definition: ModifierDefinition) => {
+    const option = analysis.picks?.get(definition.id);
+    if (!option?.allowed) return;
     if (explorerMode.kind === 'edit-source' && session.source) {
-      const source = session.source;
-      if (explorerMode.replaceIndex !== undefined) {
-        editSource(replaceSourceModifier(source, explorerMode.replaceIndex, definition));
-        setExplorerMode(INSPECT);
-      } else {
-        editSource(addSourceModifier(source, definition));
-      }
+      editSource(applySourcePick(session.source, option));
     } else if (explorerMode.kind === 'edit-target') {
-      editTarget(addRequirement(session.target ?? targetForSource(session.source), definition.id));
+      editTarget(applyTargetPick(session.target ?? targetForSource(session.source), option));
     }
   };
 
@@ -286,6 +282,7 @@ export function Workspace() {
               mode={explorerMode}
               view={view}
               highlightIds={new Set(analysis.stageTarget?.target.modifierIds ?? [])}
+              picks={analysis.picks}
               toolLabel={held ? held.icons.map((i) => i.name).join(' + ') : null}
               onPick={pick}
               onExit={() => setExplorerMode(INSPECT)}
