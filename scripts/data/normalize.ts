@@ -251,7 +251,8 @@ const toDefinition = (id: string, mod: RawMod, layer: string) => {
     name: mod.name ?? '',
     family: mod.type,
     layer,
-    domain: mod.domain,
+    // RePoE's desecrated domain describes the crafting layer; these mods live on item bases.
+    domain: mod.domain === 'desecrated' ? 'item' : mod.domain,
     groupIds: mod.groups,
     requiredItemLevel: mod.required_level,
     modifierLevel: mod.required_level,

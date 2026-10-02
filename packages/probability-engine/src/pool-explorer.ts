@@ -1,4 +1,4 @@
-import type { AffixSide, ModifierDefinition, ModifierGroupId } from '@poe2-craft/craft-domain';
+import { isSpawnable, resolveSpawnWeight, sameDomain, type AffixSide, type ModifierDefinition, type ModifierGroupId, type SpecialModifierDefinition } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ExclusionCode, PoolEntry, ReadyPool } from './eligible-pool';
 
@@ -15,13 +15,14 @@ export type ExplorerStatus = 'eligible' | 'already-present' | 'blocked' | 'exclu
  * Explorer tabs. Today a tab is an affix side; special pools (desecrated, essence-only, ...)
  * will become extra ids decided by `tabOf`, without changing consumers.
  */
-export type ExplorerTabId = 'prefix' | 'suffix';
+export type ExplorerTabId = 'prefix' | 'suffix' | 'desecrated' | 'implicit' | 'corruption';
 
 export interface ExplorerRow {
   readonly entry: PoolEntry;
   readonly status: ExplorerStatus;
   /** weight / total eligible weight; null unless eligible with a known weight. */
   readonly share: number | null;
+  readonly tier: number;
 }
 
 export interface ExplorerGroup {
@@ -44,6 +45,7 @@ export interface ExplorerTab {
   readonly eligibleWeight: number;
   readonly share: number | null;
   readonly counts: StatusCounts;
+  readonly specials?: readonly SpecialModifierDefinition[];
 }
 
 export interface PoolExplorer {
@@ -64,10 +66,10 @@ export function explorerStatus(entry: PoolEntry): ExplorerStatus {
 }
 
 export function tabOf(definition: ModifierDefinition): ExplorerTabId {
-  return definition.side;
+  return definition.layer === 'desecrated' ? 'desecrated' : definition.side;
 }
 
-const TAB_ORDER: readonly ExplorerTabId[] = ['prefix', 'suffix'];
+const TAB_ORDER: readonly ExplorerTabId[] = ['prefix', 'suffix', 'desecrated'];
 // A group shows the "best" status of its tiers, so a group with any eligible tier reads as eligible.
 const STATUS_RANK: readonly ExplorerStatus[] = ['eligible', 'already-present', 'blocked', 'excluded'];
 
@@ -79,24 +81,25 @@ export function explorePool(pool: ReadyPool, view: CraftDbView): PoolExplorer {
 
   const byTab = new Map<ExplorerTabId, Map<string, ExplorerRow[]>>();
   for (const entry of pool.entries) {
-    if (entry.reasons.some((r) => r.code === 'not-spawnable-on-base')) {
+    if (entry.reasons.some((r) => r.code === 'not-spawnable-on-base' || r.code === 'wrong-domain')) {
       hiddenNotSpawnable++;
       continue;
     }
     const status = explorerStatus(entry);
     const row: ExplorerRow = {
       entry,
+      tier: entry.tier,
       status,
       share: status === 'eligible' && entry.weight !== null ? share(entry.weight) : null,
     };
     const tab = tabOf(entry.definition);
     const groups = byTab.get(tab) ?? new Map<string, ExplorerRow[]>();
-    const key = entry.definition.groupIds.join('+');
+    const key = entry.definition.family ?? entry.definition.groupIds.join('+');
     groups.set(key, [...(groups.get(key) ?? []), row]);
     byTab.set(tab, groups);
   }
 
-  const tabs = TAB_ORDER.map((id): ExplorerTab => {
+  const tabs = TAB_ORDER.filter((id) => byTab.has(id)).map((id): ExplorerTab => {
     const groups = [...(byTab.get(id) ?? new Map<string, ExplorerRow[]>()).entries()].map(
       ([key, rows]): ExplorerGroup => {
         const groupIds = rows[0]?.entry.definition.groupIds ?? [];
@@ -116,13 +119,20 @@ export function explorePool(pool: ReadyPool, view: CraftDbView): PoolExplorer {
     const eligibleWeight = sumEligible(rows);
     return {
       id,
-      side: id,
+      side: id === 'suffix' ? 'suffix' : 'prefix',
       groups,
       eligibleWeight,
       share: eligibleWeight > 0 ? share(eligibleWeight) : null,
       counts: countStatuses(rows),
     };
   });
+
+  for (const id of ['implicit', 'corruption'] as const) {
+    const specials = view.listSpecialModifiers().filter((m) => m.layer === id && (id === 'implicit'
+      ? pool.base.implicitModifierIds?.includes(m.id)
+      : sameDomain(m.domain, pool.base.domain) && isSpawnable(resolveSpawnWeight(m, pool.base.tags))));
+    if (specials.length) tabs.push({ id, side: 'prefix', groups: [], eligibleWeight: 0, share: null, counts: countStatuses([]), specials });
+  }
 
   return { tabs, totalWeight: total, hiddenNotSpawnable };
 }

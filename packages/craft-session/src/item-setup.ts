@@ -80,13 +80,14 @@ export function itemSetupFields(view: CraftDbView, item: ItemState): ItemSetupFi
  * Rarities a manually built item can have: those with an affix-limit rule in this game version
  * (unique items are found, not built). Data decides, so a patch can change the list.
  */
-export function setupRarities(view: CraftDbView): readonly Rarity[] {
-  return (['normal', 'magic', 'rare'] as const).filter((r) => view.getAffixLimits(r) !== undefined);
+export function setupRarities(view: CraftDbView, baseId?: string | null): readonly Rarity[] {
+  const base = baseId ? view.getBase(baseId) : undefined;
+  return (['normal', 'magic', 'rare'] as const).filter((r) => view.getAffixLimits(r, base?.itemClassId) !== undefined);
 }
 
 /** Sets the rarity. Modifiers the new rarity has no room for are kept and flagged by `sourceModifierIssues`. */
 export function setRarity(view: CraftDbView, item: ItemState, rarity: Rarity): ItemState {
-  if (!setupRarities(view).includes(rarity) || item.rarity === rarity) return item;
+  if (!setupRarities(view, item.baseId).includes(rarity) || item.rarity === rarity) return item;
   return createItemState({ ...item, rarity });
 }
 
@@ -148,6 +149,7 @@ export function sourceModifierIssues(
 
 export interface TierOption {
   readonly definition: ModifierDefinition;
+  readonly tier: number;
   readonly allowed: boolean;
   /** Empty when allowed. */
   readonly reasons: readonly ExclusionReason[];
@@ -169,10 +171,10 @@ export function sourceTierOptions(
   const definition = view.getModifier(mod.modifierId);
   if (!definition) return [];
   const pool = poolWithout(db, gameVersion, source, index);
-  return familyTiers(view, definition).map((tier) => {
+  return familyTiers(view, definition, source.baseId).map((tier) => {
     const entry = pool?.status === 'ready' ? pool.entries.find((e) => e.definition.id === tier.id) : undefined;
     const reasons = entry?.reasons ?? [];
-    return { definition: tier, allowed: entry !== undefined && entry.eligible, reasons };
+    return { definition: tier, tier: view.tierOf(tier.id, source.baseId), allowed: entry !== undefined && entry.eligible, reasons };
   });
 }
 

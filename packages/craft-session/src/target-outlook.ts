@@ -62,7 +62,7 @@ export function targetOutlook(
           return { comparison: row, state: 'missing', reasons: [] };
         }
         const required = row.definition;
-        const acceptable = new Set(familyTiers(view, required).filter((t) => t.tier <= required.tier).map((t) => t.id));
+        const acceptable = new Set(familyTiers(view, required, current.baseId).filter((t) => view.tierOf(t.id, current.baseId) <= view.tierOf(required.id, current.baseId)).map((t) => t.id));
         const entries = pool.entries.filter((e) => acceptable.has(e.definition.id));
         if (entries.some((e) => e.eligible)) return { comparison: row, state: 'craft', reasons: [] };
         const own = entries.find((e) => e.definition.id === required.id) ?? entries[0];

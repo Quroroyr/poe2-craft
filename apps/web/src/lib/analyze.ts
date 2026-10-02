@@ -142,7 +142,7 @@ export function analyzeWorkspace(input: WorkspaceInput): WorkspaceAnalysis {
   const targetBase = targetBaseCheck(session.source ?? session.current, session.target);
   const outlook =
     session.current && comparison ? targetOutlook(craftDb, session.gameVersion, session.current, comparison) : null;
-  const stageTargets = stageTargetOptions(view, targetBase === 'mismatch' ? null : comparison);
+  const stageTargets = stageTargetOptions(view, targetBase === 'mismatch' ? null : comparison, session.current?.baseId);
   const stageTarget = stageTargets.find((o) => o.key === input.stageTargetKey) ?? stageTargets[0] ?? null;
   const probability = pool && stageTarget ? calculateTargetProbability(pool, stageTarget.target) : null;
   const explanation =
@@ -209,10 +209,10 @@ function toPoolMode(mode: ExplorerMode, actionId: string | null): PoolMode {
 }
 
 /** Outstanding target requirements first, then the catalog targets of the dataset. */
-function stageTargetOptions(view: CraftDbView, comparison: ItemComparison | null): StageTargetOption[] {
+function stageTargetOptions(view: CraftDbView, comparison: ItemComparison | null, baseId?: string | null): StageTargetOption[] {
   const fromItem = comparison
     ? outstandingTargetModifiers(comparison).flatMap((definition): StageTargetOption[] => {
-        const target = targetFromModifier(view, definition.id);
+        const target = targetFromModifier(view, definition.id, baseId);
         return target ? [{ key: `item:${definition.id}`, origin: 'target-item', target }] : [];
       })
     : [];

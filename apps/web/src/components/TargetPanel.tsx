@@ -40,7 +40,7 @@ export function TargetPanel(props: TargetPanelProps) {
   const { t } = useI18n();
   const base = target?.baseId ? view.getBase(target.baseId) : undefined;
   const itemClass = base ? view.getItemClass(base.itemClassId) : undefined;
-  const limits = view.getAffixLimits('rare');
+  const limits = view.getAffixLimits('rare', base?.itemClassId);
   const sideCount = (side: 'prefix' | 'suffix') =>
     target?.requirements.filter((r) => view.getModifier(r.modifierId)?.side === side).length ?? 0;
 
@@ -109,6 +109,7 @@ export function TargetPanel(props: TargetPanelProps) {
             <ul className="target-rows">
               {target.requirements.map((req) => (
                 <TargetRow
+                  baseId={target.baseId}
                   key={req.id}
                   row={outlook?.rows.find((r) => r.comparison.requirement.id === req.id)}
                   modifierId={req.modifierId}
@@ -207,6 +208,7 @@ function TargetEmpty(props: TargetPanelProps) {
 }
 
 function TargetRow(props: {
+  baseId: string | null;
   row: TargetOutlookRow | undefined;
   requirementId: string;
   modifierId: string;
@@ -227,7 +229,7 @@ function TargetRow(props: {
         ? t('target.reasonFractured')
         : exclusionsText(t, props.row?.reasons ?? [], props.view)
       : state === 'worse-tier'
-        ? t('target.reasonWorse', { tier: props.row?.comparison.currentDefinition?.tier ?? '?' })
+        ? t('target.reasonWorse', { tier: current ? props.view.tierOf(current.modifierId, props.baseId) : '?' })
         : state === 'not-fractured'
           ? t('target.reasonNotFractured')
           : undefined;
@@ -259,9 +261,9 @@ function TargetRow(props: {
           value={def.id}
           onChange={(e) => props.onTier(e.target.value)}
         >
-          {familyTiers(props.view, def).map((tier) => (
+          {familyTiers(props.view, def, props.baseId).map((tier) => (
             <option key={tier.id} value={tier.id}>
-              {tier.tier === 1 ? 'T1' : `T${tier.tier}+`}
+              {props.view.tierOf(tier.id, props.baseId) === 1 ? 'T1' : `T${props.view.tierOf(tier.id, props.baseId)}+`}
             </option>
           ))}
         </select>

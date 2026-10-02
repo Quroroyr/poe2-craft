@@ -57,7 +57,7 @@ function ProbabilityBody({ result, view }: ProbabilityPanelProps) {
             {result.targetEntries.map((e) => (
               <li key={e.definition.id}>
                 <b>
-                  {e.definition.name} (T{e.definition.tier})
+                  {e.definition.name} (T{e.tier})
                 </b>
                 : {exclusionsText(t, e.reasons, view)}
               </li>

@@ -203,7 +203,7 @@ export function applyStep(session: CraftSession, input: ApplyStepInput): ApplySt
       modifierId: outcome.definition.id,
       text: outcome.added.sourceText,
       name: outcome.definition.name,
-      tier: outcome.definition.tier,
+      tier: input.db.forVersion(session.gameVersion).tierOf(outcome.definition.id, session.current.baseId),
       side: outcome.definition.side,
       share: outcome.share,
     },

@@ -112,7 +112,7 @@ function Step({ step, view }: { step: ExplanationStep; view: CraftDbView }) {
           <b>{t('why.targetLabel', { label: step.label })}</b>{' '}
           {step.entries.map((e) => (
             <span key={e.definition.id} className="inline-item">
-              {e.definition.name} T{e.definition.tier}:{' '}
+              {e.definition.name} T{e.tier}:{' '}
               {e.eligible
                 ? t('why.inPool', { weight: e.weight === null ? t('why.weightUnknown') : formatInt(e.weight, intl) })
                 : t('why.excluded', { reasons: exclusionsText(t, e.reasons, view) })}

@@ -200,7 +200,7 @@ function SourceSetup(props: SourcePanelProps & { source: ItemState }) {
                   onChange={(e) => props.onEdit(setRarity(view, source, e.target.value as Rarity))}
                 >
                   {source.rarity === null && <option value="">—</option>}
-                  {setupRarities(view).map((r) => (
+                  {setupRarities(view, source.baseId).map((r) => (
                     <option key={r} value={r}>
                       {rarityLabel(t, r)}
                     </option>
@@ -273,7 +273,7 @@ function SourceSetup(props: SourcePanelProps & { source: ItemState }) {
 function AffixColumn(props: SourcePanelProps & { source: ItemState; side: AffixSide; detailed: boolean }) {
   const { source, view, side } = props;
   const { t } = useI18n();
-  const limits = source.rarity ? view.getAffixLimits(source.rarity) : undefined;
+  const limits = source.rarity ? view.getAffixLimits(source.rarity, source.baseId ? view.getBase(source.baseId)?.itemClassId : undefined) : undefined;
   const max = side === 'prefix' ? limits?.maxPrefixes : limits?.maxSuffixes;
   const mods = source.explicits
     .map((mod, index) => ({ mod, index }))
@@ -351,7 +351,7 @@ function SourceModChip(props: SourcePanelProps & { source: ItemState; mod: Expli
               disabled={!tier.allowed && tier.definition.id !== def.id}
               title={exclusionsText(t, tier.reasons, view)}
             >
-              T{tier.definition.tier}
+              T{tier.tier}
               {tier.allowed ? '' : ` — ${exclusionsText(t, tier.reasons, view)}`}
             </option>
           ))}

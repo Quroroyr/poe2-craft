@@ -8,7 +8,7 @@ import type { ModifierDefinition, SpawnWeight } from './modifier';
  * Returns null when no entry matches — the modifier cannot spawn on that base.
  */
 export function resolveSpawnWeight(
-  definition: ModifierDefinition,
+  definition: Pick<ModifierDefinition, 'spawnWeights'>,
   baseTags: readonly string[],
 ): SpawnWeight | null {
   for (const entry of definition.spawnWeights) {

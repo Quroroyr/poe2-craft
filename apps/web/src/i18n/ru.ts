@@ -2,6 +2,16 @@ import type { Messages } from './core';
 
 /** Русский интерфейс. Тип `Messages` требует каждый ключ английского набора. */
 export const ru: Messages = {
+  'exclusionTitle.wrong-domain': 'Домен модификатора',
+  'exclusionTitle.layer-not-allowed': 'Слой модификатора',
+  'reason.domain': 'Другой домен модификатора',
+  'reason.layer': 'Действие не добавляет моды этого слоя',
+  'issue.baseUnsupported': 'Крафт этого класса предметов не поддерживается',
+  'pool.layer.desecrated': 'Осквернённые',
+  'pool.layer.implicit': 'Собственные',
+  'pool.layer.corruption': 'Порча',
+  'data.notModelled': 'НЕ СМОДЕЛИРОВАНО',
+
   'common.cancel': 'Отмена',
   'common.close': 'Закрыть',
   'action.undo': 'Отменить (Ctrl+Z)',

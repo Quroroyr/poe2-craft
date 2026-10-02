@@ -2,6 +2,7 @@ import type { ConsumableId } from './consumable';
 import type { AffixSide, Rarity } from './item';
 import type { Provenance } from './provenance';
 import type { GameVersion, VersionRange } from './version';
+import type { ModifierLayer } from './modifier';
 
 export type CraftActionId = string;
 
@@ -18,6 +19,7 @@ export interface AddRandomModifierEffect {
   readonly allowedSides: readonly AffixSide[];
   /** Only modifiers with modifierLevel >= this value can be added. */
   readonly minModifierLevel?: number;
+  readonly layer?: ModifierLayer;
 }
 
 export interface CraftActionRequirements {

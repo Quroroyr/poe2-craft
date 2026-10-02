@@ -49,6 +49,8 @@ export function sourceTitle(t: Translator, view: CraftDbView, provenance: Proven
 
 export function exclusionText(t: Translator, reason: ExclusionReason, view: CraftDbView): string {
   switch (reason.code) {
+    case 'wrong-domain': return t('reason.domain');
+    case 'layer-not-allowed': return t('reason.layer');
     case 'not-spawnable-on-base':
       return reason.matchedTag ? t('exclusion.notOnBaseTag', { tag: reason.matchedTag }) : t('exclusion.notOnBase');
     case 'item-level-too-low':
@@ -77,6 +79,7 @@ export const exclusionsText = (t: Translator, reasons: readonly ExclusionReason[
 
 export function issueText(t: Translator, issue: PoolIssue): string {
   switch (issue.code) {
+    case 'base-not-supported': return t('issue.baseUnsupported');
     case 'action-unknown':
       return t('issue.actionUnknown', { id: issue.actionId });
     case 'base-unknown':

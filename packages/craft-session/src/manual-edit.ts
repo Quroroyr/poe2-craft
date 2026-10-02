@@ -95,8 +95,8 @@ export function applyManualEdit(session: CraftSession, db: CraftDb, edit: Manual
     }
   }
 
-  const from = describe(mod, view);
-  const to = edit.operation === 'remove' ? null : describe(after.explicits[edit.index], view);
+  const from = describe(mod, view, current.baseId);
+  const to = edit.operation === 'remove' ? null : describe(after.explicits[edit.index], view, current.baseId);
   const step: ManualEditStepRecord = {
     kind: 'manual-edit',
     index: session.steps.length + 1,
@@ -138,12 +138,12 @@ export function betterTierOption(options: readonly TierOption[], modifierId: Mod
   return at > 0 ? (options[at - 1] ?? null) : null;
 }
 
-function describe(mod: ExplicitModifier | undefined, view: CraftDbView): ManualEditModifier {
+function describe(mod: ExplicitModifier | undefined, view: CraftDbView, baseId: string | null): ManualEditModifier {
   const definition = mod?.kind === 'resolved' ? view.getModifier(mod.modifierId) : undefined;
   return {
     modifierId: mod?.kind === 'resolved' ? mod.modifierId : null,
     text: mod?.sourceText ?? '',
-    tier: definition?.tier ?? null,
+    tier: definition ? view.tierOf(definition.id, baseId) : null,
     side: definition?.side ?? null,
   };
 }

@@ -141,9 +141,9 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
                     setFamilyKey(null);
                   }}
                 >
-                  {sidesLabel(t, tb.side)}
+                  {tb.id === 'prefix' || tb.id === 'suffix' ? sidesLabel(t, tb.side) : t(`pool.layer.${tb.id}`)}
                   <span className="seg-meta num">
-                    {editing ? pickableCount(tb.groups, picks) : tb.counts.eligible}
+                    {tb.specials?.length ?? (editing ? pickableCount(tb.groups, picks) : tb.counts.eligible)}
                     {mode.kind === 'inspect' && tb.share !== null && ` · ${formatPercent(tb.share)}`}
                   </span>
                 </button>
@@ -189,7 +189,11 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
               ))}
             </ul>
 
-            {editing ? (
+            {tab.specials ? (
+              <ul className="pick-list" style={{ gridColumn: '1 / -1' }}>
+                {tab.specials.map((m) => <li key={m.id} className="pick-row"><span>{m.lines.map((l) => l.template).join(' / ') || m.id}</span><span className="muted">{t('data.notModelled')}</span></li>)}
+              </ul>
+            ) : editing ? (
               <div className="pick-scroll">
                 {shown.length === 0 ? (
                   <p className="empty">{t('pool.nothing')}</p>
@@ -304,7 +308,7 @@ function TierRow(props: { row: ExplorerRow; group: ExplorerGroup; view: CraftDbV
           {props.isTarget && <span className="tag tag-target">{t('pool.targetTag')}</span>}
         </span>
       </td>
-      <td className="num right">T{d.tier}</td>
+      <td className="num right">T{row.tier}</td>
       <td className="num right">{d.requiredItemLevel}</td>
       <td className="num right hide-md">{d.modifierLevel}</td>
       <td className="num right">{row.entry.weight === null ? <span className="bad">?</span> : formatInt(row.entry.weight, INTL_LOCALE[locale])}</td>
@@ -347,7 +351,7 @@ function PickRow(props: {
   const text = modifierText(d);
   const state = selected ? 'selected' : allowed ? 'allowed' : 'unavailable';
   // Target requirements mean "this tier or better".
-  const tierLabel = mode.kind === 'edit-target' && d.tier > 1 ? `T${d.tier}+` : `T${d.tier}`;
+  const tierLabel = mode.kind === 'edit-target' && row.tier > 1 ? `T${row.tier}+` : `T${row.tier}`;
 
   const pick = () => {
     if (allowed) props.onPick(d);
@@ -417,7 +421,7 @@ function pickableCount(groups: readonly ExplorerGroup[], picks: PickOptions | nu
 }
 
 function byTier(rows: readonly ExplorerRow[]): ExplorerRow[] {
-  return [...rows].sort((a, b) => a.entry.definition.tier - b.entry.definition.tier);
+  return [...rows].sort((a, b) => a.tier - b.tier);
 }
 
 function filterGroups(

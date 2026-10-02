@@ -1,6 +1,7 @@
 import {
   isSpawnable,
   resolveSpawnWeight,
+  sameDomain,
   type AffixLimitRule,
   type AffixSide,
   type CraftAction,
@@ -28,6 +29,8 @@ export type PoolInput = {
 
 /** Why a modifier cannot be the outcome of this action on this item. A modifier may have several. */
 export type ExclusionReason =
+  | { readonly code: 'wrong-domain' }
+  | { readonly code: 'layer-not-allowed' }
   | { readonly code: 'not-spawnable-on-base'; readonly matchedTag: string | null }
   | { readonly code: 'item-level-too-low'; readonly required: number; readonly itemLevel: number }
   | {
@@ -44,6 +47,7 @@ export type ExclusionCode = ExclusionReason['code'];
 
 export interface PoolEntry {
   readonly definition: ModifierDefinition;
+  readonly tier: number;
   /** Weight for this base; null when the data does not know it. */
   readonly weight: number | null;
   /** Spawn tag that decided the weight, null when none matched. */
@@ -54,6 +58,7 @@ export interface PoolEntry {
 
 /** The pool cannot be built at all. */
 export type PoolIssue =
+  | { readonly code: 'base-not-supported' }
   | { readonly code: 'action-unknown'; readonly actionId: CraftActionId }
   | { readonly code: 'base-unknown'; readonly baseName: string | null }
   | { readonly code: 'item-level-unknown' }
@@ -117,7 +122,8 @@ export function buildEligiblePool(input: PoolInput): EligiblePool {
   if (!base) issues.push({ code: 'base-unknown', baseName: item.baseName });
   if (item.itemLevel === null) issues.push({ code: 'item-level-unknown' });
   if (item.rarity === null) issues.push({ code: 'rarity-unknown' });
-  const limits = item.rarity === null ? undefined : view.getAffixLimits(item.rarity);
+  if (base?.dataStatus === 'unsupported') issues.push({ code: 'base-not-supported' });
+  const limits = item.rarity === null ? undefined : view.getAffixLimits(item.rarity, base?.itemClassId);
   if (item.rarity !== null && !limits) {
     issues.push({ code: 'affix-limits-unknown', rarity: item.rarity });
   }
@@ -144,6 +150,8 @@ export function buildEligiblePool(input: PoolInput): EligiblePool {
   const entries: PoolEntry[] = view.listModifiers().map((definition) => {
     const reasons: ExclusionReason[] = [];
     const spawn = resolveSpawnWeight(definition, base.tags);
+    if (!sameDomain(definition.domain, base.domain)) reasons.push({ code: 'wrong-domain' });
+    if ((definition.layer ?? 'explicit') !== (effect.layer ?? 'explicit')) reasons.push({ code: 'layer-not-allowed' });
 
     if (!isSpawnable(spawn)) {
       reasons.push({ code: 'not-spawnable-on-base', matchedTag: spawn?.tag ?? null });
@@ -176,6 +184,7 @@ export function buildEligiblePool(input: PoolInput): EligiblePool {
 
     return {
       definition,
+      tier: view.tierOf(definition.id, base.id),
       weight: spawn?.weight ?? null,
       spawnTag: spawn?.tag ?? null,
       eligible: reasons.length === 0,

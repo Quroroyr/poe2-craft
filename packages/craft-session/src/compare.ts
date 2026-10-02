@@ -44,17 +44,20 @@ export const satisfiesRequirement = (status: TargetModStatus) => status === 'mat
 export function sameFamily(a: ModifierDefinition, b: ModifierDefinition): boolean {
   return (
     a.side === b.side &&
+    (a.layer ?? 'explicit') === (b.layer ?? 'explicit') &&
+    (a.family !== undefined && b.family !== undefined ? a.family === b.family : (
     a.groupIds.length === b.groupIds.length &&
     a.groupIds.every((g) => b.groupIds.includes(g))
+    ))
   );
 }
 
 /** All tiers of a definition's family in this version, best (tier 1) first. */
-export function familyTiers(view: CraftDbView, definition: ModifierDefinition): ModifierDefinition[] {
+export function familyTiers(view: CraftDbView, definition: ModifierDefinition, baseId?: string | null): ModifierDefinition[] {
   return view
-    .listModifiers()
+    .listModifiers(baseId ? { baseId } : {})
     .filter((m) => sameFamily(m, definition))
-    .sort((a, b) => a.tier - b.tier);
+    .sort((a, b) => b.requiredItemLevel - a.requiredItemLevel);
 }
 
 /** Compares the current item with the target requirements by family and tier (tier 1 = best). */
@@ -88,9 +91,10 @@ export function compareToTarget(current: ItemState, target: TargetSpec, view: Cr
       return { requirement, definition, status: 'missing', current: null, currentDefinition: null };
     }
     used.add(candidate.mod);
-    const tier = candidate.definition.tier;
+    const tier = view.tierOf(candidate.definition.id, current.baseId);
+    const requiredTier = view.tierOf(definition.id, target.baseId);
     const status: TargetModStatus =
-      tier === definition.tier ? 'matched' : tier < definition.tier ? 'better-tier' : 'worse-tier';
+      tier === requiredTier ? 'matched' : tier < requiredTier ? 'better-tier' : 'worse-tier';
     return { requirement, definition, status, current: candidate.mod, currentDefinition: candidate.definition };
   });
 
@@ -108,13 +112,14 @@ export function compareToTarget(current: ItemState, target: TargetSpec, view: Cr
  * Stage target built from one modifier: that tier or any better tier of the same family.
  * Returns null when the modifier is not in this game version.
  */
-export function targetFromModifier(view: CraftDbView, modifierId: string): CraftTarget | null {
+export function targetFromModifier(view: CraftDbView, modifierId: string, baseId?: string | null): CraftTarget | null {
   const definition = view.getModifier(modifierId);
   if (!definition) return null;
-  const tiers = familyTiers(view, definition).filter((m) => m.tier <= definition.tier);
+  const rank = view.tierOf(definition.id, baseId);
+  const tiers = familyTiers(view, definition, baseId).filter((m) => view.tierOf(m.id, baseId) <= rank);
   return {
     id: `item-target:${definition.id}`,
-    label: `${modifierText(definition)} (T${definition.tier}${definition.tier > 1 ? ' or better' : ''})`,
+    label: `${modifierText(definition)} (T${rank}${rank > 1 ? ' or better' : ''})`,
     modifierIds: tiers.map((m) => m.id),
     provenance: definition.provenance,
   };

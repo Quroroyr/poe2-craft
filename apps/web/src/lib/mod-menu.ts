@@ -132,7 +132,7 @@ function currentMenu(index: number, ctx: MenuContext): MenuModel | null {
         id: 'upgrade',
         label: t('menu.upgrade'),
         icon: 'up',
-        hint: `→ T${better.definition.tier}`,
+        hint: `→ T${better.tier}`,
         disabled: !better.allowed,
         reason: better.allowed ? undefined : reasonText(t, better, view),
         intent: { kind: 'manual-edit', edit: { operation: 'retier', index, modifierId: better.definition.id } },
@@ -141,7 +141,7 @@ function currentMenu(index: number, ctx: MenuContext): MenuModel | null {
 
   return {
     title: familyName(definition, view),
-    subtitle: `T${definition.tier} · ${clean(mod.sourceText)}`,
+    subtitle: `T${view.tierOf(definition.id, current.baseId)} · ${clean(mod.sourceText)}`,
     note,
     items: [
       upgrade,
@@ -181,7 +181,7 @@ function sourceMenu(index: number, ctx: MenuContext): MenuModel | null {
   const tiers = sourceTierOptions(ctx.db, session.gameVersion, source, index);
   return {
     title: familyName(definition, view),
-    subtitle: `T${definition.tier} · ${clean(mod.sourceText)}`,
+    subtitle: `T${view.tierOf(definition.id, source.baseId)} · ${clean(mod.sourceText)}`,
     note: t('menu.noteSource'),
     items: [
       {
@@ -239,7 +239,7 @@ function targetMenu(requirementId: string, ctx: MenuContext): MenuModel | null {
   }
   return {
     title: familyName(definition, view),
-    subtitle: `${tierLabel(definition.tier)} · ${modifierText(definition)}`,
+    subtitle: `${tierLabel(view.tierOf(definition.id, target.baseId))} · ${modifierText(definition)}`,
     note: t('menu.noteTarget'),
     items: [
       {
@@ -248,10 +248,10 @@ function targetMenu(requirementId: string, ctx: MenuContext): MenuModel | null {
         icon: 'list',
         submenu: {
           title: t('menu.minTier'),
-          items: familyTiers(view, definition).map(
+          items: familyTiers(view, definition, target.baseId).map(
             (tier): MenuItem => ({
               id: `tier-${tier.id}`,
-              label: tierLabel(tier.tier),
+              label: tierLabel(view.tierOf(tier.id, target.baseId)),
               hint: modifierText(tier),
               checked: tier.id === definition.id,
               intent: tier.id === definition.id ? undefined : { kind: 'target', target: setRequirementTier(target, requirement.id, tier.id) },
@@ -278,7 +278,7 @@ function tierItems(
     const isCurrent = d.id === currentId;
     return {
       id: `tier-${d.id}`,
-      label: `T${d.tier}`,
+      label: `T${option.tier}`,
       hint: modifierText(d),
       checked: isCurrent,
       disabled: !isCurrent && !option.allowed,
@@ -306,7 +306,7 @@ function addToTargetItems(mod: ExplicitModifier, definition: ModifierDefinition,
   const item = (fractured: boolean): MenuItem => {
     const dry = addModifierToTarget(ctx.db, session.gameVersion, target, fallback, definition.id, fractured);
     const base = t(fractured ? 'menu.addToTargetFractured' : 'menu.addToTarget');
-    const label = dry.status === 'retiered' ? t('menu.minTierSuffix', { label: base, tier: definition.tier }) : base;
+    const label = dry.status === 'retiered' ? t('menu.minTierSuffix', { label: base, tier: ctx.view.tierOf(definition.id, target.baseId) }) : base;
     const disabled = dry.status === 'already' || dry.status === 'not-allowed';
     const reason =
       dry.status === 'already'

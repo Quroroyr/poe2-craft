@@ -3,6 +3,16 @@
  * Game names (bases, currencies, modifier text, tags) come from the dataset and are not here.
  */
 export const en = {
+  'exclusionTitle.wrong-domain': 'Modifier domain',
+  'exclusionTitle.layer-not-allowed': 'Modifier layer',
+  'reason.domain': 'Different modifier domain',
+  'reason.layer': 'This action does not roll this modifier layer',
+  'issue.baseUnsupported': 'Crafting this item class is not supported',
+  'pool.layer.desecrated': 'Desecrated',
+  'pool.layer.implicit': 'Implicit',
+  'pool.layer.corruption': 'Corruption',
+  'data.notModelled': 'NOT MODELLED',
+
   // common
   'common.cancel': 'Cancel',
   'common.close': 'Close',

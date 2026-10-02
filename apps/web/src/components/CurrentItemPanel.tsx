@@ -74,7 +74,7 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
   };
 
   const base = item?.baseId ? view.getBase(item.baseId) : undefined;
-  const limits = item?.rarity ? view.getAffixLimits(item.rarity) : undefined;
+  const limits = item?.rarity ? view.getAffixLimits(item.rarity, base?.itemClassId) : undefined;
   const sideOf = (m: ExplicitModifier): AffixSide | null =>
     m.kind === 'resolved' ? (view.getModifier(m.modifierId)?.side ?? null) : null;
   const count = (side: AffixSide) => item?.explicits.filter((m) => sideOf(m) === side).length ?? 0;
@@ -186,6 +186,7 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
               {ordered.length === 0 && <li className="current-mods-empty">{t('current.noMods')}</li>}
               {ordered.map(({ mod, index }) => (
                 <CurrentMod
+                      baseId={item.baseId}
                   key={index}
                   mod={mod}
                   view={view}
@@ -236,6 +237,7 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
 }
 
 function CurrentMod(props: {
+  baseId: string | null;
   mod: ExplicitModifier;
   view: CraftDbView;
   badge: ModBadge | undefined;
@@ -283,7 +285,7 @@ function CurrentMod(props: {
           {badge && <span className={`tag tag-${badge.tone}`}>{badge.label}</span>}
         </span>
       </span>
-      <span className="tier-badge">{def ? `T${def.tier}` : '—'}</span>
+      <span className="tier-badge">{def ? `T${props.view.tierOf(def.id, props.baseId)}` : '—'}</span>
       <ModMoreButton label={t('current.modActions')} open={props.menuOpen} onMenu={props.onMenu} />
     </li>
   );
