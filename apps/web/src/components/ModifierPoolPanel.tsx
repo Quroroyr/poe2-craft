@@ -5,11 +5,11 @@ import { isPickSelected, type PickOption, type PickOptions } from '@poe2-craft/c
 import type { ExplorerGroup, ExplorerRow, ExplorerStatus, ExplorerTabId, PoolExplorer } from '@poe2-craft/probability-engine';
 import type { ExplorerMode } from '@/lib/analyze';
 import { formatInt, formatPercent } from '@/lib/format';
-import { EXPLORER_STATUS_LABEL, exclusionText } from '@/lib/texts';
+import { INTL_LOCALE } from '@/i18n/core';
+import { useI18n } from '@/i18n/I18nProvider';
+import { explorerStatusLabel, exclusionText, exclusionsText, sidesLabel } from '@/lib/texts';
 import { Icon } from './Icon';
 import { Panel } from './Panel';
-
-const TAB_LABEL: Record<ExplorerTabId, string> = { prefix: 'Префиксы', suffix: 'Суффиксы' };
 
 /**
  * `pickable` (editing only): what a click can add or swap to, plus what is already selected.
@@ -30,6 +30,8 @@ export interface PoolFocus {
 }
 
 interface ModifierPoolPanelProps {
+  /** Seal number on the main page; none inside the setup surface. */
+  readonly index?: number;
   readonly explorer: PoolExplorer | null;
   readonly mode: ExplorerMode;
   readonly view: CraftDbView;
@@ -52,6 +54,7 @@ interface ModifierPoolPanelProps {
  */
 export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
   const { explorer, mode, view, picks } = props;
+  const { t, locale } = useI18n();
   const editing = mode.kind !== 'inspect';
   const [tabId, setTabId] = useState<ExplorerTabId>(mode.kind === 'inspect' ? 'suffix' : mode.side);
   const [query, setQuery] = useState('');
@@ -95,20 +98,20 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
 
   return (
     <Panel
-      index={5}
-      title="Пул модов"
+      index={props.index}
+      title={t('pool.title')}
       className="panel-pool"
       aside={
         <>
           <label className="search-field search-compact">
             <Icon name="search" size={15} />
-            <input type="search" name="pool-search" aria-label="Поиск мода" placeholder="Поиск модов…" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <input type="search" name="pool-search" aria-label={t('pool.search')} placeholder={t('pool.searchPlaceholder')} value={query} onChange={(e) => setQuery(e.target.value)} />
           </label>
-          <select name="pool-tag" aria-label="Тег" value={tag} onChange={(e) => setTag(e.target.value)}>
-            <option value="">Все теги</option>
-            {allTags.map((t) => (
-              <option key={t} value={t}>
-                {t}
+          <select name="pool-tag" aria-label={t('pool.tag')} value={tag} onChange={(e) => setTag(e.target.value)}>
+            <option value="">{t('pool.allTags')}</option>
+            {allTags.map((name) => (
+              <option key={name} value={name}>
+                {name}
               </option>
             ))}
           </select>
@@ -119,54 +122,54 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
       {!explorer || !tab ? (
         <p className="empty">
           {mode.kind === 'inspect'
-            ? 'Возьмите валюту — здесь появится пул, из которого она добавляет моды.'
-            : 'Пул не построен: нет предмета или база не найдена в CraftDB.'}
+            ? t('pool.emptyInspect')
+            : t('pool.emptyEdit')}
         </p>
       ) : (
         <>
           <div className="pool-bar">
-            <div className="segmented" role="tablist" aria-label="Тип модов">
-              {explorer.tabs.map((t) => (
+            <div className="segmented" role="tablist" aria-label={t('pool.sides')}>
+              {explorer.tabs.map((tb) => (
                 <button
-                  key={t.id}
+                  key={tb.id}
                   type="button"
                   role="tab"
-                  aria-selected={t.id === tab.id}
-                  aria-pressed={t.id === tab.id}
+                  aria-selected={tb.id === tab.id}
+                  aria-pressed={tb.id === tab.id}
                   onClick={() => {
-                    setTabId(t.id);
+                    setTabId(tb.id);
                     setFamilyKey(null);
                   }}
                 >
-                  {TAB_LABEL[t.id]}
+                  {sidesLabel(t, tb.side)}
                   <span className="seg-meta num">
-                    {editing ? pickableCount(t.groups, picks) : t.counts.eligible}
-                    {mode.kind === 'inspect' && t.share !== null && ` · ${formatPercent(t.share)}`}
+                    {editing ? pickableCount(tb.groups, picks) : tb.counts.eligible}
+                    {mode.kind === 'inspect' && tb.share !== null && ` · ${formatPercent(tb.share)}`}
                   </span>
                 </button>
               ))}
             </div>
             <select
               name="pool-status"
-              aria-label="Статус"
+              aria-label={t('pool.status')}
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
             >
-              {editing && <option value="pickable">Доступные и выбранные</option>}
-              <option value="all">Все статусы</option>
+              {editing && <option value="pickable">{t('pool.pickable')}</option>}
+              <option value="all">{t('pool.allStatuses')}</option>
               {(['eligible', 'already-present', 'blocked', 'excluded'] as const).map((s) => (
                 <option key={s} value={s}>
-                  {EXPLORER_STATUS_LABEL[s]} ({tab.counts[s]})
+                  {t('pool.statusOption', { label: explorerStatusLabel(t, s), count: tab.counts[s] })}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="pool-body">
-            <ul className="family-list" aria-label="Семейства модов">
+            <ul className="family-list" aria-label={t('pool.families')}>
               <li>
                 <button type="button" className="family-item" aria-pressed={familyKey === null} onClick={() => setFamilyKey(null)}>
-                  <span>Все семейства</span>
+                  <span>{t('pool.allFamilies')}</span>
                   <span className="num muted">{groups.reduce((n, g) => n + g.rows.length, 0)}</span>
                 </button>
               </li>
@@ -189,7 +192,7 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
             {editing ? (
               <div className="pick-scroll">
                 {shown.length === 0 ? (
-                  <p className="empty">Ничего не найдено.</p>
+                  <p className="empty">{t('pool.nothing')}</p>
                 ) : (
                   shown.map((g) => (
                     <section key={g.key} className="pick-group" aria-label={g.label}>
@@ -213,20 +216,20 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
             ) : (
               <div ref={tableRef} className="table-scroll pool-table-wrap">
                 {shown.length === 0 ? (
-                  <p className="empty">Ничего не найдено.</p>
+                  <p className="empty">{t('pool.nothing')}</p>
                 ) : (
                   <table className="table pool-table">
                     <thead>
                       <tr>
-                        <th>Мод</th>
-                        <th className="right">Тир</th>
+                        <th>{t('pool.col.mod')}</th>
+                        <th className="right">{t('pool.col.tier')}</th>
                         <th className="right">ilvl</th>
-                        <th className="right hide-md">Ур. мода</th>
-                        <th className="right">Вес</th>
-                        <th className="right">Доля</th>
-                        <th className="hide-md">Группа</th>
-                        <th className="hide-md">Теги</th>
-                        <th>Статус</th>
+                        <th className="right hide-md">{t('pool.col.modLevel')}</th>
+                        <th className="right">{t('pool.col.weight')}</th>
+                        <th className="right">{t('pool.col.share')}</th>
+                        <th className="hide-md">{t('pool.col.group')}</th>
+                        <th className="hide-md">{t('pool.col.tags')}</th>
+                        <th>{t('pool.col.status')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -249,7 +252,7 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
             )}
           </div>
           {explorer.hiddenNotSpawnable > 0 && (
-            <p className="hint">Скрыто {explorer.hiddenNotSpawnable} мод(ов) других классов предметов.</p>
+            <p className="hint">{t('pool.hidden', { count: explorer.hiddenNotSpawnable })}</p>
           )}
         </>
       )}
@@ -258,22 +261,24 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
 }
 
 function ModeChip({ mode, toolLabel, onExit }: { mode: ExplorerMode; toolLabel: string | null; onExit: () => void }) {
+  const { t } = useI18n();
   if (mode.kind === 'inspect') {
-    return <p className="mode-line">Осмотр текущего предмета{toolLabel ? ` · ${toolLabel}` : ''}</p>;
+    return <p className="mode-line">{toolLabel ? t('pool.inspectWith', { tool: toolLabel }) : t('pool.inspect')}</p>;
   }
-  const label =
+  const label = t(
     mode.kind === 'edit-target'
-      ? 'Добавление требования в цель'
+      ? 'pool.mode.target'
       : mode.kind === 'edit-current'
-        ? 'Замена мода текущего предмета — ручная правка, не крафт'
+        ? 'pool.mode.current'
         : mode.replaceIndex !== undefined
-          ? 'Замена мода исходного'
-          : 'Добавление мода в исходный';
+          ? 'pool.mode.sourceReplace'
+          : 'pool.mode.sourceAdd',
+  );
   return (
     <p className={`mode-line mode-line-edit${mode.kind === 'edit-current' ? ' mode-line-manual' : ''}`}>
       {label}
       <button type="button" className="link-btn" onClick={onExit}>
-        вернуться к осмотру <kbd>Esc</kbd>
+        {t('pool.backToInspect')} <kbd>Esc</kbd>
       </button>
     </p>
   );
@@ -282,8 +287,9 @@ function ModeChip({ mode, toolLabel, onExit }: { mode: ExplorerMode; toolLabel: 
 /** Inspect mode: the technical row with every column. */
 function TierRow(props: { row: ExplorerRow; group: ExplorerGroup; view: CraftDbView; isTarget: boolean; isFocus: boolean }) {
   const { row } = props;
+  const { t, locale } = useI18n();
   const d = row.entry.definition;
-  const reasons = row.status !== 'eligible' ? row.entry.reasons.map((r) => exclusionText(r, props.view)).join('; ') : undefined;
+  const reasons = row.status !== 'eligible' ? exclusionsText(t, row.entry.reasons, props.view) : undefined;
   return (
     <tr
       className={`tier-row row-${row.status}${props.isTarget ? ' is-target' : ''}${props.isFocus ? ' is-focus' : ''}`}
@@ -295,13 +301,13 @@ function TierRow(props: { row: ExplorerRow; group: ExplorerGroup; view: CraftDbV
         <span className="pool-mod">{modifierText(d)}</span>
         <span className="pool-name">
           {d.name}
-          {props.isTarget && <span className="tag tag-target">цель</span>}
+          {props.isTarget && <span className="tag tag-target">{t('pool.targetTag')}</span>}
         </span>
       </td>
       <td className="num right">T{d.tier}</td>
       <td className="num right">{d.requiredItemLevel}</td>
       <td className="num right hide-md">{d.modifierLevel}</td>
-      <td className="num right">{row.entry.weight === null ? <span className="bad">?</span> : formatInt(row.entry.weight)}</td>
+      <td className="num right">{row.entry.weight === null ? <span className="bad">?</span> : formatInt(row.entry.weight, INTL_LOCALE[locale])}</td>
       <td className="num right">{row.share === null ? '—' : formatPercent(row.share)}</td>
       <td className="hide-md">
         <span className="cell-chip">{props.group.label}</span>
@@ -314,7 +320,7 @@ function TierRow(props: { row: ExplorerRow; group: ExplorerGroup; view: CraftDbV
         ))}
       </td>
       <td>
-        <span className={`status status-${row.status}`}>{EXPLORER_STATUS_LABEL[row.status]}</span>
+        <span className={`status status-${row.status}`}>{explorerStatusLabel(t, row.status)}</span>
       </td>
     </tr>
   );
@@ -332,11 +338,12 @@ function PickRow(props: {
   onPick: (definition: ModifierDefinition) => void;
 }) {
   const { row, option, mode } = props;
+  const { t, locale } = useI18n();
   const d = row.entry.definition;
   const selected = isPickSelected(option);
   const allowed = option?.allowed ?? false;
   const swap = option?.action.kind === 'replace' || option?.action.kind === 'retier';
-  const reasons = !allowed && !selected ? (option?.reasons ?? row.entry.reasons).map((r) => exclusionText(r, props.view)) : [];
+  const reasons = !allowed && !selected ? (option?.reasons ?? row.entry.reasons).map((r) => exclusionText(t, r, props.view)) : [];
   const text = modifierText(d);
   const state = selected ? 'selected' : allowed ? 'allowed' : 'unavailable';
   // Target requirements mean "this tier or better".
@@ -368,7 +375,7 @@ function PickRow(props: {
         <span className="pick-tier num">
           {selected && <Icon name="check" size={13} />}
           {swap && allowed && (
-            <span className="pick-swap" title="Заменит выбранный тир этого семейства">
+            <span className="pick-swap" title={t('pool.swapTitle')}>
               <Icon name="swap" size={12} />
             </span>
           )}
@@ -379,13 +386,13 @@ function PickRow(props: {
             {text}
           </span>
           <span className={`pick-meta${reasons.length > 0 ? ' pick-meta-reason' : ''}`}>
-            {selected && <span className="pick-state">{mode.kind === 'edit-target' ? 'в цели' : 'выбран'} · </span>}
+            {selected && <span className="pick-state">{t(mode.kind === 'edit-target' ? 'pool.inTarget' : 'pool.selected')} · </span>}
             {reasons.length > 0 ? (
               <span className="pick-reason">{reasons.join('; ')}</span>
             ) : (
               <>
                 {d.name}
-                <span className="pick-sep"> · </span>ур. мода {d.modifierLevel}
+                <span className="pick-sep"> · </span>{t('pool.modLevel', { level: d.modifierLevel })}
                 {d.tags.length > 0 && <span className="pick-sep"> · </span>}
                 {d.tags.join(', ')}
               </>
@@ -396,8 +403,8 @@ function PickRow(props: {
           <span className="pick-unit">ilvl</span> {d.requiredItemLevel}
         </span>
         <span className="pick-num num">
-          <span className="pick-unit">вес</span>{' '}
-          {row.entry.weight === null ? <span className="bad">?</span> : formatInt(row.entry.weight)}
+          <span className="pick-unit">{t('pool.weight')}</span>{' '}
+          {row.entry.weight === null ? <span className="bad">?</span> : formatInt(row.entry.weight, INTL_LOCALE[locale])}
         </span>
       </div>
     </li>

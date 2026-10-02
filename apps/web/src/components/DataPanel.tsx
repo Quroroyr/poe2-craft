@@ -1,6 +1,7 @@
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ProbabilityResult } from '@poe2-craft/probability-engine';
-import { CONFIDENCE_LABEL } from '@/lib/texts';
+import { useI18n } from '@/i18n/I18nProvider';
+import { confidenceLabel } from '@/lib/texts';
 import { Panel } from './Panel';
 
 interface DataPanelProps {
@@ -9,26 +10,27 @@ interface DataPanelProps {
 }
 
 export function DataPanel({ view, probability }: DataPanelProps) {
+  const { t } = useI18n();
   const info = view.info;
   return (
-    <Panel title="Данные">
+    <Panel title={t('data.title')}>
       <dl className="data-list">
         <div>
-          <dt>Версия игры</dt>
+          <dt>{t('data.gameVersion')}</dt>
           <dd className="num">{view.gameVersion}</dd>
         </div>
         <div>
-          <dt>Набор</dt>
+          <dt>{t('data.dataset')}</dt>
           <dd>
             {info.title} <span className={`badge ${info.kind === 'fixture' ? 'badge-warn' : ''}`}>{info.kind}</span>
           </dd>
         </div>
         <div>
-          <dt>Достоверность расчёта</dt>
-          <dd>{probability?.status === 'ok' ? CONFIDENCE_LABEL[probability.confidence] : '—'}</dd>
+          <dt>{t('data.confidence')}</dt>
+          <dd>{probability?.status === 'ok' ? confidenceLabel(t, probability.confidence) : '—'}</dd>
         </div>
         <div>
-          <dt>Источники</dt>
+          <dt>{t('data.sources')}</dt>
           <dd>
             <ul className="sources">
               {info.sources.map((s) => (

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/i18n/I18nProvider';
 import { Icon } from './Icon';
 
 /** Number field with − / + buttons. Typing is free; the value is committed on blur or Enter. */
@@ -12,6 +13,7 @@ export function Stepper(props: {
   onChange: (value: number) => void;
 }) {
   const { value, min, max } = props;
+  const { t } = useI18n();
   const [draft, setDraft] = useState(value === null ? '' : String(value));
   useEffect(() => setDraft(value === null ? '' : String(value)), [value]);
   const commit = () => {
@@ -28,7 +30,7 @@ export function Stepper(props: {
         <button
           type="button"
           className="stepper-btn"
-          aria-label={`${props.label}: меньше`}
+          aria-label={t('stepper.less', { label: props.label })}
           disabled={value !== null && value <= min}
           onClick={() => props.onChange((value ?? min) - 1)}
         >
@@ -53,7 +55,7 @@ export function Stepper(props: {
         <button
           type="button"
           className="stepper-btn"
-          aria-label={`${props.label}: больше`}
+          aria-label={t('stepper.more', { label: props.label })}
           disabled={value !== null && value >= max}
           onClick={() => props.onChange((value ?? min - 1) + 1)}
         >

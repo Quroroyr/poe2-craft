@@ -3,7 +3,8 @@ import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { CraftSession, SessionStep } from '@poe2-craft/craft-session';
 import { formatCost, formatPercent } from '@/lib/format';
 import { consumableIconUrl } from '@/lib/icons';
-import { MANUAL_OPERATION_LABEL, SIDE_SHORT, manualEditText } from '@/lib/texts';
+import { useI18n } from '@/i18n/I18nProvider';
+import { SIDE_SHORT, manualEditText, manualOperationLabel } from '@/lib/texts';
 import { GameIcon } from './GameIcon';
 import { Icon } from './Icon';
 import { Panel } from './Panel';
@@ -20,8 +21,6 @@ interface HistoryPanelProps {
 
 type Filter = 'all' | 'applied' | 'undone';
 
-const timeFormat = new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
 /**
  * Session history, newest first: applied steps, then undone ones (dimmed, redoable), then the
  * source. Craft steps and manual edits share one timeline; a manual edit is drawn apart (dashed,
@@ -29,6 +28,7 @@ const timeFormat = new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '
  */
 export function HistoryPanel(props: HistoryPanelProps) {
   const { session, view } = props;
+  const { t } = useI18n();
   const [filter, setFilter] = useState<Filter>('all');
   const applied = [...session.steps].reverse();
   const undone = session.redoStack; // most recently undone last → the next redo is the last item
@@ -36,38 +36,38 @@ export function HistoryPanel(props: HistoryPanelProps) {
 
   return (
     <Panel
-      index={6}
-      title="История крафта"
+      index={5}
+      title={t('history.title')}
       className="panel-history"
       aside={
         <>
-          <select name="history-filter" aria-label="Фильтр шагов" value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
-            <option value="all">Все шаги</option>
-            <option value="applied">Применённые</option>
-            <option value="undone">Отменённые</option>
+          <select name="history-filter" aria-label={t('history.filter')} value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
+            <option value="all">{t('history.all')}</option>
+            <option value="applied">{t('history.applied')}</option>
+            <option value="undone">{t('history.undone')}</option>
           </select>
-          <button type="button" className="icon-btn" aria-label="Отменить (Ctrl+Z)" title="Отменить · Ctrl+Z" onClick={props.onUndo} disabled={session.steps.length === 0}>
+          <button type="button" className="icon-btn" aria-label={t('action.undo')} title={t('action.undoTitle')} onClick={props.onUndo} disabled={session.steps.length === 0}>
             <Icon name="undo" size={15} />
           </button>
-          <button type="button" className="icon-btn" aria-label="Повторить (Ctrl+Shift+Z)" title="Повторить · Ctrl+Shift+Z" onClick={props.onRedo} disabled={undone.length === 0}>
+          <button type="button" className="icon-btn" aria-label={t('action.redo')} title={t('action.redoTitle')} onClick={props.onRedo} disabled={undone.length === 0}>
             <Icon name="redo" size={15} />
           </button>
         </>
       }
     >
       {empty ? (
-        <p className="empty">Шагов нет. Возьмите валюту и кликните по текущему предмету.</p>
+        <p className="empty">{t('history.empty')}</p>
       ) : (
         <div className="table-scroll">
           <table className="table history-table">
             <thead>
               <tr>
                 <th className="right">#</th>
-                <th>Действие</th>
-                <th>Результат</th>
-                <th className="right">Цена</th>
-                <th className="right hide-md">Время</th>
-                <th aria-label="Откат" />
+                <th>{t('history.col.action')}</th>
+                <th>{t('history.col.result')}</th>
+                <th className="right">{t('history.col.cost')}</th>
+                <th className="right hide-md">{t('history.col.time')}</th>
+                <th aria-label={t('history.col.rollback')} />
               </tr>
             </thead>
             <tbody>
@@ -82,7 +82,7 @@ export function HistoryPanel(props: HistoryPanelProps) {
                     action={
                       i === undone.length - 1 ? (
                         <button type="button" className="link-btn" onClick={props.onRedo}>
-                          повторить
+                          {t('history.redo')}
                         </button>
                       ) : null
                     }
@@ -98,7 +98,7 @@ export function HistoryPanel(props: HistoryPanelProps) {
                     state={i === 0 ? 'current' : 'applied'}
                     action={
                       i === 0 ? null : (
-                        <button type="button" className="icon-btn icon-btn-quiet" aria-label={`Откатить к шагу ${step.index}`} title="Откатить сюда" onClick={() => props.onUndoTo(step.index)}>
+                        <button type="button" className="icon-btn icon-btn-quiet" aria-label={t('history.rollbackTo', { index: step.index })} title={t('history.rollbackHere')} onClick={() => props.onUndoTo(step.index)}>
                           <Icon name="undo" size={13} />
                         </button>
                       )
@@ -108,12 +108,12 @@ export function HistoryPanel(props: HistoryPanelProps) {
               {filter !== 'undone' && (
                 <tr className="history-origin">
                   <td className="num right">0</td>
-                  <td colSpan={2}>Исходный предмет</td>
+                  <td colSpan={2}>{t('history.origin')}</td>
                   <td className="num right">—</td>
                   <td className="hide-md" />
                   <td className="right">
                     {session.steps.length > 0 && (
-                      <button type="button" className="icon-btn icon-btn-quiet" aria-label="Откатить к исходному" title="Откатить к исходному" onClick={() => props.onUndoTo(0)}>
+                      <button type="button" className="icon-btn icon-btn-quiet" aria-label={t('history.rollbackOrigin')} title={t('history.rollbackOrigin')} onClick={() => props.onUndoTo(0)}>
                         <Icon name="undo" size={13} />
                       </button>
                     )}
@@ -136,10 +136,11 @@ function StepRow(props: {
   action: ReactNode;
 }) {
   const { step, view } = props;
+  const { t, fmt } = useI18n();
   const tail = (
     <>
-      <td className="num right hide-md muted">{props.time ? timeFormat.format(props.time) : '—'}</td>
-      <td className="right">{props.state === 'undone' ? <span className="muted small">отменён </span> : null}{props.action}</td>
+      <td className="num right hide-md muted">{props.time ? fmt.time(props.time) : '—'}</td>
+      <td className="right">{props.state === 'undone' ? <span className="muted small">{t('history.undoneMark')} </span> : null}{props.action}</td>
     </>
   );
   if (step.kind === 'manual-edit') {
@@ -152,7 +153,7 @@ function StepRow(props: {
               <Icon name="pencil" size={15} />
             </span>
             <span>
-              Ручная правка <span className="muted small">· {MANUAL_OPERATION_LABEL[step.operation]}</span>
+              {t('history.manual')} <span className="muted small">· {manualOperationLabel(t, step.operation)}</span>
             </span>
           </span>
         </td>
@@ -162,7 +163,7 @@ function StepRow(props: {
             <span className="mod-text">{manualEditText(step)}</span>
           </span>
         </td>
-        <td className="num right muted" title="Ручная правка не тратит валюту">
+        <td className="num right muted" title={t('history.manualNoCost')}>
           —
         </td>
         {tail}
@@ -184,7 +185,7 @@ function StepRow(props: {
         </span>
       </td>
       <td>
-        <span className="history-result" title={`шанс этого мода был ${formatPercent(step.added.share)}`}>
+        <span className="history-result" title={t('history.chance', { chance: formatPercent(step.added.share) })}>
           <span className="side-mark-sm">{SIDE_SHORT[step.added.side]}</span>
           <span className="mod-text">+ {step.added.text.replace(/\n/g, ' / ')}</span>
           <span className="tier-badge">T{step.added.tier}</span>

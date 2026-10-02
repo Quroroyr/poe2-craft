@@ -5,6 +5,7 @@
  */
 import type { ConsumableCategory } from '@poe2-craft/craft-domain';
 import type { ResolvedTool } from '@poe2-craft/craft-session';
+import type { Translator } from '@/i18n/core';
 import { consumableIconUrl } from './icons';
 
 export interface HeldToolIcon {
@@ -21,15 +22,15 @@ export interface HeldTool {
   readonly reason: string | null;
 }
 
-export function heldTool(resolved: ResolvedTool, blockedReason: string | null): HeldTool | null {
+export function heldTool(t: Translator, resolved: ResolvedTool, blockedReason: string | null): HeldTool | null {
   // Nothing in hand: omens alone are shown in the active craft panel, not on the pointer.
   if (resolved.status === 'none') return null;
   const icons = resolved.consumables.map((c) => ({ src: consumableIconUrl(c), name: c.name, role: c.category }));
   if (resolved.status === 'incompatible') {
-    return { icons, state: 'blocked', reason: 'Omen не действует на эту валюту' };
+    return { icons, state: 'blocked', reason: t('held.incompatible') };
   }
   if (resolved.status === 'unsupported') {
-    return { icons, state: 'blocked', reason: icons.length > 1 ? 'комбинация не смоделирована' : 'механика не смоделирована' };
+    return { icons, state: 'blocked', reason: t(icons.length > 1 ? 'held.unsupportedCombo' : 'held.unsupported') };
   }
   return { icons, state: blockedReason ? 'blocked' : 'ready', reason: blockedReason };
 }

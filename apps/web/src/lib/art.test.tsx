@@ -29,7 +29,7 @@ describe('item art', () => {
     const html = renderToStaticMarkup(<ItemArt art={null} label="x" maxHeight={120} />);
     expect(html).toContain('item-art-missing');
     expect(html).toContain('height:120px');
-    expect(renderToStaticMarkup(<ArtFrame base={undefined} label="x" glow="gold" maxHeight={100} />)).toContain('нет изображения');
+    expect(renderToStaticMarkup(<ArtFrame base={undefined} label="x" glow="gold" maxHeight={100} />)).toContain('no image');
   });
 
   it('never scales art up beyond its intrinsic size', () => {

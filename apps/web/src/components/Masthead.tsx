@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { CraftDb } from '@poe2-craft/craft-db';
+import { LOCALES } from '@/i18n/core';
+import { useI18n } from '@/i18n/I18nProvider';
 import { Icon } from './Icon';
 
 interface MastheadProps {
@@ -9,15 +11,12 @@ interface MastheadProps {
   readonly onGameVersion: (version: string) => void;
 }
 
-/** Sections of the planner. Only the crafting workbench exists yet; the rest are announced, not faked. */
-const SECTIONS = [
-  { label: 'Крафт', ready: true },
-  { label: 'Моды', ready: false },
-  { label: 'База предметов', ready: false },
-  { label: 'Симуляции', ready: false },
-] as const;
-
+/**
+ * Brand, the one section that exists (crafting), game version, interface language and the demo
+ * data warning. Sections that do not exist yet are not advertised.
+ */
 export function Masthead({ db, gameVersion, fixture, onGameVersion }: MastheadProps) {
+  const { t, locale, setLocale } = useI18n();
   const [demoOpen, setDemoOpen] = useState(false);
   return (
     <header className="masthead">
@@ -25,27 +24,19 @@ export function Masthead({ db, gameVersion, fixture, onGameVersion }: MastheadPr
         <Compass />
         <div>
           <h1>PoE 2 Craft Planner</h1>
-          <p className="brand-sub">Планирование крафта · Path of Exile 2</p>
+          <p className="brand-sub">{t('masthead.subtitle')}</p>
         </div>
       </div>
 
-      <nav className="sections" aria-label="Разделы">
-        {SECTIONS.map((s) =>
-          s.ready ? (
-            <span key={s.label} className="section section-active" aria-current="page">
-              {s.label}
-            </span>
-          ) : (
-            <span key={s.label} className="section section-soon" title="Раздел появится позже" aria-disabled="true">
-              {s.label}
-            </span>
-          ),
-        )}
+      <nav className="sections" aria-label={t('masthead.nav')}>
+        <span className="section section-active" aria-current="page">
+          {t('masthead.section.craft')}
+        </span>
       </nav>
 
       <div className="masthead-tools">
         <label className="inline-field">
-          Версия игры
+          {t('masthead.gameVersion')}
           <select name="game-version" value={gameVersion} onChange={(e) => onGameVersion(e.target.value)}>
             {db.supportedVersions.map((v) => (
               <option key={v} value={v}>
@@ -54,27 +45,25 @@ export function Masthead({ db, gameVersion, fixture, onGameVersion }: MastheadPr
             ))}
           </select>
         </label>
+        <div className="segmented locale-switch" role="group" aria-label={t('masthead.language')}>
+          {LOCALES.map((l) => (
+            <button key={l} type="button" lang={l} aria-pressed={locale === l} onClick={() => setLocale(l)}>
+              {l.toUpperCase()}
+            </button>
+          ))}
+        </div>
         {fixture && (
           <div className="demo-wrap">
-            <button
-              type="button"
-              className="demo-btn"
-              aria-expanded={demoOpen}
-              onClick={() => setDemoOpen((o) => !o)}
-            >
+            <button type="button" className="demo-btn" aria-expanded={demoOpen} onClick={() => setDemoOpen((o) => !o)}>
               <Icon name="alert" size={15} />
-              Демо-данные
+              {t('masthead.demo')}
             </button>
             {demoOpen && (
               <div className="demo-pop" role="note">
                 <p>
-                  <strong>Тиры, уровни и веса модов придуманы</strong> для проверки движка. Клик по предмету разыгрывает
-                  упрощённую модель, а не механику PoE 2.
+                  <strong>{t('masthead.demoTitle')}.</strong> {t('masthead.demoText')}
                 </p>
-                <p>
-                  Реальны названия, свойства и картинки баз и расходников — они из официальных данных трейда. Реальные
-                  картинки не делают вероятности реальными.
-                </p>
+                <p>{t('masthead.demoReal')}</p>
               </div>
             )}
           </div>
@@ -82,7 +71,7 @@ export function Masthead({ db, gameVersion, fixture, onGameVersion }: MastheadPr
       </div>
       {fixture && (
         <p className="demo-strip" role="note">
-          Моды, тиры и веса — демо-данные; проценты и стоимости показывают работу движка, а не прогноз для игры.
+          {t('masthead.demoStrip')}
         </p>
       )}
     </header>

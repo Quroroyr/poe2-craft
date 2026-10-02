@@ -3,7 +3,8 @@ import type { AffixSide, ExplicitModifier, ItemState } from '@poe2-craft/craft-d
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { HeldTool } from '@/lib/held-tool';
 import type { ModBadge, WorkspaceNotice } from '@/lib/session-ui';
-import { RARITY_LABEL, SIDE_LABEL, SIDE_SHORT, SLOT_LABEL, UNRESOLVED_LABEL } from '@/lib/texts';
+import { useI18n } from '@/i18n/I18nProvider';
+import { SIDE_SHORT, rarityLabel, sideLabel, sidesLabel, slotLabel, unresolvedLabel } from '@/lib/texts';
 import { HeldToolCursor } from './HeldToolCursor';
 import { Icon } from './Icon';
 import { ArtFrame, BaseStats } from './ItemBits';
@@ -43,6 +44,7 @@ interface CurrentItemPanelProps {
 /** The crafting object: hold a tool from the strip below, click the item to use it. */
 export function CurrentItemPanel(props: CurrentItemPanelProps) {
   const { item, tool, feedback, view } = props;
+  const { t } = useI18n();
   const cursorRef = useRef<HTMLDivElement | null>(null);
   const pointerRef = useRef({ x: 0, y: 0 });
   const impactRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -50,10 +52,10 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
   const state = !item ? 'empty' : !tool ? 'idle' : tool.state;
   const label =
     state === 'ready' && tool
-      ? `Применить ${tool.icons.map((i) => i.name).join(' + ')} к предмету`
+      ? t('current.applyLabel', { tools: tool.icons.map((i) => i.name).join(' + ') })
       : state === 'blocked'
-        ? `Нельзя применить: ${tool?.reason ?? ''}`
-        : 'Возьмите валюту в полосе инструментов';
+        ? t('current.blockedLabel', { reason: tool?.reason ?? '' })
+        : t('current.takeCurrency');
 
   // The overlay follows the pointer by direct style writes: no React render per mouse move.
   // The orb itself is centred on that point by CSS (.held-stack).
@@ -85,30 +87,30 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
 
   return (
     <Panel
-      index={2}
-      title="Текущий предмет"
+      index={1}
+      title={t('current.title')}
       variant="ornate"
       className="panel-current"
       aside={
         <>
-          <button type="button" className="icon-btn" aria-label="Отменить (Ctrl+Z)" title="Отменить · Ctrl+Z" onClick={props.onUndo} disabled={props.stepCount === 0}>
+          <button type="button" className="icon-btn" aria-label={t('action.undo')} title={t('action.undoTitle')} onClick={props.onUndo} disabled={props.stepCount === 0}>
             <Icon name="undo" size={15} />
           </button>
-          <button type="button" className="icon-btn" aria-label="Повторить (Ctrl+Shift+Z)" title="Повторить · Ctrl+Shift+Z" onClick={props.onRedo} disabled={props.redoCount === 0}>
+          <button type="button" className="icon-btn" aria-label={t('action.redo')} title={t('action.redoTitle')} onClick={props.onRedo} disabled={props.redoCount === 0}>
             <Icon name="redo" size={15} />
           </button>
           <button type="button" className="btn btn-small" onClick={props.onReset} disabled={!props.canReset}>
             <Icon name="reset" size={14} />
-            Сбросить
+            {t('current.reset')}
           </button>
         </>
       }
     >
       {props.sourceOutOfSync && (
         <div className="state-box state-warn banner-row" role="status">
-          <span>Исходный предмет изменён после начала крафта — текущий от него больше не происходит.</span>
+          <span>{t('current.outOfSync')}</span>
           <button type="button" className="btn btn-small" onClick={props.onReset}>
-            Reset craft
+            {t('current.resetCraft')}
           </button>
         </div>
       )}
@@ -152,23 +154,26 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
             className={`craft-card rarity-${item.rarity ?? 'unknown'}${feedback ? (feedback.tone === 'ok' ? ' craft-hit' : ' craft-deny') : ''}`}
           >
             <div className="current-top">
-              <ArtFrame base={base} label={item.baseName ?? 'предмет'} glow="gold" maxHeight={188} className="current-art" />
+              <ArtFrame base={base} label={item.baseName ?? t('current.artLabel')} glow="gold" maxHeight={188} className="current-art" />
               <div className="current-info">
-                <h3 className="item-name">{item.baseName ?? 'База не распознана'}</h3>
+                <h3 className="item-name">{item.baseName ?? t('current.baseUnknown')}</h3>
                 <p className="item-sub">
-                  <span className="rarity-text">{item.rarity ? `${RARITY_LABEL[item.rarity]} предмет` : 'Редкость ?'}</span> · ilvl{' '}
+                  <span className="rarity-text">
+                    {item.rarity ? t('item.rarityLine', { rarity: rarityLabel(t, item.rarity) }) : t('rarity.unknown')}
+                  </span>{' '}
+                  · ilvl{' '}
                   {item.itemLevel ?? '?'}
                 </p>
                 <dl className="current-meta">
                   {item.quality !== null && (
                     <div>
-                      <dt>Качество:</dt>
+                      <dt>{t('current.quality')}</dt>
                       <dd className="num aug">+{item.quality}%</dd>
                     </div>
                   )}
                   {item.slots.map((slot) => (
                     <div key={slot.kind}>
-                      <dt>{SLOT_LABEL[slot.kind] ?? slot.kind}:</dt>
+                      <dt>{slotLabel(t, slot.kind)}:</dt>
                       <dd className="num">{slot.count}</dd>
                     </div>
                   ))}
@@ -178,7 +183,7 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
             </div>
 
             <ul className="current-mods">
-              {ordered.length === 0 && <li className="current-mods-empty">Модов нет — кликните валютой, чтобы добавить.</li>}
+              {ordered.length === 0 && <li className="current-mods-empty">{t('current.noMods')}</li>}
               {ordered.map(({ mod, index }) => (
                 <CurrentMod
                   key={index}
@@ -194,10 +199,10 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
 
             <footer className="current-foot num">
               <span>
-                Префиксы <b>{count('prefix')} / {limits?.maxPrefixes ?? '?'}</b>
+                {sidesLabel(t, 'prefix')} <b>{count('prefix')} / {limits?.maxPrefixes ?? '?'}</b>
               </span>
               <span>
-                Суффиксы <b>{count('suffix')} / {limits?.maxSuffixes ?? '?'}</b>
+                {sidesLabel(t, 'suffix')} <b>{count('suffix')} / {limits?.maxSuffixes ?? '?'}</b>
               </span>
               <span className="current-foot-ilvl">ilvl: {item.itemLevel ?? '?'}</span>
             </footer>
@@ -213,7 +218,7 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
           {hovering && tool && <HeldToolCursor ref={attachCursor} tool={tool} pulseKey={feedback?.id ?? 0} />}
         </div>
       ) : (
-        <p className="empty current-empty">Здесь появится текущий предмет — соберите или импортируйте исходный.</p>
+        <p className="empty current-empty">{t('current.empty')}</p>
       )}
 
       {props.notice && (
@@ -222,8 +227,9 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
         </p>
       )}
       <p className="hint current-hint">
-        Клик по предмету — <b>демо-симуляция</b>: мод выбирается по весам демо-пула, значения — равномерно в диапазоне
-        тира.
+        {t('current.demoHintLead')}
+        <b>{t('current.demoHintStrong')}</b>
+        {t('current.demoHintRest')}
       </p>
     </Panel>
   );
@@ -238,6 +244,7 @@ function CurrentMod(props: {
   onMenu: (x: number, y: number) => void;
 }) {
   const { mod, badge } = props;
+  const { t } = useI18n();
   const def = mod.kind === 'resolved' ? props.view.getModifier(mod.modifierId) : undefined;
   const classes = [
     'current-mod',
@@ -259,7 +266,7 @@ function CurrentMod(props: {
         props.onMenu(e.clientX, e.clientY);
       }}
     >
-      <span className={`side-mark side-${def?.side ?? 'unknown'}`} title={def ? SIDE_LABEL[def.side] : 'сторона неизвестна'}>
+      <span className={`side-mark side-${def?.side ?? 'unknown'}`} title={def ? sideLabel(t, def.side) : t('side.unknown')}>
         {def ? SIDE_SHORT[def.side] : '?'}
       </span>
       <span className="mod-body">
@@ -269,15 +276,15 @@ function CurrentMod(props: {
           {mod.fractured && (
             <span className="tag tag-fractured">
               <Icon name="crack" size={11} />
-              fractured
+              {t('tag.fractured')}
             </span>
           )}
-          {mod.kind === 'unresolved' && <span className="tag tag-bad">{UNRESOLVED_LABEL[mod.reason]}</span>}
+          {mod.kind === 'unresolved' && <span className="tag tag-bad">{unresolvedLabel(t, mod.reason)}</span>}
           {badge && <span className={`tag tag-${badge.tone}`}>{badge.label}</span>}
         </span>
       </span>
       <span className="tier-badge">{def ? `T${def.tier}` : '—'}</span>
-      <ModMoreButton label="Действия с модом" open={props.menuOpen} onMenu={props.onMenu} />
+      <ModMoreButton label={t('current.modActions')} open={props.menuOpen} onMenu={props.onMenu} />
     </li>
   );
 }

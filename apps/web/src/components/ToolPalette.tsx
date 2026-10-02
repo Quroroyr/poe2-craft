@@ -14,7 +14,9 @@ import type { ProbabilityResult } from '@poe2-craft/probability-engine';
 import { formatAttempts, formatCost, formatPercent } from '@/lib/format';
 import { consumableIconUrl } from '@/lib/icons';
 import { parsePriceInput, type PriceInputs } from '@/lib/prices';
-import { TOOL_CATEGORY_LABEL } from '@/lib/texts';
+import { INTL_LOCALE } from '@/i18n/core';
+import { useI18n } from '@/i18n/I18nProvider';
+import { toolCategoryLabel } from '@/lib/texts';
 import { GameIcon } from './GameIcon';
 import { Icon } from './Icon';
 import { Panel } from './Panel';
@@ -35,6 +37,7 @@ interface ToolPaletteProps {
 /** Wide icon-first strip of crafting tools, and the active craft (currency + omen) it puts in hand. */
 export function ToolPalette(props: ToolPaletteProps) {
   const { palette, selection } = props;
+  const { t } = useI18n();
   const [category, setCategory] = useState<ConsumableCategory>('currency');
   const [query, setQuery] = useState('');
   const [wrap, setWrap] = useState(false);
@@ -53,12 +56,12 @@ export function ToolPalette(props: ToolPaletteProps) {
 
   return (
     <Panel
-      index={4}
-      title="Инструменты крафта"
+      index={3}
+      title={t('tools.title')}
       className="panel-tools"
       aside={
         <>
-          <div className="tool-tabs" role="tablist" aria-label="Категория инструментов">
+          <div className="tool-tabs" role="tablist" aria-label={t('tools.categories')}>
             {CATEGORIES.map((c) => (
               <button
                 key={c}
@@ -71,7 +74,7 @@ export function ToolPalette(props: ToolPaletteProps) {
                   setQuery('');
                 }}
               >
-                {TOOL_CATEGORY_LABEL[c]}
+                {toolCategoryLabel(t, c)}
               </button>
             ))}
           </div>
@@ -80,8 +83,8 @@ export function ToolPalette(props: ToolPaletteProps) {
             <input
               type="search"
               name="tool-search"
-              aria-label="Поиск инструмента"
-              placeholder="Поиск валюты…"
+              aria-label={t('tools.search')}
+              placeholder={t('tools.searchPlaceholder')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -90,8 +93,8 @@ export function ToolPalette(props: ToolPaletteProps) {
             type="button"
             className="icon-btn"
             aria-pressed={wrap}
-            aria-label={wrap ? 'Одной полосой' : 'Сеткой'}
-            title={wrap ? 'Одной полосой' : 'Сеткой'}
+            aria-label={t(wrap ? 'tools.oneRow' : 'tools.grid')}
+            title={t(wrap ? 'tools.oneRow' : 'tools.grid')}
             onClick={() => setWrap((w) => !w)}
           >
             <Icon name={wrap ? 'list' : 'grid'} size={15} />
@@ -102,12 +105,12 @@ export function ToolPalette(props: ToolPaletteProps) {
       <div className="tools-layout">
         <div className={`strip-wrap${wrap ? ' strip-wrap-grid' : ''}`}>
           {!wrap && (
-            <button type="button" className="strip-arrow" aria-label="Прокрутить влево" onClick={() => scroll(-1)}>
+            <button type="button" className="strip-arrow" aria-label={t('tools.scrollLeft')} onClick={() => scroll(-1)}>
               <Icon name="left" size={16} />
             </button>
           )}
-          <div className="tool-strip" ref={stripRef} role="listbox" aria-label="Инструменты" aria-multiselectable="true">
-            {tools.length === 0 && <p className="empty strip-empty">Ничего не найдено.</p>}
+          <div className="tool-strip" ref={stripRef} role="listbox" aria-label={t('tools.list')} aria-multiselectable="true">
+            {tools.length === 0 && <p className="empty strip-empty">{t('tools.empty')}</p>}
             {tools.map((c) => {
               const modelled = palette.modelled.has(c.id);
               const price = parsePriceInput(props.priceInputs[c.id]);
@@ -118,18 +121,18 @@ export function ToolPalette(props: ToolPaletteProps) {
                   role="option"
                   aria-selected={isSelected(c)}
                   className={`tool-tile${modelled ? '' : ' tool-tile-dim'}${c.category === 'omen' ? ' tool-tile-omen' : ''}`}
-                  title={`${c.name}${modelled ? '' : ' — механика не смоделирована'}${price === null ? '' : ` · ${formatCost(price, 'div')}`}`}
+                  title={`${modelled ? c.name : t('tools.notModelledTitle', { name: c.name })}${price === null ? '' : ` · ${formatCost(price, 'div')}`}`}
                   onClick={() => props.onSelect(pickTool(selection, c))}
                 >
                   <GameIcon src={consumableIconUrl(c)} label={c.name} size={44} />
                   <span className="tool-name">{c.name.replace(/^Omen of /, '')}</span>
-                  {!modelled && <span className="tool-flag">не смоделировано</span>}
+                  {!modelled && <span className="tool-flag">{t('tools.notModelled')}</span>}
                 </button>
               );
             })}
           </div>
           {!wrap && (
-            <button type="button" className="strip-arrow" aria-label="Прокрутить вправо" onClick={() => scroll(1)}>
+            <button type="button" className="strip-arrow" aria-label={t('tools.scrollRight')} onClick={() => scroll(1)}>
               <Icon name="chevron" size={16} />
             </button>
           )}
@@ -146,31 +149,32 @@ export function ToolPalette(props: ToolPaletteProps) {
  */
 function ActiveCraft(props: ToolPaletteProps) {
   const { resolved, view, selection, probability, attemptCost } = props;
+  const { t, locale } = useI18n();
   const currency = selection.currencyId ? view.getConsumable(selection.currencyId) : undefined;
   const omens = selection.omenIds.flatMap((id) => view.getConsumable(id) ?? []);
   const incompatible = resolved.status === 'incompatible' ? new Set(resolved.incompatibleOmenIds) : new Set<string>();
 
   return (
-    <aside className={`active-craft active-${resolved.status}`} aria-label="Активный крафт" aria-live="polite">
-      <div className="active-title">Активный крафт</div>
+    <aside className={`active-craft active-${resolved.status}`} aria-label={t('active.title')} aria-live="polite">
+      <div className="active-title">{t('active.title')}</div>
       <div className="active-combo">
         {currency ? (
           <span className="combo-part">
             <GameIcon src={consumableIconUrl(currency)} label={currency.name} size={34} />
             <span className="combo-name">{currency.name}</span>
-            <button type="button" className="icon-btn icon-btn-quiet" aria-label={`Убрать ${currency.name}`} onClick={() => props.onSelect({ ...selection, currencyId: null })}>
+            <button type="button" className="icon-btn icon-btn-quiet" aria-label={t('active.remove', { name: currency.name })} onClick={() => props.onSelect({ ...selection, currencyId: null })}>
               <Icon name="close" size={12} />
             </button>
           </span>
         ) : (
-          <span className="combo-empty">Возьмите валюту</span>
+          <span className="combo-empty">{t('active.empty')}</span>
         )}
         {omens.map((omen) => (
           <span key={omen.id} className={`combo-part combo-omen${incompatible.has(omen.id) ? ' combo-bad' : ''}`}>
             <Icon name="plus" size={12} className="combo-plus" />
             <GameIcon src={consumableIconUrl(omen)} label={omen.name} size={28} />
             <span className="combo-name">{omen.name}</span>
-            <button type="button" className="icon-btn icon-btn-quiet" aria-label={`Убрать ${omen.name}`} onClick={() => props.onSelect(clearOmens(selection))}>
+            <button type="button" className="icon-btn icon-btn-quiet" aria-label={t('active.remove', { name: omen.name })} onClick={() => props.onSelect(clearOmens(selection))}>
               <Icon name="close" size={12} />
             </button>
           </span>
@@ -181,42 +185,43 @@ function ActiveCraft(props: ToolPaletteProps) {
         {resolved.status === 'ready' && (
           <dl className="active-facts">
             <div>
-              <dt>Цена клика</dt>
+              <dt>{t('active.clickCost')}</dt>
               <dd className="num">{attemptCost ? formatCost(attemptCost.total, attemptCost.unit) : '—'}</dd>
             </div>
             <div>
-              <dt>Шанс цели шага</dt>
+              <dt>{t('active.stepChance')}</dt>
               <dd className="num accent">
                 {probability?.status === 'ok'
-                  ? `${formatPercent(probability.probability)} · ≈${formatAttempts(probability.expectedAttempts)}`
+                  ? `${formatPercent(probability.probability)} · ≈${formatAttempts(probability.expectedAttempts, INTL_LOCALE[locale])}`
                   : probability?.status === 'already-satisfied'
-                    ? 'уже есть'
-                    : 'недоступен'}
+                    ? t('active.already')
+                    : t('active.unavailable')}
               </dd>
             </div>
           </dl>
         )}
         {resolved.status === 'incompatible' && (
           <p className="status-line status-bad">
-            {omens.filter((o) => incompatible.has(o.id)).map((o) => o.name).join(', ')} не действует на {currency?.name}. Клик ничего не
-            сделает.
+            {t('active.incompatible', {
+              omens: omens.filter((o) => incompatible.has(o.id)).map((o) => o.name).join(', '),
+              currency: currency?.name ?? '',
+            })}
           </p>
         )}
         {resolved.status === 'unsupported' && (
           <p className="status-line status-warn">
-            {omens.length > 0 ? 'Комбинация совместима, но не смоделирована' : 'Механика этой валюты ещё не смоделирована'} — клик
-            ничего не сделает и не потратит.
+            {t(omens.length > 0 ? 'active.unsupportedCombo' : 'active.unsupportedSingle')}
           </p>
         )}
         {resolved.status === 'none' && (
           <p className="status-line muted">
-            {omens.length > 0 ? 'Omen выбран и ждёт валюту.' : 'Выберите валюту в полосе слева.'}
+            {t(omens.length > 0 ? 'active.omenWaiting' : 'active.pickCurrency')}
           </p>
         )}
       </div>
       {(currency || omens.length > 0) && (
         <button type="button" className="link-btn active-clear" onClick={() => props.onSelect(EMPTY_TOOL)}>
-          Положить всё
+          {t('active.dropAll')}
         </button>
       )}
     </aside>

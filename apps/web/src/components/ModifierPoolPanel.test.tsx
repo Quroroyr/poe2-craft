@@ -4,78 +4,38 @@
  * control, the pool stays open with its tab, family and filters, and the selected row stays in
  * place, highlighted from the actual source / target state.
  */
-import { act } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Workspace } from './Workspace';
+import { $ as query, button, click, demoSession, keyOn, renderWorkspace, setField, type Mounted } from '@/test-utils';
 
-declare global {
-  // eslint-disable-next-line no-var
-  var IS_REACT_ACT_ENVIRONMENT: boolean | undefined;
-}
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
-
-let container: HTMLDivElement;
-let root: Root;
-
+// Russian interface on the v0.6 demo session: these checks also cover the RU texts of the picker.
+let mounted: Mounted;
 beforeEach(async () => {
-  container = document.createElement('div');
-  document.body.append(container);
-  root = createRoot(container);
-  await act(async () => root.render(<Workspace />));
+  mounted = await renderWorkspace({ locale: 'ru', session: demoSession() });
 });
-
 afterEach(async () => {
-  await act(async () => root.unmount());
-  container.remove();
+  await mounted.unmount();
 });
 
-const $ = <T extends Element = HTMLElement>(selector: string) => {
-  const el = container.querySelector<T & Element>(selector);
-  if (!el) throw new Error(`not found: ${selector}`);
-  return el as T;
-};
+const $ = <T extends Element = HTMLElement>(selector: string) => query<T>(selector, mounted.container);
+const press = (el: Element, key: string) => keyOn(el, key);
 
-const button = (scope: ParentNode, text: string) => {
-  const found = [...scope.querySelectorAll('button')].find((b) => b.textContent?.trim().startsWith(text));
-  if (!found) throw new Error(`no button "${text}"`);
-  return found;
-};
-
-const click = async (el: Element) => {
-  await act(async () => {
-    el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-  });
-};
-
-const press = async (el: Element, key: string) => {
-  await act(async () => {
-    el.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
-  });
-};
-
-/** Sets a controlled field the way a user does, so React's onChange runs. */
-const setField = async (el: HTMLInputElement | HTMLSelectElement, value: string) => {
-  const proto = el instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
-  await act(async () => {
-    Object.getOwnPropertyDescriptor(proto, 'value')?.set?.call(el, value);
-    el.dispatchEvent(new Event(el instanceof HTMLSelectElement ? 'change' : 'input', { bubbles: true }));
-  });
-};
-
-const pool = () => $('.panel-pool');
+/** The picker in front: the one of the setup surface when it is open, else the page's. */
+const pool = () => mounted.container.querySelector<HTMLElement>('.setup-surface .panel-pool') ?? $('.panel-pool');
 const row = (modifierId: string) => pool().querySelector<HTMLElement>(`.pick-row[data-modifier-id="${modifierId}"]`);
 const family = (label: string) => button(pool().querySelector('.family-list')!, label);
 const tab = (label: string) => [...pool().querySelectorAll<HTMLElement>('[role="tab"]')].find((t) => t.textContent?.startsWith(label))!;
 const sourceSuffixes = () => $('[aria-label="Суффиксы исходного"]').textContent ?? '';
 const count = (text: string, part: string) => text.split(part).length - 1;
 
+/** Starting modifiers are edited on the setup surface ("Изменить исходный"), with the same picker. */
+const openSourceSetup = () => click(button($('.start-strip'), 'Изменить исходный'));
 const openSourceSuffixes = async () => {
-  await click(button($('.panel-source'), 'Добавить суффикс'));
+  await openSourceSetup();
+  await click(button($('.setup-surface .panel-source'), 'Добавить суффикс'));
   await click(family('Attack Speed'));
 };
 
-/** An empty target on the source base, then its suffix picker on Attack Speed. */
+/** An empty target on the current base ("Собрать цель" opens its picker), then the suffix picker on Attack Speed. */
 const openTargetSuffixes = async () => {
   await click(button($('.panel-target'), 'Сброс'));
   await click(button($('.panel-target'), 'Собрать цель'));
@@ -130,7 +90,8 @@ describe('editing pool: whole-row picking', () => {
   });
 
   it('the prefix tab survives a pick too, and the next modifier can be picked right away', async () => {
-    await click(button($('.panel-source'), 'Добавить суффикс'));
+    await openSourceSetup();
+    await click(button($('.setup-surface .panel-source'), 'Добавить суффикс'));
     await click(tab('Префиксы'));
     await click(family('Increased Physical'));
     await click(row('mod.local-physical-percent.t1')!);
@@ -173,7 +134,8 @@ describe('editing pool: whole-row picking', () => {
 
   it('an unavailable row cannot be picked by click or keyboard', async () => {
     // The sample source has local critical chance; the critical hybrid shares its group.
-    await click(button($('.panel-source'), 'Добавить суффикс'));
+    await openSourceSetup();
+    await click(button($('.setup-surface .panel-source'), 'Добавить суффикс'));
     await setField(pool().querySelector<HTMLSelectElement>('select[name="pool-status"]')!, 'all');
     const before = sourceSuffixes();
     const hybrid = row('mod.local-critical-hybrid.t1')!;
@@ -193,6 +155,15 @@ describe('editing pool: whole-row picking', () => {
     await press(row('mod.local-attack-speed.t1')!, ' ');
     expect(row('mod.local-attack-speed.t1')!.getAttribute('aria-pressed')).toBe('true');
     expect(count(sourceSuffixes(), 'Attack Speed')).toBe(1);
+  });
+
+  it('saving the setup surface hands the picked starting modifiers to the session', async () => {
+    await openSourceSuffixes();
+    await click(row('mod.local-attack-speed.t1')!);
+    await click(button($('.setup-surface'), 'Сохранить исходный'));
+    expect(mounted.container.querySelector('.setup-surface')).toBeNull();
+    // No crafting yet: the current item follows the starting item.
+    expect($('.panel-current').textContent).toContain('Attack Speed');
   });
 
   it('inspect mode keeps the detailed technical table', async () => {

@@ -8,7 +8,10 @@ import { describe, expect, it } from 'vitest';
 import { EMPTY_TOOL, resolveTool, selectCurrency, toggleOmen } from '@poe2-craft/craft-session';
 import { HeldToolGlyph } from '@/components/HeldToolCursor';
 import { craftDb, DEFAULT_GAME_VERSION } from './analyze';
-import { heldTool } from './held-tool';
+import { createTranslator } from '@/i18n/core';
+import { heldTool as heldToolT } from './held-tool';
+
+const heldTool = (...args: Parameters<typeof heldToolT> extends [unknown, ...infer R] ? R : never) => heldToolT(createTranslator('en'), ...args);
 
 const view = craftDb.forVersion(DEFAULT_GAME_VERSION);
 const EXALT = selectCurrency(EMPTY_TOOL, 'currency.exalted-orb');
@@ -32,9 +35,9 @@ describe('held tool', () => {
     const withOmen = toggleOmen(EXALT, 'omen.dextral-exaltation');
     const divine = heldTool(resolveTool(view, selectCurrency(withOmen, 'currency.divine-orb')), null);
     expect(divine?.icons.map((i) => i.name)).toEqual(['Divine Orb', 'Omen of Dextral Exaltation']);
-    expect(divine).toMatchObject({ state: 'blocked', reason: 'Omen не действует на эту валюту' });
+    expect(divine).toMatchObject({ state: 'blocked', reason: 'this Omen does not work with this currency' });
     const perfect = heldTool(resolveTool(view, selectCurrency(withOmen, 'currency.perfect-exalted-orb')), null);
-    expect(perfect).toMatchObject({ state: 'blocked', reason: 'комбинация не смоделирована' });
+    expect(perfect).toMatchObject({ state: 'blocked', reason: 'combination not modelled' });
     // An omen alone is not held on the pointer: it waits for a currency in the active craft panel.
     expect(heldTool(resolveTool(view, toggleOmen(EMPTY_TOOL, 'omen.dextral-exaltation')), null)).toBeNull();
   });

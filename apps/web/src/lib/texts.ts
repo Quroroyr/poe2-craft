@@ -1,16 +1,9 @@
 /**
- * Wording for structured codes coming from the engines. Presentation only: the meaning
- * of each code is defined by the package that emits it.
+ * Wording for structured codes coming from the engines, in the active interface language.
+ * Presentation only: the meaning of each code is defined by the package that emits it. Every
+ * function takes the translator; no text is hard-coded here.
  */
-import type {
-  AffixSide,
-  ConsumableCategory,
-  Confidence,
-  DataSourceKind,
-  Provenance,
-  Rarity,
-  UnresolvedReason,
-} from '@poe2-craft/craft-domain';
+import type { AffixSide, ConsumableCategory, Confidence, Provenance, Rarity, UnresolvedReason } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ParseDiagnostic } from '@poe2-craft/item-parser';
 import type {
@@ -18,221 +11,139 @@ import type {
   ManualEditOperation,
   ManualEditRejection,
   ManualEditStepRecord,
-  TargetModStatus,
   TargetRowState,
 } from '@poe2-craft/craft-session';
 import type { ExclusionReason, ExplorerStatus, PoolCaveat, PoolIssue } from '@poe2-craft/probability-engine';
+import type { MessageKey, Translator } from '@/i18n/core';
 
-export const SIDE_LABEL: Record<AffixSide, string> = { prefix: 'Префикс', suffix: 'Суффикс' };
+/** P / S marks are the same in every language. */
 export const SIDE_SHORT: Record<AffixSide, string> = { prefix: 'P', suffix: 'S' };
 
-/** Target row state as the target panel names it. */
-export const TARGET_STATE_LABEL: Record<TargetRowState, string> = {
-  done: 'есть',
-  craft: 'докрафтить',
-  missing: 'не хватает',
-  'worse-tier': 'тир хуже',
-  'not-fractured': 'не fractured',
-  unknown: 'нет в версии',
-};
+export const sideLabel = (t: Translator, side: AffixSide) => t(side === 'prefix' ? 'side.prefix' : 'side.suffix');
+export const sidesLabel = (t: Translator, side: AffixSide) => t(side === 'prefix' ? 'side.prefixes' : 'side.suffixes');
+export const rarityLabel = (t: Translator, rarity: Rarity) => t(`rarity.${rarity}`);
+export const targetStateLabel = (t: Translator, state: TargetRowState) => t(`targetState.${state}`);
+export const toolCategoryLabel = (t: Translator, category: ConsumableCategory) => t(`toolCategory.${category}`);
+export const explorerStatusLabel = (t: Translator, status: ExplorerStatus) => t(`explorerStatus.${status}`);
+export const confidenceLabel = (t: Translator, confidence: Confidence) => t(`confidence.${confidence}`);
+export const unresolvedLabel = (t: Translator, reason: UnresolvedReason) => t(`unresolved.${reason}`);
+export const manualOperationLabel = (t: Translator, op: ManualEditOperation) => t(`manualOp.${op}`);
+export const exclusionTitle = (t: Translator, code: ExclusionReason['code']) => t(`exclusionTitle.${code}`);
 
-export const TOOL_CATEGORY_LABEL: Record<ConsumableCategory, string> = {
-  currency: 'Валюта',
-  omen: 'Омены',
-  essence: 'Эссенции',
-  catalyst: 'Катализаторы',
-  rune: 'Руны',
-};
+/** Data-driven names (item categories, slot kinds, base properties): known ones translated, others shown as given. */
+function known(t: Translator, key: string, fallback: string): string {
+  const text = t(key as MessageKey);
+  return text === key ? fallback : text;
+}
+export const itemCategoryLabel = (t: Translator, category: string) => known(t, `itemCategory.${category}`, category);
+export const slotLabel = (t: Translator, kind: string, fallback = kind) => known(t, `slot.${kind}`, fallback);
+export const propertyLabel = (t: Translator, name: string) => known(t, `property.${name}`, name);
 
-/** Item class groups from data; unknown groups show their id. */
-export const ITEM_CATEGORY_LABEL: Readonly<Record<string, string>> = {
-  weapon: 'Оружие',
-  armour: 'Броня',
-  accessory: 'Аксессуары',
-};
-
-/** Base property names as the game writes them → interface wording. Unknown names stay as they are. */
-export const PROPERTY_LABEL: Readonly<Record<string, string>> = {
-  'Physical Damage': 'Физический урон',
-  'Critical Hit Chance': 'Шанс крит. удара',
-  'Attacks per Second': 'Атак в секунду',
-};
-
-/** Slot kinds come from data; known ones get a Russian label, others show their id. */
-export const SLOT_LABEL: Readonly<Record<string, string>> = { 'rune-socket': 'Сокеты рун' };
-
-const SOURCE_KIND_LABEL: Record<DataSourceKind, string> = {
-  official: 'официальные данные GGG',
-  'game-data': 'файлы игры',
-  poe2db: 'PoE2DB',
-  'community-testing': 'тесты сообщества',
-  observation: 'наблюдение, официальный трейд',
-  inferred: 'общеизвестно, не сверено',
-  fixture: 'демо-данные',
-};
-
-/** One-line provenance: "наблюдение, официальный трейд · verified · 2026-10-02". */
-export function sourceTitle(view: CraftDbView, provenance: Provenance): string {
+/** One-line provenance: "observation, official trade · verified · 2026-10-02". */
+export function sourceTitle(t: Translator, view: CraftDbView, provenance: Provenance): string {
   const source = view.getSource(provenance.sourceId);
-  const parts = [source ? SOURCE_KIND_LABEL[source.kind] : provenance.sourceId, provenance.confidence];
+  const parts = [source ? t(`sourceKind.${source.kind}`) : provenance.sourceId, provenance.confidence];
   if (provenance.lastVerified) parts.push(provenance.lastVerified);
   return parts.join(' · ');
 }
 
-export const RARITY_LABEL: Record<Rarity, string> = {
-  normal: 'Обычный',
-  magic: 'Магический',
-  rare: 'Редкий',
-  unique: 'Уникальный',
-};
-
-export const CONFIDENCE_LABEL: Record<Confidence, string> = {
-  official: 'official — заявлено GGG',
-  verified: 'verified — проверено по данным игры',
-  community: 'community — данные сообщества, не перепроверены',
-  experimental: 'experimental — догадка или демо-данные',
-};
-
-export const UNRESOLVED_LABEL: Record<UnresolvedReason, string> = {
-  'no-matching-definition': 'нет такого мода в CraftDB',
-  'value-out-of-range': 'текст знаком, но значение не попадает ни в один тир',
-  ambiguous: 'подходит несколько тиров',
-};
-
-const modName = (view: CraftDbView, id: string | null) =>
-  id === null ? 'нераспознанная строка' : (view.getModifier(id)?.name ?? id);
-
-export function exclusionText(reason: ExclusionReason, view: CraftDbView): string {
+export function exclusionText(t: Translator, reason: ExclusionReason, view: CraftDbView): string {
   switch (reason.code) {
     case 'not-spawnable-on-base':
-      return reason.matchedTag
-        ? `не появляется на этой базе (тег «${reason.matchedTag}» даёт вес 0)`
-        : 'не появляется на этой базе (ни один тег не подходит)';
+      return reason.matchedTag ? t('exclusion.notOnBaseTag', { tag: reason.matchedTag }) : t('exclusion.notOnBase');
     case 'item-level-too-low':
-      return `нужен ilvl ${reason.required}, у предмета ${reason.itemLevel}`;
+      return t('exclusion.itemLevel', { required: reason.required, itemLevel: reason.itemLevel });
     case 'below-action-min-modifier-level':
-      return `уровень мода ${reason.modifierLevel} ниже минимума действия ${reason.minimum}`;
+      return t('exclusion.minModLevel', { level: reason.modifierLevel, minimum: reason.minimum });
     case 'side-not-allowed-by-action':
-      return `действие не добавляет ${reason.side === 'prefix' ? 'префиксы' : 'суффиксы'}`;
+      return t(reason.side === 'prefix' ? 'exclusion.sidePrefix' : 'exclusion.sideSuffix');
     case 'no-free-affix-slot':
-      return `нет свободного слота: ${reason.side === 'prefix' ? 'префиксов' : 'суффиксов'} ${reason.used}/${reason.max}`;
+      return t(reason.side === 'prefix' ? 'exclusion.noSlotPrefix' : 'exclusion.noSlotSuffix', { used: reason.used, max: reason.max });
     case 'modifier-already-on-item':
-      return reason.fractured ? 'этот мод уже есть на предмете (fractured)' : 'этот мод уже есть на предмете';
+      return t(reason.fractured ? 'exclusion.onItemFractured' : 'exclusion.onItem');
     case 'group-already-on-item': {
       const group = view.getGroup(reason.groupId)?.name ?? reason.groupId;
-      const who = reason.occupant.inferred
-        ? `строкой «${reason.occupant.sourceText}»`
-        : `модом «${modName(view, reason.occupant.modifierId)}»`;
-      return `группа «${group}» уже занята ${who}${reason.occupant.fractured ? ' (fractured)' : ''}`;
+      const fractured = reason.occupant.fractured ? t('exclusion.fracturedMark') : '';
+      if (reason.occupant.inferred) return t('exclusion.groupByLine', { group, text: reason.occupant.sourceText, fractured });
+      const id = reason.occupant.modifierId;
+      const name = id === null ? t('exclusion.unrecognised') : (view.getModifier(id)?.name ?? id);
+      return t('exclusion.groupByMod', { group, name, fractured });
     }
   }
 }
 
-export const EXCLUSION_TITLE: Record<ExclusionReason['code'], string> = {
-  'not-spawnable-on-base': 'Не для этой базы',
-  'item-level-too-low': 'Мал item level',
-  'below-action-min-modifier-level': 'Ниже минимального уровня мода',
-  'side-not-allowed-by-action': 'Сторона запрещена действием',
-  'no-free-affix-slot': 'Нет свободного слота',
-  'modifier-already-on-item': 'Уже на предмете',
-  'group-already-on-item': 'Группа занята',
-};
+export const exclusionsText = (t: Translator, reasons: readonly ExclusionReason[], view: CraftDbView) =>
+  reasons.map((r) => exclusionText(t, r, view)).join('; ');
 
-export function issueText(issue: PoolIssue): string {
+export function issueText(t: Translator, issue: PoolIssue): string {
   switch (issue.code) {
     case 'action-unknown':
-      return `Действие ${issue.actionId} отсутствует в этой версии игры.`;
+      return t('issue.actionUnknown', { id: issue.actionId });
     case 'base-unknown':
-      return issue.baseName
-        ? `База «${issue.baseName}» не найдена в CraftDB. В v0.1 в базе только fixture-данные для Akoyan Spear.`
-        : 'База предмета не распознана.';
+      return issue.baseName ? t('issue.baseUnknownNamed', { name: issue.baseName }) : t('issue.baseUnknown');
     case 'item-level-unknown':
-      return 'Не найден Item Level — без него нельзя отсечь тиры.';
+      return t('issue.itemLevelUnknown');
     case 'rarity-unknown':
-      return 'Не найдена редкость предмета.';
+      return t('issue.rarityUnknown');
     case 'rarity-not-allowed':
-      return `Действие применяется к редкости: ${issue.allowed.map((r) => RARITY_LABEL[r]).join(', ')}; у предмета — ${RARITY_LABEL[issue.rarity]}.`;
+      return t('issue.rarityNotAllowed', {
+        allowed: issue.allowed.map((r) => rarityLabel(t, r)).join(', '),
+        rarity: rarityLabel(t, issue.rarity),
+      });
     case 'affix-limits-unknown':
-      return `Нет данных о лимите аффиксов для редкости «${RARITY_LABEL[issue.rarity]}».`;
+      return t('issue.affixLimitsUnknown', { rarity: rarityLabel(t, issue.rarity) });
   }
 }
 
-export function caveatText(caveat: PoolCaveat): string {
+export function caveatText(t: Translator, caveat: PoolCaveat): string {
   switch (caveat.code) {
     case 'fixture-dataset':
-      return 'Все веса, тиры и уровни взяты из демо-набора (fixture). Это не реальные числа PoE 2.';
+      return t('caveat.fixture');
     case 'unknown-side-lines':
-      return `${caveat.count} нераспознанн(ая/ых) строк(а) без известной стороны: счёт свободных слотов может быть неверным.`;
+      return t('caveat.unknownSide', { count: caveat.count });
     case 'unresolved-lines-block-groups':
-      return `Группы нераспознанных строк считаются занятыми (осторожная оценка): ${caveat.texts.join('; ')}.`;
+      return t('caveat.unresolvedGroups', { texts: caveat.texts.join('; ') });
     case 'modifier-missing-in-version':
-      return `Моды предмета отсутствуют в выбранной версии игры: ${caveat.modifierIds.join(', ')}.`;
+      return t('caveat.missingInVersion', { ids: caveat.modifierIds.join(', ') });
     case 'unknown-weights-in-pool':
-      return `У ${caveat.modifierIds.length} мод(ов) в пуле вес неизвестен — показанный шанс является верхней границей.`;
+      return t('caveat.unknownWeights', { count: caveat.modifierIds.length });
   }
 }
 
-export function diagnosticText(d: ParseDiagnostic): string {
+/** Import diagnostics; `text-warning` messages come from the parser as they are. */
+export function diagnosticText(t: Translator, d: ParseDiagnostic): string {
   switch (d.code) {
     case 'text-warning':
       return d.message;
     case 'base-not-in-catalog':
-      return `База не найдена в CraftDB: ${d.nameLines.join(' / ')}`;
+      return t('diag.baseNotInCatalog', { names: d.nameLines.join(' / ') });
     case 'unidentified-item':
-      return 'Предмет не опознан (Unidentified) — моды не видны.';
+      return t('diag.unidentified');
     case 'unresolved-modifier':
-      return `Не распознано: «${d.text}» — ${UNRESOLVED_LABEL[d.reason]}`;
+      return t('diag.unresolved', { text: d.text, reason: unresolvedLabel(t, d.reason) });
   }
 }
 
-export const EXPLORER_STATUS_LABEL: Record<ExplorerStatus, string> = {
-  eligible: 'доступен',
-  'already-present': 'уже на предмете',
-  blocked: 'заблокирован',
-  excluded: 'исключён',
-};
-
-export const TARGET_STATUS_LABEL: Record<TargetModStatus, string> = {
-  matched: 'есть',
-  'better-tier': 'есть, тир лучше',
-  'worse-tier': 'тир хуже',
-  missing: 'не хватает',
-  'not-fractured': 'есть, но не fractured',
-  unknown: 'не распознан',
-};
-
-export function applyRejectionText(rejection: ApplyRejection | null): string {
-  if (!rejection) return 'Нет текущего предмета — импортируйте или создайте исходный.';
+export function applyRejectionText(t: Translator, rejection: ApplyRejection | null): string {
+  if (!rejection) return t('applyRejection.noItem');
   switch (rejection.code) {
     case 'pool-blocked':
-      return `Предмет не подходит для этого действия. ${rejection.issues.map(issueText).join(' ')}`;
+      return t('applyRejection.poolBlocked', { issues: rejection.issues.map((i) => issueText(t, i)).join(' ') });
     case 'no-free-slot':
       return rejection.sides.length === 2
-        ? 'Нет свободных слотов: префиксы и суффиксы заняты.'
-        : `Нет свободного ${rejection.sides[0] === 'prefix' ? 'префикса' : 'суффикса'}.`;
+        ? t('applyRejection.noSlots')
+        : t(rejection.sides[0] === 'prefix' ? 'applyRejection.noPrefix' : 'applyRejection.noSuffix');
     case 'no-eligible-modifiers':
-      return 'Нет ни одного мода, который действие могло бы добавить: всё подходящее заблокировано.';
+      return t('applyRejection.noEligible');
     case 'unknown-weights':
-      return `У ${rejection.modifierIds.length} мод(ов) в пуле неизвестен вес — честно выбрать результат нельзя.`;
+      return t('applyRejection.unknownWeights', { count: rejection.modifierIds.length });
   }
 }
 
-/** The one-time notice before the first hand edit of the current item. */
-export const MANUAL_EDIT_NOTICE =
-  'Ручная правка текущего предмета не является игровым крафтом. Она не учитывается как расход валюты.';
-
-export const MANUAL_OPERATION_LABEL: Record<ManualEditOperation, string> = {
-  retier: 'Смена тира',
-  remove: 'Удаление мода',
-  replace: 'Замена мода',
-  fracture: 'Отметка fractured',
-  unfracture: 'Снятие fractured',
-};
-
-/** One history line for a manual edit, e.g. "T3 → T2 · 12% increased Attack Speed". */
+/** One history line for a manual edit, e.g. "T3 → T2 · 12% increased Attack Speed". Game text stays as is. */
 export function manualEditText(step: ManualEditStepRecord): string {
-  const tier = (t: number | null) => (t === null ? '?' : `T${t}`);
-  const text = (t: string) => t.replace(/\s*\(fractured\)$/i, '').replace(/\n/g, ' / ');
+  const tier = (n: number | null) => (n === null ? '?' : `T${n}`);
+  const text = (s: string) => s.replace(/\s*\(fractured\)$/i, '').replace(/\n/g, ' / ');
   switch (step.operation) {
     case 'retier':
       return `${tier(step.from.tier)} → ${tier(step.to?.tier ?? null)} · ${text(step.to?.text ?? step.from.text)}`;
@@ -246,22 +157,27 @@ export function manualEditText(step: ManualEditStepRecord): string {
   }
 }
 
-export function manualEditRejectionText(reason: ManualEditRejection, details: readonly ExclusionReason[], view: CraftDbView): string {
+export function manualEditRejectionText(
+  t: Translator,
+  reason: ManualEditRejection,
+  details: readonly ExclusionReason[],
+  view: CraftDbView,
+): string {
   switch (reason) {
     case 'no-item':
     case 'no-modifier':
-      return 'Этого мода на предмете уже нет.';
+      return t('manualReject.gone');
     case 'unresolved-modifier':
-      return 'Мод не распознан — тир сменить нельзя.';
+      return t('manualReject.unresolved');
     case 'unknown-modifier':
-      return 'Такого мода нет в этой версии игры.';
+      return t('manualReject.unknown');
     case 'not-same-family':
-      return 'Тир меняется только внутри своего семейства.';
+      return t('manualReject.family');
     case 'no-change':
-      return 'Предмет и так такой.';
+      return t('manualReject.noChange');
     case 'not-allowed':
       return details.length > 0
-        ? `Нельзя: ${details.map((r) => exclusionText(r, view)).join('; ')}.`
-        : 'Нельзя: такой мод уже есть на предмете.';
+        ? t('manualReject.notAllowed', { reasons: exclusionsText(t, details, view) })
+        : t('manualReject.duplicate');
   }
 }

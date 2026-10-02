@@ -3,7 +3,9 @@ import type { ItemBase, ItemBaseId, ItemClassId } from '@poe2-craft/craft-domain
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import { classFacets, searchBases, type BaseSort } from '@/lib/base-catalog';
 import { baseArt } from '@/lib/icons';
+import { useI18n } from '@/i18n/I18nProvider';
 import { sourceTitle } from '@/lib/texts';
+import { requirementsText } from './ItemBits';
 import { Icon } from './Icon';
 import { ItemArt } from './ItemArt';
 
@@ -24,6 +26,7 @@ interface BaseSelectorProps {
  */
 export function BaseSelector(props: BaseSelectorProps) {
   const { open, view } = props;
+  const { t } = useI18n();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [text, setText] = useState('');
   const [classId, setClassId] = useState<ItemClassId | null>(null);
@@ -56,13 +59,13 @@ export function BaseSelector(props: BaseSelectorProps) {
       <div className="base-sheet">
         <header className="base-sheet-head">
           <div>
-            <h2 id="base-dialog-title">Выбор базы</h2>
+            <h2 id="base-dialog-title">{t('bases.title')}</h2>
             <p className="base-sheet-sub">
-              {fixture ? `Демо-каталог: ${total} баз трёх классов. ` : ''}
-              Названия, свойства и картинки — из официального трейда PoE 2; теги и веса модов — демо-данные.
+              {fixture ? t('bases.fixtureLead', { count: total }) : ''}
+              {t('bases.lead')}
             </p>
           </div>
-          <button type="button" className="icon-btn" aria-label="Закрыть" onClick={props.onClose}>
+          <button type="button" className="icon-btn" aria-label={t('common.close')} onClick={props.onClose}>
             <Icon name="close" />
           </button>
         </header>
@@ -73,16 +76,16 @@ export function BaseSelector(props: BaseSelectorProps) {
             <input
               type="search"
               name="base-search"
-              aria-label="Поиск базы"
-              placeholder="Название базы или класса"
+              aria-label={t('bases.search')}
+              placeholder={t('bases.searchPlaceholder')}
               value={text}
               autoFocus
               onChange={(e) => setText(e.target.value)}
             />
           </label>
-          <div className="chip-row" role="group" aria-label="Класс предмета">
+          <div className="chip-row" role="group" aria-label={t('bases.classes')}>
             <button type="button" className="chip" aria-pressed={classId === null} onClick={() => setClassId(null)}>
-              Все <span className="chip-count">{total}</span>
+              {t('bases.all')} <span className="chip-count">{total}</span>
             </button>
             {facets.map((f) => (
               <button
@@ -98,17 +101,17 @@ export function BaseSelector(props: BaseSelectorProps) {
           </div>
           <div className="base-controls-end">
             <label className="inline-field">
-              Сортировка
+              {t('bases.sort')}
               <select name="base-sort" value={sort} onChange={(e) => setSort(e.target.value as BaseSort)}>
-                <option value="name">по названию</option>
-                <option value="level">по уровню</option>
+                <option value="name">{t('bases.byName')}</option>
+                <option value="level">{t('bases.byLevel')}</option>
               </select>
             </label>
-            <div className="segmented" role="group" aria-label="Вид списка">
-              <button type="button" aria-pressed={layout === 'grid'} aria-label="Сетка" onClick={() => setLayout('grid')}>
+            <div className="segmented" role="group" aria-label={t('bases.view')}>
+              <button type="button" aria-pressed={layout === 'grid'} aria-label={t('bases.grid')} onClick={() => setLayout('grid')}>
                 <Icon name="grid" />
               </button>
-              <button type="button" aria-pressed={layout === 'list'} aria-label="Список" onClick={() => setLayout('list')}>
+              <button type="button" aria-pressed={layout === 'list'} aria-label={t('bases.list')} onClick={() => setLayout('list')}>
                 <Icon name="list" />
               </button>
             </div>
@@ -116,11 +119,11 @@ export function BaseSelector(props: BaseSelectorProps) {
         </div>
 
         {props.dropsModifiers && (
-          <p className="sheet-note">Новая база начинает исходный заново: его моды будут сброшены. Цель не меняется.</p>
+          <p className="sheet-note">{t('bases.dropsMods')}</p>
         )}
 
         {entries.length === 0 ? (
-          <p className="empty base-empty">Ничего не найдено. Сбросьте фильтр класса или измените запрос.</p>
+          <p className="empty base-empty">{t('bases.empty')}</p>
         ) : (
           <ul className={`base-list base-list-${layout}`}>
             {entries.map(({ base, itemClass }) => (
@@ -142,8 +145,6 @@ export function BaseSelector(props: BaseSelectorProps) {
   );
 }
 
-const REQUIREMENT_LABEL = { level: 'Уровень', strength: 'Str', dexterity: 'Dex', intelligence: 'Int' } as const;
-
 function BaseCard(props: {
   base: ItemBase;
   className: string;
@@ -153,19 +154,15 @@ function BaseCard(props: {
   onSelect: () => void;
 }) {
   const { base } = props;
+  const { t } = useI18n();
   const details = base.details;
-  const requirements = details
-    ? (Object.keys(REQUIREMENT_LABEL) as (keyof typeof REQUIREMENT_LABEL)[]).flatMap((key) => {
-        const value = details.requirements[key];
-        return value === undefined ? [] : [`${REQUIREMENT_LABEL[key]} ${value}`];
-      })
-    : [];
+  const requirements = details ? requirementsText(t, details.requirements, ' · ') : null;
   return (
     <button
       type="button"
       className={`base-card${props.current ? ' base-card-current' : ''}`}
       onClick={props.onSelect}
-      aria-label={`Выбрать ${base.name}`}
+      aria-label={t('bases.select', { name: base.name })}
     >
       <span className="base-card-art">
         <ItemArt art={baseArt(base)} label={base.name} maxHeight={props.layout === 'grid' ? 150 : 72} />
@@ -174,7 +171,7 @@ function BaseCard(props: {
         <span className="base-card-name">{base.name}</span>
         <span className="base-card-class">
           {props.className}
-          {props.current && <span className="tag tag-ok">текущая</span>}
+          {props.current && <span className="tag tag-ok">{t('bases.current')}</span>}
         </span>
         {details ? (
           <>
@@ -190,16 +187,16 @@ function BaseCard(props: {
                 {line}
               </span>
             ))}
-            <span className="base-reqs num">{requirements.length > 0 ? requirements.join(' · ') : 'без требований'}</span>
+            <span className="base-reqs num">{requirements ?? t('bases.noRequirements')}</span>
           </>
         ) : (
-          <span className="muted small">Свойства базы неизвестны</span>
+          <span className="muted small">{t('bases.propsUnknown')}</span>
         )}
         <span className="base-source" title={details?.provenance.notes}>
-          {details ? sourceTitle(props.view, details.provenance) : 'источник свойств не указан'}
+          {details ? sourceTitle(t, props.view, details.provenance) : t('bases.noSource')}
         </span>
       </span>
-      <span className="base-card-pick">Выбрать</span>
+      <span className="base-card-pick">{t('bases.pick')}</span>
     </button>
   );
 }

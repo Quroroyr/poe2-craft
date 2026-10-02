@@ -1,7 +1,9 @@
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ProbabilityResult } from '@poe2-craft/probability-engine';
+import { INTL_LOCALE } from '@/i18n/core';
 import { formatAttempts, formatInt, formatPercent, formatQuantile } from '@/lib/format';
-import { exclusionText, issueText } from '@/lib/texts';
+import { useI18n } from '@/i18n/I18nProvider';
+import { exclusionsText, issueText } from '@/lib/texts';
 import { Panel } from './Panel';
 
 interface ProbabilityPanelProps {
@@ -10,24 +12,27 @@ interface ProbabilityPanelProps {
 }
 
 export function ProbabilityPanel({ result, view }: ProbabilityPanelProps) {
+  const { t } = useI18n();
   return (
-    <Panel title="Вероятность цели шага">
+    <Panel title={t('prob.title')}>
       <ProbabilityBody result={result} view={view} />
     </Panel>
   );
 }
 
 function ProbabilityBody({ result, view }: ProbabilityPanelProps) {
-  if (!result) return <p className="empty">Выберите цель.</p>;
+  const { t, locale } = useI18n();
+  const intl = INTL_LOCALE[locale];
+  if (!result) return <p className="empty">{t('prob.pickTarget')}</p>;
 
   switch (result.status) {
     case 'blocked':
       return (
         <div className="state-box state-bad">
-          <p>Расчёт невозможен:</p>
+          <p>{t('prob.blocked')}</p>
           <ul>
             {result.issues.map((issue, i) => (
-              <li key={i}>{issueText(issue)}</li>
+              <li key={i}>{issueText(t, issue)}</li>
             ))}
           </ul>
         </div>
@@ -35,31 +40,30 @@ function ProbabilityBody({ result, view }: ProbabilityPanelProps) {
     case 'already-satisfied':
       return (
         <div className="state-box state-ok">
-          Цель уже есть на предмете ({result.modifierIds.map((id) => view.getModifier(id)?.name ?? id).join(', ')}).
+          {t('prob.already', { names: result.modifierIds.map((id) => view.getModifier(id)?.name ?? id).join(', ') })}
         </div>
       );
     case 'indeterminate':
       return (
         <div className="state-box state-warn">
-          Вес цели неизвестен ({result.modifierIds.join(', ')}). Шанс не считаем: неизвестный вес нельзя
-          подставлять как достоверный.
+          {t('prob.indeterminate', { ids: result.modifierIds.join(', ') })}
         </div>
       );
     case 'target-unavailable':
       return (
         <div className="state-box state-bad">
-          <p>Цель недоступна для этого действия на этом предмете:</p>
+          <p>{t('prob.unavailable')}</p>
           <ul>
             {result.targetEntries.map((e) => (
               <li key={e.definition.id}>
                 <b>
                   {e.definition.name} (T{e.definition.tier})
                 </b>
-                : {e.reasons.map((r) => exclusionText(r, view)).join('; ')}
+                : {exclusionsText(t, e.reasons, view)}
               </li>
             ))}
             {result.missingModifierIds.map((id) => (
-              <li key={id}>{id}: нет в выбранной версии игры</li>
+              <li key={id}>{t('prob.notInVersion', { id })}</li>
             ))}
           </ul>
         </div>
@@ -69,25 +73,25 @@ function ProbabilityBody({ result, view }: ProbabilityPanelProps) {
         <>
           <div className="headline">
             <div className="headline-main">
-              <span className="headline-label">Шанс за попытку</span>
+              <span className="headline-label">{t('prob.chance')}</span>
               <span className="headline-value">
                 {result.bound === 'upper-bound' && '≤ '}
                 {formatPercent(result.probability)}
               </span>
             </div>
             <div className="headline-side">
-              <span className="headline-label">Ожидаемо попыток</span>
-              <span className="headline-value small">{formatAttempts(result.expectedAttempts)}</span>
+              <span className="headline-label">{t('prob.attempts')}</span>
+              <span className="headline-value small">{formatAttempts(result.expectedAttempts, intl)}</span>
             </div>
           </div>
           <p className="formula">
-            P = вес цели / вес пула = <b className="num">{formatInt(result.targetWeight)}</b> /{' '}
-            <b className="num">{formatInt(result.totalWeight)}</b>
+            {t('prob.formula')} <b className="num">{formatInt(result.targetWeight, intl)}</b> /{' '}
+            <b className="num">{formatInt(result.totalWeight, intl)}</b>
           </p>
 
           <div className="two-tables">
             <table className="table compact">
-              <caption>Шанс успеть за N попыток</caption>
+              <caption>{t('prob.cumulative')}</caption>
               <thead>
                 <tr>
                   <th>N</th>
@@ -104,18 +108,18 @@ function ProbabilityBody({ result, view }: ProbabilityPanelProps) {
               </tbody>
             </table>
             <table className="table compact">
-              <caption>Сколько попыток хватит</caption>
+              <caption>{t('prob.quantiles')}</caption>
               <thead>
                 <tr>
-                  <th>Доля крафтеров</th>
-                  <th className="right">Попыток</th>
+                  <th>{t('prob.col.share')}</th>
+                  <th className="right">{t('prob.col.attempts')}</th>
                 </tr>
               </thead>
               <tbody>
                 {result.quantiles.map((q) => (
                   <tr key={q.quantile}>
                     <td className="num">{formatQuantile(q.quantile)}</td>
-                    <td className="num right">≤ {formatAttempts(q.attempts)}</td>
+                    <td className="num right">≤ {formatAttempts(q.attempts, intl)}</td>
                   </tr>
                 ))}
               </tbody>

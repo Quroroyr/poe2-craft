@@ -1,14 +1,12 @@
-import { useState } from 'react';
 import { modifierText, removeRequirement, setRequirementTier, type TargetSpec } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
-import { SAMPLE_TARGET_ITEMS } from '@poe2-craft/item-parser';
 import { familyTiers, type TargetBaseCheck, type TargetOutlook, type TargetOutlookRow } from '@poe2-craft/craft-session';
+import { useI18n } from '@/i18n/I18nProvider';
 import type { ExplorerMode } from '@/lib/analyze';
-import { RARITY_LABEL, TARGET_STATE_LABEL, exclusionText } from '@/lib/texts';
-import { ModMoreButton } from './ModMoreButton';
+import { exclusionsText, rarityLabel, targetStateLabel } from '@/lib/texts';
 import { Icon } from './Icon';
-import { ImportBox } from './ImportBox';
 import { ArtFrame, BaseStats } from './ItemBits';
+import { ModMoreButton } from './ModMoreButton';
 import { Panel } from './Panel';
 
 interface TargetPanelProps {
@@ -18,19 +16,28 @@ interface TargetPanelProps {
   readonly explorerMode: ExplorerMode;
   readonly baseCheck: TargetBaseCheck;
   readonly sourceBaseName: string | null;
-  readonly onImport: (text: string) => void;
+  /** A current item exists: building a target or copying the current one is possible. */
+  readonly hasItem: boolean;
   readonly onEdit: (target: TargetSpec | null) => void;
-  readonly onCreate: () => void;
+  /** An empty target on the current item's base, then the pool to add requirements. */
+  readonly onBuild: () => void;
+  /** Opens the shared import dialog for the target. */
+  readonly onImport: () => void;
+  /** Same base and item level as the current item; its modifiers become "tier N or better" requirements. */
+  readonly onCopyCurrent: () => void;
   readonly onExplore: (mode: ExplorerMode) => void;
   /** Opens the context menu of a requirement. */
   readonly onModMenu: (requirementId: string, x: number, y: number) => void;
   readonly menuRequirementId: string | null;
 }
 
-/** Target: requirements "family at tier N or better", each with its state on the current item. */
+/**
+ * The target: always on the main screen, next to the current item. Requirements are "family at
+ * tier N or better", each with its state on the current item (computed in craft-session).
+ */
 export function TargetPanel(props: TargetPanelProps) {
   const { target, outlook, view } = props;
-  const [importOpen, setImportOpen] = useState(false);
+  const { t } = useI18n();
   const base = target?.baseId ? view.getBase(target.baseId) : undefined;
   const itemClass = base ? view.getItemClass(base.itemClassId) : undefined;
   const limits = view.getAffixLimits('rare');
@@ -39,54 +46,39 @@ export function TargetPanel(props: TargetPanelProps) {
 
   return (
     <Panel
-      index={3}
-      title="Целевой предмет"
+      index={2}
+      title={t('target.title')}
       className="panel-target"
       aside={
-        <>
-          <button type="button" className="btn btn-small" aria-expanded={importOpen} onClick={() => setImportOpen((o) => !o)}>
-            <Icon name="import" size={14} />
-            Импорт
-          </button>
-          <button type="button" className="btn btn-small" onClick={() => props.onEdit(null)} disabled={!target}>
-            <Icon name="reset" size={14} />
-            Сброс
-          </button>
-        </>
+        target ? (
+          <>
+            <button type="button" className="btn btn-small" onClick={props.onImport}>
+              <Icon name="import" size={14} />
+              {t('target.import')}
+            </button>
+            <button type="button" className="btn btn-small" onClick={() => props.onEdit(null)}>
+              <Icon name="reset" size={14} />
+              {t('target.clear')}
+            </button>
+          </>
+        ) : undefined
       }
     >
-      {(importOpen || !target) && (
-        <ImportBox
-          id="target-text"
-          label="Пример желаемого предмета (Ctrl+C в игре)"
-          samples={SAMPLE_TARGET_ITEMS}
-          onImport={(text) => {
-            props.onImport(text);
-            setImportOpen(false);
-          }}
-          collapsible={false}
-        />
-      )}
-
       {!target ? (
-        <div className="source-empty">
-          <p>Цели нет. Импортируйте пример или соберите требования вручную.</p>
-          <button type="button" className="btn btn-primary" onClick={props.onCreate}>
-            Собрать цель
-          </button>
-        </div>
+        <TargetEmpty {...props} />
       ) : (
         <>
           <div className="target-top">
-            <ArtFrame base={base} label={target.baseName ?? 'база цели'} glow="frost" maxHeight={150} className="target-art" />
+            <ArtFrame base={base} label={target.baseName ?? t('target.artLabel')} glow="frost" maxHeight={150} className="target-art" />
             <div className="target-info">
-              <h3 className="item-name rarity-name-rare">{target.baseName ?? 'База исходного предмета'}</h3>
+              <h3 className="item-name rarity-name-rare">{target.baseName ?? t('target.baseFallback')}</h3>
               <p className="item-sub">
-                <span className="rarity-text">{RARITY_LABEL.rare} предмет</span> · ilvl {target.itemLevel ?? '—'}
+                <span className="rarity-text">{t('item.rarityLine', { rarity: rarityLabel(t, 'rare') })}</span> · ilvl{' '}
+                {target.itemLevel ?? '—'}
               </p>
               <div className="tag-row">
                 {itemClass && <span className="tag">{itemClass.name}</span>}
-                <span className="tag">требования «тир N+»</span>
+                <span className="tag">{t('target.tierRequirements')}</span>
               </div>
               <BaseStats base={base} />
             </div>
@@ -94,25 +86,25 @@ export function TargetPanel(props: TargetPanelProps) {
 
           {props.baseCheck === 'mismatch' && (
             <div className="state-box state-bad target-mismatch" role="alert">
-              <strong>База цели не совпадает с базой исходного</strong>
-              <span>
-                Цель — {target.baseName ?? '?'}, исходный — {props.sourceBaseName ?? '?'}. Обычным крафтом базу не сменить,
-                поэтому шансы к этой цели не считаются.
-              </span>
-              <button type="button" className="btn btn-small" onClick={props.onCreate}>
-                Новая цель для {props.sourceBaseName ?? 'исходного'}
+              <strong>{t('target.mismatchTitle')}</strong>
+              <span>{t('target.mismatchText', { target: target.baseName ?? '?', source: props.sourceBaseName ?? '?' })}</span>
+              <button type="button" className="btn btn-small" onClick={props.onBuild}>
+                {t('target.newFor', { base: props.sourceBaseName ?? t('target.newForFallback') })}
               </button>
             </div>
           )}
 
           <div className="target-mods-head">
             <span>
-              Целевые моды <b className="num">{outlook?.done ?? 0} / {target.requirements.length}</b>
+              {t('target.mods')}{' '}
+              <b className="num">
+                {outlook?.done ?? 0} / {target.requirements.length}
+              </b>
             </span>
-            <span className="muted">Сравнение (тек. → цель)</span>
+            <span className="muted">{t('target.compare')}</span>
           </div>
           {target.requirements.length === 0 ? (
-            <p className="empty small">Требований нет — добавьте их из пула модов.</p>
+            <p className="empty small">{t('target.noRequirements')}</p>
           ) : (
             <ul className="target-rows">
               {target.requirements.map((req) => (
@@ -140,23 +132,28 @@ export function TargetPanel(props: TargetPanelProps) {
                   key={side}
                   type="button"
                   className={`add-btn${active ? ' add-btn-active' : ''}`}
+                  aria-label={t(side === 'prefix' ? 'target.addPrefixLabel' : 'target.addSuffixLabel')}
                   disabled={max !== undefined && sideCount(side) >= max}
                   onClick={() => props.onExplore({ kind: 'edit-target', side })}
                 >
                   <Icon name="plus" size={14} />
-                  {side === 'prefix' ? 'Префикс' : 'Суффикс'}
+                  {t(side === 'prefix' ? 'target.addPrefix' : 'target.addSuffix')}
                 </button>
               );
             })}
           </div>
           {target.unresolvedLines.length > 0 && (
-            <p className="hint">Не распознано при импорте (не требования): {target.unresolvedLines.join('; ')}</p>
+            <p className="hint">{t('target.unresolved', { lines: target.unresolvedLines.join('; ') })}</p>
           )}
 
           {outlook && outlook.total > 0 && (
             <div className="target-progress">
               <span>
-                Прогресс цели: <b className="num">{outlook.done} / {outlook.total}</b> модов
+                {t('target.progress')}{' '}
+                <b className="num">
+                  {outlook.done} / {outlook.total}
+                </b>{' '}
+                {t('target.progressUnit', { count: outlook.total })}
               </span>
               <span
                 className="progress-bar"
@@ -164,7 +161,7 @@ export function TargetPanel(props: TargetPanelProps) {
                 aria-valuemin={0}
                 aria-valuemax={outlook.total}
                 aria-valuenow={outlook.done}
-                aria-label="Прогресс цели"
+                aria-label={t('target.progressAria')}
               >
                 <span style={{ transform: `scaleX(${outlook.ratio ?? 0})` }} />
               </span>
@@ -174,6 +171,38 @@ export function TargetPanel(props: TargetPanelProps) {
         </>
       )}
     </Panel>
+  );
+}
+
+/** No target yet: what a target gives, and the three ways to set one. */
+function TargetEmpty(props: TargetPanelProps) {
+  const { t } = useI18n();
+  return (
+    <div className="target-empty">
+      <h3 className="target-empty-title">{t('target.emptyTitle')}</h3>
+      <p>{t('target.emptyLead')}</p>
+      <ul className="target-empty-list">
+        <li>{t('target.emptyProgress')}</li>
+        <li>{t('target.emptyMissing')}</li>
+        <li>{t('target.emptyChances')}</li>
+        <li>{t('target.emptyCost')}</li>
+      </ul>
+      <div className="target-empty-actions">
+        <button type="button" className="btn btn-primary" disabled={!props.hasItem} onClick={props.onBuild} title={props.hasItem ? t('target.buildHint') : t('target.needItem')}>
+          <Icon name="plus" size={14} />
+          {t('target.build')}
+        </button>
+        <button type="button" className="btn" onClick={props.onImport}>
+          <Icon name="import" size={14} />
+          {t('target.importTarget')}
+        </button>
+        <button type="button" className="btn" disabled={!props.hasItem} onClick={props.onCopyCurrent} title={props.hasItem ? undefined : t('target.needItem')}>
+          <Icon name="target" size={14} />
+          {t('target.copyCurrent')}
+        </button>
+      </div>
+      <p className="hint">{props.hasItem ? t('target.copyCurrentHint') : t('target.needItem')}</p>
+    </div>
   );
 }
 
@@ -188,18 +217,19 @@ function TargetRow(props: {
   menuOpen: boolean;
   onMenu: (x: number, y: number) => void;
 }) {
+  const { t } = useI18n();
   const def = props.view.getModifier(props.modifierId);
   const state = props.row?.state ?? 'unknown';
   const current = props.row?.comparison.current;
   const reasonText =
     state === 'missing'
       ? props.fractured
-        ? 'нужен fractured-мод: обычным добавлением не получить'
-        : props.row?.reasons.map((r) => exclusionText(r, props.view)).join('; ')
+        ? t('target.reasonFractured')
+        : exclusionsText(t, props.row?.reasons ?? [], props.view)
       : state === 'worse-tier'
-        ? `сейчас T${props.row?.comparison.currentDefinition?.tier}`
+        ? t('target.reasonWorse', { tier: props.row?.comparison.currentDefinition?.tier ?? '?' })
         : state === 'not-fractured'
-          ? 'мод есть, но не fractured'
+          ? t('target.reasonNotFractured')
           : undefined;
 
   return (
@@ -217,7 +247,7 @@ function TargetRow(props: {
         {props.fractured && (
           <span className="tag tag-fractured">
             <Icon name="crack" size={11} />
-            fractured
+            {t('tag.fractured')}
           </span>
         )}
       </span>
@@ -225,13 +255,13 @@ function TargetRow(props: {
         <select
           name={`req-tier-${props.requirementId}`}
           className="tier-select"
-          aria-label="Минимальный тир"
+          aria-label={t('target.minTier')}
           value={def.id}
           onChange={(e) => props.onTier(e.target.value)}
         >
-          {familyTiers(props.view, def).map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.tier === 1 ? 'T1' : `T${t.tier}+`}
+          {familyTiers(props.view, def).map((tier) => (
+            <option key={tier.id} value={tier.id}>
+              {tier.tier === 1 ? 'T1' : `T${tier.tier}+`}
             </option>
           ))}
         </select>
@@ -239,13 +269,13 @@ function TargetRow(props: {
         <span className="tier-badge">—</span>
       )}
       <span className={`state-pill pill-${state}`} title={reasonText}>
-        {TARGET_STATE_LABEL[state]}
+        {targetStateLabel(t, state)}
       </span>
       <span className="target-now num" title={current?.sourceText}>
-        {current ? (currentNumbers(current.sourceText) ?? 'есть') : '—'}
+        {current ? (currentNumbers(current.sourceText) ?? t('target.present')) : '—'}
       </span>
-      <ModMoreButton label="Действия с требованием" open={props.menuOpen} onMenu={props.onMenu} />
-      <button type="button" className="icon-btn icon-btn-quiet" aria-label="Удалить требование" onClick={props.onRemove}>
+      <ModMoreButton label={t('target.actions')} open={props.menuOpen} onMenu={props.onMenu} />
+      <button type="button" className="icon-btn icon-btn-quiet" aria-label={t('target.removeRequirement')} onClick={props.onRemove}>
         <Icon name="close" size={13} />
       </button>
     </li>

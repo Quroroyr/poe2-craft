@@ -7,6 +7,8 @@ import type { StageTargetOption } from '@/lib/analyze';
 import { formatAttempts, formatCost, formatPercent, formatQuantile } from '@/lib/format';
 import { consumableIconUrl, unitIconUrl } from '@/lib/icons';
 import type { PriceInputs } from '@/lib/prices';
+import { INTL_LOCALE } from '@/i18n/core';
+import { useI18n } from '@/i18n/I18nProvider';
 import { GameIcon } from './GameIcon';
 import { Icon } from './Icon';
 import { Panel } from './Panel';
@@ -34,18 +36,21 @@ interface SpendingPanelProps {
  */
 export function SpendingPanel(props: SpendingPanelProps) {
   const { view, spent, attemptCost, stageCost, probability } = props;
+  const { t, locale } = useI18n();
+  const intl = INTL_LOCALE[locale];
   const [tab, setTab] = useState<'costs' | 'prices'>('costs');
   const unit = attemptCost?.unit ?? spent.unit ?? 'div';
   const unitIcon = <GameIcon src={unitIconUrl(unit, view)} label={unit} size={16} />;
 
   return (
-    <Panel index={7} title="Затраты и симуляция" className="panel-spending" aside={<span className="badge badge-warn">симуляция</span>}>
-      <div className="segmented segmented-wide" role="tablist" aria-label="Затраты или цены">
+    <Panel index={6} title={t('spending.title')} className="panel-spending" aside={<span className="badge badge-warn">{t('spending.badge')}</span>}>
+      <div className="segmented segmented-wide" role="tablist" aria-label={t('spending.tabs')}>
         <button type="button" role="tab" aria-selected={tab === 'costs'} aria-pressed={tab === 'costs'} onClick={() => setTab('costs')}>
-          Затраты
+          {t('spending.costs')}
         </button>
         <button type="button" role="tab" aria-selected={tab === 'prices'} aria-pressed={tab === 'prices'} onClick={() => setTab('prices')}>
-          Цены расходников{props.pricesAreMock ? ' (mock)' : ''}
+          {t('spending.prices')}
+          {props.pricesAreMock ? ` ${t('spending.mock')}` : ''}
         </button>
       </div>
 
@@ -53,22 +58,22 @@ export function SpendingPanel(props: SpendingPanelProps) {
         <PriceEditor view={view} priceInputs={props.priceInputs} onPrice={props.onPrice} />
       ) : (
         <>
-          <h3 className="sub-head">Потрачено — факт</h3>
+          <h3 className="sub-head">{t('spending.spentHead')}</h3>
           {props.hasManualEdits && (
             <p className="state-box state-warn spent-manual" role="note">
               <Icon name="alert" size={14} />
-              <span>Сессия содержит ручные изменения. «Потрачено» учитывает только смоделированные craft-действия.</span>
+              <span>{t('spending.manualWarning')}</span>
             </p>
           )}
           {props.spentLines.length === 0 ? (
-            <p className="empty small">Пока ничего: шаги крафта не записаны.</p>
+            <p className="empty small">{t('spending.nothing')}</p>
           ) : (
             <table className="table compact spent-table">
               <thead>
                 <tr>
-                  <th>Расходник</th>
-                  <th className="right">Кол-во</th>
-                  <th className="right">Итого</th>
+                  <th>{t('spending.col.consumable')}</th>
+                  <th className="right">{t('spending.col.qty')}</th>
+                  <th className="right">{t('spending.col.total')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -85,7 +90,7 @@ export function SpendingPanel(props: SpendingPanelProps) {
                       <td className="num right">{line.quantity}</td>
                       <td className="num right">
                         {formatCost(line.total, spent.unit ?? unit)}
-                        {line.unpriced && <span className="bad" title="Часть использований была без цены"> *</span>}
+                        {line.unpriced && <span className="bad" title={t('spending.unpriced')}> *</span>}
                       </td>
                     </tr>
                   );
@@ -96,28 +101,28 @@ export function SpendingPanel(props: SpendingPanelProps) {
 
           <div className="money-row">
             <div className="money money-fact">
-              <span className="money-label">Потрачено всего</span>
+              <span className="money-label">{t('spending.spentTotal')}</span>
               <span className="money-value num">
                 {formatCost(spent.total, spent.unit ?? unit)} {unitIcon}
               </span>
               <span className="money-note">
-                шагов: {spent.stepCount}
-                {spent.incomplete && ' · не у всех была цена'}
+                {t('spending.steps', { count: spent.stepCount })}
+                {spent.incomplete && ` · ${t('spending.notAllPriced')}`}
               </span>
             </div>
             <div className="money money-est">
-              <span className="money-label">Следующий клик</span>
+              <span className="money-label">{t('spending.nextClick')}</span>
               <span className="money-value num">{attemptCost ? formatCost(attemptCost.total, attemptCost.unit) : '—'}</span>
-              <span className="money-note">оценка по текущим ценам</span>
+              <span className="money-note">{t('spending.estimate')}</span>
             </div>
           </div>
 
-          <h3 className="sub-head">Этап — оценка</h3>
+          <h3 className="sub-head">{t('spending.stageHead')}</h3>
           <label className="field">
-            <span className="field-label">Цель шага</span>
+            <span className="field-label">{t('spending.stageTarget')}</span>
             <select name="stage-target" value={props.stageTargetKey ?? ''} onChange={(e) => props.onStageTarget(e.target.value)}>
               {props.stageTargets.some((o) => o.origin === 'target-item') && (
-                <optgroup label="Не хватает до цели">
+                <optgroup label={t('spending.missingGroup')}>
                   {props.stageTargets
                     .filter((o) => o.origin === 'target-item')
                     .map((o) => (
@@ -127,7 +132,7 @@ export function SpendingPanel(props: SpendingPanelProps) {
                     ))}
                 </optgroup>
               )}
-              <optgroup label="Каталог (fixture)">
+              <optgroup label={t('spending.catalogGroup')}>
                 {props.stageTargets
                   .filter((o) => o.origin === 'catalog')
                   .map((o) => (
@@ -140,48 +145,46 @@ export function SpendingPanel(props: SpendingPanelProps) {
           </label>
           <dl className="stage-facts">
             <div>
-              <dt>Шанс за попытку</dt>
+              <dt>{t('spending.chance')}</dt>
               <dd className="num accent-blue">
                 {probability?.status === 'ok'
                   ? formatPercent(probability.probability)
                   : probability?.status === 'already-satisfied'
-                    ? 'уже есть'
+                    ? t('spending.already')
                     : '—'}
               </dd>
             </div>
             <div>
-              <dt>Ожидаемо попыток</dt>
-              <dd className="num">{probability?.status === 'ok' ? formatAttempts(probability.expectedAttempts) : '—'}</dd>
+              <dt>{t('spending.attempts')}</dt>
+              <dd className="num">{probability?.status === 'ok' ? formatAttempts(probability.expectedAttempts, intl) : '—'}</dd>
             </div>
             <div className="stage-cost">
-              <dt>Ожидаемая стоимость</dt>
+              <dt>{t('spending.expectedCost')}</dt>
               <dd className="num accent">{stageCost ? `~ ${formatCost(stageCost.expectedCost, unit)}` : '—'}</dd>
             </div>
           </dl>
           {stageCost && (
             <details className="quantiles">
-              <summary>Разброс стоимости этапа</summary>
+              <summary>{t('spending.spread')}</summary>
               <table className="table compact">
                 <thead>
                   <tr>
-                    <th>Доля крафтеров</th>
-                    <th className="right">Кликов</th>
-                    <th className="right">Потратят не больше</th>
+                    <th>{t('spending.col.share')}</th>
+                    <th className="right">{t('spending.col.clicks')}</th>
+                    <th className="right">{t('spending.col.atMost')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {stageCost.quantiles.map((q) => (
                     <tr key={q.quantile}>
                       <td className="num">{formatQuantile(q.quantile)}</td>
-                      <td className="num right">{formatAttempts(q.attempts)}</td>
+                      <td className="num right">{formatAttempts(q.attempts, intl)}</td>
                       <td className="num right">{formatCost(q.cost, unit)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <p className="hint">
-                Модель «кликать из текущего состояния до успеха»: оценка шага, а не всего маршрута.
-              </p>
+              <p className="hint">{t('spending.model')}</p>
             </details>
           )}
         </>
@@ -191,6 +194,7 @@ export function SpendingPanel(props: SpendingPanelProps) {
 }
 
 function PriceEditor(props: { view: CraftDbView; priceInputs: PriceInputs; onPrice: (id: string, text: string) => void }) {
+  const { t } = useI18n();
   const { modelled } = toolPalette(props.view);
   const consumables = [...props.view.listConsumables()].sort((a, b) => Number(modelled.has(b.id)) - Number(modelled.has(a.id)));
   return (
@@ -200,14 +204,14 @@ function PriceEditor(props: { view: CraftDbView; priceInputs: PriceInputs; onPri
           <GameIcon src={consumableIconUrl(c)} label={c.name} size={22} />
           <span className="price-name">
             {c.name}
-            {!modelled.has(c.id) && <span className="muted"> · не смоделирован</span>}
+            {!modelled.has(c.id) && <span className="muted"> · {t('spending.notModelled')}</span>}
           </span>
           <input
             name={`price-${c.id}`}
             className="num-input"
             inputMode="decimal"
             value={props.priceInputs[c.id] ?? ''}
-            placeholder="цена"
+            placeholder={t('spending.pricePlaceholder')}
             onChange={(e) => props.onPrice(c.id, e.target.value)}
           />
           <span className="muted small">div</span>

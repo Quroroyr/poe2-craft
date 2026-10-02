@@ -3218,3 +3218,361 @@ tr.is-target td:first-child {
     animation: none;
   }
 }
+
+/* ---------------------------------------------------------------- v0.7: entry flows and main layout */
+/* Top: the current item is the workbench (~2/3), the target stays beside it. Lower rows: tools and analysis. */
+.row-main {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(340px, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.main-col {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  align-content: start;
+}
+
+.main-col .panel-current {
+  grid-column: auto;
+  order: 0;
+}
+
+.row-main .current-top {
+  grid-template-columns: minmax(170px, 250px) minmax(0, 1fr);
+  gap: 22px;
+}
+
+.row-main .current-art {
+  min-height: 270px;
+}
+
+.row-main .current-info .item-name {
+  font-size: 32px;
+}
+
+.row-bottom-solo {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 1279px) {
+  .row-main {
+    grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .row-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .row-main .current-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .row-main .current-art {
+    min-height: 200px;
+  }
+  .row-main .current-info .item-name {
+    font-size: 26px;
+  }
+}
+
+/* Start screen */
+.start-screen {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 12px;
+  min-height: 440px;
+  padding: 40px 28px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(214, 170, 76, 0.07), transparent 60%),
+    var(--panel);
+  text-align: center;
+}
+
+.start-title {
+  margin: 0;
+  font-family: var(--font-item);
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--gold-text);
+}
+
+.start-lead {
+  max-width: 560px;
+  margin: 0;
+  color: var(--muted);
+}
+
+.start-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 290px));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.start-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 28px 20px 24px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(8, 9, 12, 0.72);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.start-card:hover,
+.start-card:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 36px -12px rgba(214, 170, 76, 0.55);
+}
+
+.start-card-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 4px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--accent);
+}
+
+.start-card-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--gold-text);
+}
+
+.start-card-hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.start-card-kbd {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.start-paste {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--subtle);
+}
+
+@media (max-width: 560px) {
+  .start-screen {
+    min-height: 0;
+    padding: 24px 14px;
+  }
+  .start-title {
+    font-size: 26px;
+  }
+  .start-actions {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+}
+
+/* The starting item, folded into one line above the current item */
+.start-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 7px 10px 7px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 3px;
+  background: rgba(8, 9, 12, 0.6);
+  font-size: 13px;
+}
+
+.start-strip-label {
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.start-strip-facts {
+  flex: 1 1 240px;
+  min-width: 0;
+  color: var(--text);
+}
+
+.start-strip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Setup surface: create a new item / edit the starting item */
+.setup-surface {
+  display: grid;
+  gap: 12px;
+}
+
+.setup-head h2 {
+  margin: 0;
+  font-family: var(--font-item);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--gold-text);
+}
+
+.setup-head p {
+  max-width: 900px;
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(0, 1.25fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.setup-pool {
+  min-width: 0;
+}
+
+.setup-pool-hint {
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed var(--line);
+  border-radius: 3px;
+}
+
+.setup-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 0 4px;
+  background: linear-gradient(transparent, var(--bg) 45%);
+}
+
+@media (max-width: 1100px) {
+  .setup-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Empty target */
+.target-empty {
+  display: grid;
+  gap: 8px;
+}
+
+.target-empty-title {
+  margin: 0;
+  font-family: var(--font-item);
+  font-size: 21px;
+  font-weight: 500;
+  color: var(--gold-text);
+}
+
+.target-empty p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.target-empty-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.target-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* Import and preview dialogs */
+.import-dialog {
+  width: min(660px, calc(100vw - 32px));
+}
+
+.import-dialog .item-textarea {
+  width: 100%;
+  min-height: 170px;
+}
+
+.preview-dialog {
+  width: min(580px, calc(100vw - 32px));
+}
+
+.preview-item {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.preview-art {
+  min-height: 170px;
+}
+
+.preview-info .item-name {
+  margin: 0;
+  font-size: 25px;
+}
+
+.preview-counts {
+  display: grid;
+  gap: 3px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.preview-fractured {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--fractured);
+}
+
+.preview-notes {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  color: var(--warn);
+}
+
+@media (max-width: 560px) {
+  .preview-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Interface language */
+.locale-switch button {
+  min-width: 38px;
+  padding: 4px 8px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}

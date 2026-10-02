@@ -72,6 +72,18 @@ ilvl / качество / сокеты ──setItemLevel / setQuality / setSlot
 история: SessionStep = craft | manual-edit → undo / redo одинаково; потрачено = только craft-шаги
 ```
 
+### Входные сценарии, раскладка и язык (v0.7, ADR 010)
+
+```
+первое открытие: сессия пуста ─► стартовый экран (Импорт / Создать) │ цель справа
+Ctrl+V на странице / «Импорт предмета» ─► recognizeItem ─► превью ─► «Начать крафт» = startFromSource
+«Создать предмет» / «Изменить исходный» ─► SourceSetupSurface (SourcePanel + BaseSelector + пикер edit-source
+                                            + меню исходного над черновиком) ─► startFromSource | setSource
+активная работа: [ строка исходного ][ ТЕКУЩИЙ — верстак ]  [ ЦЕЛЬ ]
+                 инструменты · пул модов · история · затраты · «Как посчитано»
+язык: I18nProvider (EN по умолчанию, localStorage) ─► t(key, params) / fmt ─► все компоненты и lib/
+```
+
 Арт: `ItemBase.artAssetId` / `Consumable.art` (id) → `apps/web/src/lib/art-manifest.ts` (файл, размер,
 источник) → `/icons/game/*.png`. Домен не знает ни путей, ни URL.
 
@@ -118,6 +130,9 @@ ilvl / качество / сокеты ──setItemLevel / setQuality / setSlot
 | `src/lib/icons.ts`, `src/lib/art-manifest.ts` | id игрового арта → локальный файл; манифест с источником каждой картинки |
 | `src/lib/base-catalog.ts` | поиск / фильтр по классу / сортировка в селекторе баз (без игровых правил) |
 | `src/lib/held-tool.ts` | что «держит» курсор: иконки и ready / blocked с причиной |
+| `src/i18n/core.ts`, `en.ts`, `ru.ts`, `I18nProvider.tsx` | язык интерфейса: типизированные ключи, `t()` с подстановкой и множественным числом, форматирование, провайдер с localStorage |
+| `src/components/StartScreen.tsx`, `ImportDialog.tsx`, `ImportPreview.tsx`, `StartStrip.tsx`, `SourceSetupSurface.tsx` | входные сценарии: старт, импорт и превью, строка исходного, поверхность настройки исходного |
+| `src/test-utils.tsx` | рендер `Workspace` в тестах (язык, демо-сессия, вставка, клики) |
 | `src/lib/mod-menu.ts` | пункты контекстного меню мода (current / source / target) как данные и намерения |
 | `src/components/ContextMenu.tsx`, `ModMoreButton.tsx`, `ManualEditDialog.tsx` | меню у курсора (портал, в пределах экрана, клавиатура), кнопка «…», одноразовое предупреждение о ручной правке |
 | `src/components/BaseSelector.tsx` | модальное окно выбора базы (`<dialog>`) |

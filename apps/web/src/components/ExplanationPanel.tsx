@@ -1,14 +1,9 @@
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ExplanationStep } from '@poe2-craft/probability-engine';
+import { INTL_LOCALE } from '@/i18n/core';
+import { useI18n } from '@/i18n/I18nProvider';
 import { formatAttempts, formatInt, formatPercent } from '@/lib/format';
-import {
-  CONFIDENCE_LABEL,
-  EXCLUSION_TITLE,
-  RARITY_LABEL,
-  caveatText,
-  exclusionText,
-  issueText,
-} from '@/lib/texts';
+import { caveatText, confidenceLabel, exclusionTitle, exclusionsText, issueText, rarityLabel } from '@/lib/texts';
 import { Panel } from './Panel';
 
 interface ExplanationPanelProps {
@@ -17,10 +12,11 @@ interface ExplanationPanelProps {
 }
 
 export function ExplanationPanel({ steps, view }: ExplanationPanelProps) {
+  const { t } = useI18n();
   return (
-    <Panel title="Почему так">
+    <Panel title={t('why.title')}>
       {steps.length === 0 ? (
-        <p className="empty">Нет расчёта для объяснения.</p>
+        <p className="empty">{t('why.empty')}</p>
       ) : (
         <ol className="why">
           {steps.map((step, i) => (
@@ -35,50 +31,66 @@ export function ExplanationPanel({ steps, view }: ExplanationPanelProps) {
 }
 
 function Step({ step, view }: { step: ExplanationStep; view: CraftDbView }) {
+  const { t, locale } = useI18n();
+  const intl = INTL_LOCALE[locale];
   switch (step.code) {
     case 'dataset':
       return (
         <>
-          <b>Данные.</b> Набор «{step.title}» ({step.kind === 'fixture' ? 'демо, fixture' : 'production'}), правила
-          версии игры <b>{step.gameVersion}</b>. Моды других версий в пул не попадают.
+          <b>{t('why.datasetLabel')}</b>{' '}
+          {t('why.dataset', {
+            title: step.title,
+            kind: t(step.kind === 'fixture' ? 'why.kind.fixture' : 'why.kind.production'),
+            version: step.gameVersion,
+          })}
         </>
       );
     case 'blocked':
       return (
         <>
-          <b>Пул не построен:</b> {step.issues.map(issueText).join(' ')}
+          <b>{t('why.blockedLabel')}</b> {step.issues.map((issue) => issueText(t, issue)).join(' ')}
         </>
       );
     case 'item':
       return (
         <>
-          <b>Предмет.</b> {step.baseName}, {RARITY_LABEL[step.rarity]}, ilvl {step.itemLevel}. Теги базы для весов
-          появления: {step.baseTags.map((t) => <code key={t}>{t}</code>)}. Моды с требованием ilvl выше{' '}
-          {step.itemLevel} исключены.
+          <b>{t('why.itemLabel')}</b>{' '}
+          {t('why.item', {
+            base: step.baseName,
+            rarity: rarityLabel(t, step.rarity),
+            ilvl: step.itemLevel,
+            tags: step.baseTags.join(', '),
+          })}
         </>
       );
     case 'affix-slots':
       return (
         <>
-          <b>Слоты.</b> Префиксы {step.slots.prefix.used}/{step.slots.prefix.max} (свободно {step.slots.prefix.free}),
-          суффиксы {step.slots.suffix.used}/{step.slots.suffix.max} (свободно {step.slots.suffix.free}).
-          {step.slots.unknownSide > 0 && ` Строк с неизвестной стороной: ${step.slots.unknownSide}.`} Fractured-мод
-          занимает слот как обычный.
+          <b>{t('why.slotsLabel')}</b>{' '}
+          {t('why.slots', {
+            pu: step.slots.prefix.used,
+            pm: step.slots.prefix.max,
+            pf: step.slots.prefix.free,
+            su: step.slots.suffix.used,
+            sm: step.slots.suffix.max,
+            sf: step.slots.suffix.free,
+          })}
+          {step.slots.unknownSide > 0 && ` ${t('why.unknownSide', { count: step.slots.unknownSide })}`} {t('why.fracturedSlot')}
         </>
       );
     case 'occupied-groups':
       return step.occupants.length === 0 ? (
         <>
-          <b>Группы.</b> На предмете нет модов — коллизий нет.
+          <b>{t('why.groupsLabel')}</b> {t('why.noGroups')}
         </>
       ) : (
         <>
-          <b>Занятые группы</b> (мод из такой группы второй раз не выпадет):{' '}
+          <b>{t('why.occupiedLabel')}</b> {t('why.occupied')}{' '}
           {step.occupants.map((o, i) => (
             <span key={i} className="inline-item">
               «{view.getGroup(o.groupId)?.name ?? o.groupId}» ← {o.sourceText}
               {o.fractured && ' (fractured)'}
-              {o.inferred && ' (по нераспознанной строке)'}
+              {o.inferred && ` ${t('why.byUnresolved')}`}
             </span>
           ))}
         </>
@@ -86,64 +98,70 @@ function Step({ step, view }: { step: ExplanationStep; view: CraftDbView }) {
     case 'action':
       return (
         <>
-          <b>Действие.</b> «{step.name}»: добавляет{' '}
-          {step.allowedSides.map((s) => (s === 'prefix' ? 'префикс' : 'суффикс')).join(' или ')}
-          {step.minModifierLevel !== null && `, только моды уровня ≥ ${step.minModifierLevel}`}. Мод выбирается
-          случайно пропорционально весу среди доступных.
+          <b>{t('why.actionLabel')}</b>{' '}
+          {t('why.action', {
+            name: step.name,
+            sides: step.allowedSides.map((s) => t(s === 'prefix' ? 'why.sidePrefix' : 'why.sideSuffix')).join(t('why.or')),
+            minLevel: step.minModifierLevel !== null ? t('why.minLevel', { level: step.minModifierLevel }) : '',
+          })}
         </>
       );
     case 'target':
       return (
         <>
-          <b>Цель «{step.label}».</b>{' '}
+          <b>{t('why.targetLabel', { label: step.label })}</b>{' '}
           {step.entries.map((e) => (
             <span key={e.definition.id} className="inline-item">
               {e.definition.name} T{e.definition.tier}:{' '}
               {e.eligible
-                ? `в пуле, вес ${e.weight === null ? 'неизвестен' : formatInt(e.weight)}`
-                : `исключён — ${e.reasons.map((r) => exclusionText(r, view)).join('; ')}`}
+                ? t('why.inPool', { weight: e.weight === null ? t('why.weightUnknown') : formatInt(e.weight, intl) })
+                : t('why.excluded', { reasons: exclusionsText(t, e.reasons, view) })}
             </span>
           ))}
-          {step.missingModifierIds.length > 0 && ` Нет в этой версии: ${step.missingModifierIds.join(', ')}.`}
+          {step.missingModifierIds.length > 0 && ` ${t('why.missingInVersion', { ids: step.missingModifierIds.join(', ') })}`}
         </>
       );
     case 'pool-summary':
       return (
         <>
-          <b>Пул.</b> Рассмотрено {step.consideredCount} модов версии, доступно {step.eligibleCount}. Исключения:{' '}
+          <b>{t('why.poolLabel')}</b> {t('why.pool', { considered: step.consideredCount, eligible: step.eligibleCount })}{' '}
           {Object.entries(step.excludedByReason).map(([code, count]) => (
             <span key={code} className="inline-item">
-              {EXCLUSION_TITLE[code as keyof typeof EXCLUSION_TITLE]} — {count}
+              {exclusionTitle(t, code as Parameters<typeof exclusionTitle>[1])} — {count}
             </span>
           ))}
-          . Мод может быть исключён сразу по нескольким причинам.
+          . {t('why.poolTail')}
         </>
       );
     case 'formula':
       return (
         <>
-          <b>Формула.</b> P = вес цели / сумма весов пула = {formatInt(step.targetWeight)} /{' '}
-          {formatInt(step.totalWeight)} = <b>{formatPercent(step.probability)}</b>. Ожидаемое число попыток = 1 / P ={' '}
-          {formatAttempts(step.expectedAttempts)}. Шанс за N попыток = 1 − (1 − P)ᴺ. Достоверность данных:{' '}
-          {CONFIDENCE_LABEL[step.confidence]}.
+          <b>{t('why.formulaLabel')}</b>{' '}
+          {t('why.formula', {
+            tw: formatInt(step.targetWeight, intl),
+            pw: formatInt(step.totalWeight, intl),
+            p: formatPercent(step.probability),
+            attempts: formatAttempts(step.expectedAttempts, intl),
+            confidence: confidenceLabel(t, step.confidence),
+          })}
         </>
       );
     case 'already-satisfied':
       return (
         <>
-          <b>Цель уже на предмете:</b> {step.modifierIds.join(', ')}.
+          <b>{t('why.alreadyLabel')}</b> {step.modifierIds.join(', ')}.
         </>
       );
     case 'target-weight-unknown':
       return (
         <>
-          <b>Вес цели неизвестен</b> ({step.modifierIds.join(', ')}) — вероятность не считается.
+          <b>{t('why.weightUnknownLabel')}</b> {t('why.weightUnknownText', { ids: step.modifierIds.join(', ') })}
         </>
       );
     case 'caveat':
       return (
         <>
-          <b>Оговорка.</b> {caveatText(step.caveat)}
+          <b>{t('why.caveatLabel')}</b> {caveatText(t, step.caveat)}
         </>
       );
   }

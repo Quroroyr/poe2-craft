@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { MANUAL_EDIT_NOTICE } from '@/lib/texts';
+import { useI18n } from '@/i18n/I18nProvider';
 import { Icon } from './Icon';
 
 interface ManualEditDialogProps {
@@ -14,11 +14,16 @@ interface ManualEditDialogProps {
  */
 export function ManualEditDialog(props: ManualEditDialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    if (props.open && !dialog.open) dialog.showModal?.();
+    if (props.open && !dialog.open) {
+      dialog.showModal?.();
+      // showModal focuses the first control; the main action should have it.
+      dialog.querySelector<HTMLElement>('[data-autofocus]')?.focus();
+    }
     if (!props.open && dialog.open) dialog.close?.();
   }, [props.open]);
 
@@ -41,19 +46,16 @@ export function ManualEditDialog(props: ManualEditDialogProps) {
         <div className="confirm-sheet">
           <h2 id="manual-edit-title">
             <Icon name="pencil" size={16} />
-            Ручная правка текущего предмета
+            {t('manual.title')}
           </h2>
-          <p id="manual-edit-text">{MANUAL_EDIT_NOTICE}</p>
-          <p className="muted small">
-            Правка попадёт в историю как отдельный шаг: её можно отменить (Ctrl+Z) и вернуть (Ctrl+Shift+Z). Больше это
-            окно в этой вкладке не появится.
-          </p>
+          <p id="manual-edit-text">{t('manual.notice')}</p>
+          <p className="muted small">{t('manual.detail')}</p>
           <div className="confirm-actions">
             <button type="button" className="btn" onClick={props.onCancel}>
-              Отмена
+              {t('common.cancel')}
             </button>
-            <button type="button" className="btn btn-primary" autoFocus onClick={props.onConfirm}>
-              Понятно, изменить
+            <button type="button" className="btn btn-primary" data-autofocus onClick={props.onConfirm}>
+              {t('manual.confirm')}
             </button>
           </div>
         </div>

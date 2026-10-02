@@ -13,12 +13,12 @@ const itemFace = Alegreya_SC({
 
 export const metadata: Metadata = {
   title: 'PoE 2 Craft Planner',
-  description: 'Сборка исходного предмета, крафт кликом по предмету, пул модов, вероятность и стоимость этапа — Path of Exile 2',
+  description: 'Path of Exile 2 crafting planner: import or build an item, craft by clicking it, modifier pool, chances and stage cost.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={itemFace.variable}>
+    <html lang="en" className={itemFace.variable}>
       <body>{children}</body>
     </html>
   );

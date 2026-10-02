@@ -52,6 +52,15 @@ export function importItem(text: string, gameVersion: GameVersion): ItemParseRes
   return text.trim() ? parseItem(text, craftDb.forVersion(gameVersion)) : null;
 }
 
+/**
+ * A pasted text is taken for a Path of Exile item only when the parser found its rarity or item
+ * class header; anything else (a URL, a note) is ignored by the page-wide Ctrl+V.
+ */
+export function recognizeItem(text: string, gameVersion: GameVersion): ItemParseResult | null {
+  const result = importItem(text, gameVersion);
+  return result && (result.state.rarity !== null || result.state.itemClassName !== null) ? result : null;
+}
+
 export function importSource(text: string, gameVersion: GameVersion): ItemState | null {
   return importItem(text, gameVersion)?.state ?? null;
 }

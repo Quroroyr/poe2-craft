@@ -1,3 +1,4 @@
+import { useI18n } from '@/i18n/I18nProvider';
 import type { ResolvedArt } from '@/lib/icons';
 
 interface ItemArtProps {
@@ -10,10 +11,11 @@ interface ItemArtProps {
 
 /** Inventory art of a base. Without a known image it keeps the same footprint with a quiet placeholder. */
 export function ItemArt({ art, label, maxHeight, className }: ItemArtProps) {
+  const { t } = useI18n();
   if (!art) {
     return (
       <span className={`item-art item-art-missing ${className ?? ''}`} style={{ height: maxHeight }} aria-hidden>
-        нет изображения
+        {t('art.missing')}
       </span>
     );
   }

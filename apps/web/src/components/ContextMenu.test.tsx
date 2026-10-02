@@ -3,31 +3,19 @@
  * Modifier context menus on the source, current and target cards, in the real workspace. The
  * sample source carries a fractured local critical chance T1; the sample target asks for it too.
  */
-import { act } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { button, click, demoSession, renderWorkspace, run as act$, type Mounted } from '@/test-utils';
 import { placeMenu } from './ContextMenu';
-import { Workspace } from './Workspace';
 
-declare global {
-  // eslint-disable-next-line no-var
-  var IS_REACT_ACT_ENVIRONMENT: boolean | undefined;
-}
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
-
+// Russian interface on the v0.6 demo session: the menus are checked in RU here, in EN in Entry.test.
+let mounted: Mounted;
 let container: HTMLDivElement;
-let root: Root;
-
 beforeEach(async () => {
-  container = document.createElement('div');
-  document.body.append(container);
-  root = createRoot(container);
-  await act(async () => root.render(<Workspace />));
+  mounted = await renderWorkspace({ locale: 'ru', session: demoSession() });
+  container = mounted.container;
 });
-
 afterEach(async () => {
-  await act(async () => root.unmount());
-  container.remove();
+  await mounted.unmount();
 });
 
 const $ = <T extends Element = HTMLElement>(selector: string, scope: ParentNode = container) => {
@@ -35,13 +23,6 @@ const $ = <T extends Element = HTMLElement>(selector: string, scope: ParentNode 
   if (!el) throw new Error(`not found: ${selector}`);
   return el as unknown as T;
 };
-const button = (scope: ParentNode, text: string) => {
-  const found = [...scope.querySelectorAll('button')].find((b) => b.textContent?.trim().startsWith(text));
-  if (!found) throw new Error(`no button "${text}"`);
-  return found;
-};
-const act$ = (fn: () => void) => act(async () => fn());
-const click = (el: Element) => act$(() => el.dispatchEvent(new MouseEvent('click', { bubbles: true })));
 const rightClick = async (el: Element) => {
   let notCancelled = true;
   await act$(() => {
@@ -63,9 +44,20 @@ const currentMod = (text: string) => {
   return found as HTMLElement;
 };
 const currentTexts = () => [...container.querySelectorAll('.panel-current .current-mod .mod-text')].map((el) => el.textContent);
+/** Starting modifiers live on the setup surface: chips of the open surface. */
 const sourceChip = (text: string) =>
-  [...container.querySelectorAll<HTMLElement>('.panel-source .mod-chip')].find((li) => li.textContent?.includes(text))!;
-const sourceTexts = () => [...container.querySelectorAll('.panel-source .mod-chip .mod-text')].map((el) => el.textContent);
+  [...container.querySelectorAll<HTMLElement>('.setup-surface .mod-chip')].find((li) => li.textContent?.includes(text))!;
+const openSource = () => click(button($('.start-strip'), 'Изменить исходный'));
+/** The session's starting item, read through the setup surface and closed again without saving. */
+const sourceState = async () => {
+  await openSource();
+  const chips = [...container.querySelectorAll<HTMLElement>('.setup-surface .mod-chip')].map(
+    (li) =>
+      `${li.querySelector('.mod-text')?.textContent} ${li.querySelector('select')?.value}${li.className.includes('mod-chip-fractured') ? ' fractured' : ''}`,
+  );
+  await click(button($('.setup-surface .setup-actions'), 'Отмена'));
+  return chips.join(' | ');
+};
 const targetRows = () => [...container.querySelectorAll<HTMLElement>('.panel-target .target-rows > li')];
 const targetRow = (text: string) => targetRows().find((li) => li.textContent?.includes(text))!;
 /** The requirements themselves (text + minimum tier), without their state against the current item. */
@@ -94,7 +86,10 @@ describe('context menu', () => {
   });
 
   it('Escape closes it — and does not also leave the pool editing mode', async () => {
-    await click(button($('.panel-source'), 'Добавить префикс'));
+    await rightClick(currentMod('Critical Hit Chance'));
+    await choose('replace');
+    await confirmNotice();
+    expect(container.querySelector('.panel-pool .mode-line-edit')).not.toBeNull();
     await rightClick(currentMod('Critical Hit Chance'));
     await keyOn(document.activeElement ?? document, 'Escape');
     expect(menu()).toBeNull();
@@ -133,7 +128,7 @@ describe('context menu', () => {
 describe('manual edits of the current item from the menu', () => {
   it('asks once, then edits current only: tier, history, no spending', async () => {
     await craft(2);
-    expect(spentNote()).toContain('шагов: 2');
+    expect(spentNote()).toContain('2 шага');
     await rightClick(currentMod('Critical Hit Chance'));
     expect(menuItem('upgrade').getAttribute('aria-disabled')).toBe('true'); // T1 is the best tier
     await choose('tier');
@@ -150,10 +145,10 @@ describe('manual edits of the current item from the menu', () => {
     await choose('tier-mod.local-critical-chance.t2');
     await confirmNotice();
     expect(currentMod('Critical Hit Chance').querySelector('.tier-badge')?.textContent).toBe('T2');
-    expect(sourceChip('Critical Hit Chance').querySelector('select')!.value).toBe('mod.local-critical-chance.t1');
+    expect(await sourceState()).toContain('mod.local-critical-chance.t1');
     expect(historyRows()[0]!.className).toContain('history-manual');
     expect(historyRows()[0]!.textContent).toContain('T1 → T2');
-    expect(spentNote()).toContain('шагов: 2');
+    expect(spentNote()).toContain('2 шага');
     expect(container.querySelector('.spent-manual')?.textContent).toContain('ручные изменения');
 
     // Upgrade one tier goes back to T1 — and the notice is not asked again.
@@ -179,7 +174,7 @@ describe('manual edits of the current item from the menu', () => {
     await rightClick(currentMod('Critical Hit Chance'));
     await choose('remove');
     expect(currentTexts().some((t) => t?.includes('Critical Hit Chance'))).toBe(false);
-    expect(sourceTexts().some((t) => t?.includes('Critical Hit Chance'))).toBe(true);
+    expect(await sourceState()).toContain('Critical Hit Chance');
     expect(historyRows().filter((r) => r.className.includes('history-manual'))).toHaveLength(3);
 
     await keyOn(window, 'z', { ctrlKey: true });
@@ -189,7 +184,7 @@ describe('manual edits of the current item from the menu', () => {
     await keyOn(window, 'z', { ctrlKey: true, shiftKey: true });
     await keyOn(window, 'z', { ctrlKey: true, shiftKey: true });
     expect(currentTexts().some((t) => t?.includes('Critical Hit Chance'))).toBe(false);
-    expect(spentNote()).toContain('шагов: 0');
+    expect(spentNote()).toContain('0 шагов');
   });
 
   it('"replace from pool" uses the existing picker; source and target stay as they were', async () => {
@@ -203,11 +198,11 @@ describe('manual edits of the current item from the menu', () => {
 
     expect(currentTexts().some((t) => t?.includes('Dexterity'))).toBe(true);
     expect(currentTexts().some((t) => t?.includes('Critical Hit Chance'))).toBe(false);
-    expect(sourceTexts().some((t) => t?.includes('Critical Hit Chance'))).toBe(true);
+    expect(await sourceState()).toContain('Critical Hit Chance');
     expect(requirements()).toEqual(targetBefore);
     // The picker behaves as in v0.5.1: still open, the new modifier selected.
     expect($('.panel-pool .pick-row[data-modifier-id="mod.dexterity.t1"]').getAttribute('aria-pressed')).toBe('true');
-    expect(historyRows()[0]!.textContent).toContain('Замена мода');
+    expect(historyRows()[0]!.textContent).toContain('замена мода');
   });
 });
 
@@ -244,6 +239,7 @@ describe('navigation and target from the menu', () => {
 
 describe('source and target menus', () => {
   it('source operations stay setup: no history, no spending', async () => {
+    await openSource();
     await rightClick(sourceChip('Critical Hit Chance'));
     expect(menuIds()).toEqual(['tier', 'replace', 'fracture', 'remove', 'show-in-pool']);
     await choose('tier');
@@ -253,8 +249,10 @@ describe('source and target menus', () => {
     await choose('fracture');
     expect(sourceChip('Critical Hit Chance').className).not.toContain('mod-chip-fractured');
     expect(dialog()?.querySelector('.confirm-sheet')).toBeNull();
+    await click(button($('.setup-surface .setup-actions'), 'Сохранить исходный'));
+    expect(await sourceState()).toContain('mod.local-critical-chance.t2');
     expect(historyRows()).toHaveLength(0);
-    expect(spentNote()).toContain('шагов: 0');
+    expect(spentNote()).toContain('0 шагов');
     expect(container.querySelector('.spent-manual')).toBeNull();
   });
 

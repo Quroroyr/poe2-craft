@@ -1,6 +1,8 @@
 import type { BaseRequirements, ItemBase } from '@poe2-craft/craft-domain';
+import type { Translator } from '@/i18n/core';
+import { useI18n } from '@/i18n/I18nProvider';
 import { baseArt } from '@/lib/icons';
-import { PROPERTY_LABEL } from '@/lib/texts';
+import { propertyLabel } from '@/lib/texts';
 import { ItemArt } from './ItemArt';
 
 /**
@@ -21,20 +23,18 @@ export function ArtFrame(props: {
   );
 }
 
-const REQ_ORDER = [
-  ['level', 'Уровень'],
-  ['strength', 'Str'],
-  ['dexterity', 'Dex'],
-  ['intelligence', 'Int'],
-] as const;
+const REQ_ORDER = ['level', 'strength', 'dexterity', 'intelligence'] as const;
+const REQ_SHORT = { strength: 'Str', dexterity: 'Dex', intelligence: 'Int' } as const;
 
-export function requirementsText(requirements: BaseRequirements | undefined): string | null {
+/** "Level 78, Str 50, Dex 127" — attribute abbreviations are the game's own in every language. */
+export function requirementsText(t: Translator, requirements: BaseRequirements | undefined, separator = ', '): string | null {
   if (!requirements) return null;
-  const parts = REQ_ORDER.flatMap(([key, label]) => {
+  const parts = REQ_ORDER.flatMap((key) => {
     const value = requirements[key];
-    return value === undefined ? [] : [`${label} ${value}`];
+    if (value === undefined) return [];
+    return [`${key === 'level' ? t('req.level') : REQ_SHORT[key]} ${value}`];
   });
-  return parts.length > 0 ? parts.join(', ') : null;
+  return parts.length > 0 ? parts.join(separator) : null;
 }
 
 /**
@@ -42,22 +42,23 @@ export function requirementsText(requirements: BaseRequirements | undefined): st
  * to these numbers (no verified rule yet), and the block says so.
  */
 export function BaseStats({ base }: { base: ItemBase | undefined }) {
+  const { t } = useI18n();
   const details = base?.details;
   if (!details) return null;
-  const requirements = requirementsText(details.requirements);
+  const requirements = requirementsText(t, details.requirements);
   return (
     <div className="base-stats">
       <dl>
         {details.properties.map((p) => (
           <div key={p.name}>
-            <dt>{PROPERTY_LABEL[p.name] ?? p.name}:</dt>
+            <dt>{propertyLabel(t, p.name)}:</dt>
             <dd className="num">{p.value}</dd>
           </div>
         ))}
       </dl>
-      <p className="base-req">Требуется: {requirements ?? 'нет требований'}</p>
-      <p className="base-note" title="Свойства базы без учёта модов и качества: их влияние на числа пока не моделируется">
-        значения базы, без модов
+      <p className="base-req">{t('base.requires', { requirements: requirements ?? t('bases.noRequirements') })}</p>
+      <p className="base-note" title={t('base.noteTitle')}>
+        {t('base.note')}
       </p>
     </div>
   );
