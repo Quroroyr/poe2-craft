@@ -5,6 +5,7 @@ import { SAMPLE_TARGET_ITEMS } from '@poe2-craft/item-parser';
 import { familyTiers, type TargetBaseCheck, type TargetOutlook, type TargetOutlookRow } from '@poe2-craft/craft-session';
 import type { ExplorerMode } from '@/lib/analyze';
 import { RARITY_LABEL, TARGET_STATE_LABEL, exclusionText } from '@/lib/texts';
+import { ModMoreButton } from './ModMoreButton';
 import { Icon } from './Icon';
 import { ImportBox } from './ImportBox';
 import { ArtFrame, BaseStats } from './ItemBits';
@@ -21,6 +22,9 @@ interface TargetPanelProps {
   readonly onEdit: (target: TargetSpec | null) => void;
   readonly onCreate: () => void;
   readonly onExplore: (mode: ExplorerMode) => void;
+  /** Opens the context menu of a requirement. */
+  readonly onModMenu: (requirementId: string, x: number, y: number) => void;
+  readonly menuRequirementId: string | null;
 }
 
 /** Target: requirements "family at tier N or better", each with its state on the current item. */
@@ -121,6 +125,8 @@ export function TargetPanel(props: TargetPanelProps) {
                   view={view}
                   onTier={(modifierId) => props.onEdit(setRequirementTier(target, req.id, modifierId))}
                   onRemove={() => props.onEdit(removeRequirement(target, req.id))}
+                  menuOpen={props.menuRequirementId === req.id}
+                  onMenu={(x, y) => props.onModMenu(req.id, x, y)}
                 />
               ))}
             </ul>
@@ -179,6 +185,8 @@ function TargetRow(props: {
   view: CraftDbView;
   onTier: (modifierId: string) => void;
   onRemove: () => void;
+  menuOpen: boolean;
+  onMenu: (x: number, y: number) => void;
 }) {
   const def = props.view.getModifier(props.modifierId);
   const state = props.row?.state ?? 'unknown';
@@ -195,7 +203,14 @@ function TargetRow(props: {
           : undefined;
 
   return (
-    <li className={`target-row state-${state}`}>
+    <li
+      className={`target-row state-${state}${props.menuOpen ? ' is-menu-open' : ''}`}
+      onContextMenu={(e) => {
+        if (e.target instanceof HTMLSelectElement) return;
+        e.preventDefault();
+        props.onMenu(e.clientX, e.clientY);
+      }}
+    >
       <span className="state-dot" aria-hidden />
       <span className="target-text">
         <span className="mod-text">{def ? modifierText(def) : props.modifierId}</span>
@@ -229,6 +244,7 @@ function TargetRow(props: {
       <span className="target-now num" title={current?.sourceText}>
         {current ? (currentNumbers(current.sourceText) ?? 'есть') : '—'}
       </span>
+      <ModMoreButton label="Действия с требованием" open={props.menuOpen} onMenu={props.onMenu} />
       <button type="button" className="icon-btn icon-btn-quiet" aria-label="Удалить требование" onClick={props.onRemove}>
         <Icon name="close" size={13} />
       </button>

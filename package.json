@@ -1,7 +1,7 @@
 {
   "name": "poe2-craft-planner",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "description": "PoE 2 Craft Planner — web service for Path of Exile 2 crafting analysis",
   "packageManager": "pnpm@10.34.6",

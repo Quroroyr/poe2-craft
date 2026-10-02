@@ -48,7 +48,9 @@
 
 21. **Источник, текущий и целевой предметы — разные сущности.** Действия меняют только `current`;
     `source` и `target` меняются только вставкой нового текста. (`keeps source, current and target apart`)
-22. **Текущий предмет меняется только через `applyStep` / `undoLastStep` / `startFromSource`.**
+22. **Текущий предмет меняется только операциями сессии** (с v0.6, ADR 009): craft-шаг
+    (`applyStep` / `applyToolStep`), шаг ручной правки (`applyManualEdit`), undo / redo
+    (`undoLastStep` / `redoStep` / `undoToStep`) и reset (`resetToSource` / `startFromSource`).
     Сайт не собирает `ItemState` руками и не мутирует его.
 23. **Отказ ничего не меняет.** Невозможное действие возвращает ту же сессию: предмет тот же,
     шаг не записан, затраты не выросли. (`a rejected action changes nothing and spends nothing`)
@@ -65,8 +67,9 @@
 
 Инварианты v0.3:
 
-29. **Крафт меняет только current.** Ручная правка меняет только source или target и ничего не
-    стоит. (`changes only the current item…`, `adds and removes source modifiers…`)
+29. **Крафт меняет только current.** Настройка исходного меняет только source, правка цели — только
+    target; ни то ни другое ничего не стоит. Ручная правка current — отдельный шаг истории (инварианты
+    51–55). (`changes only the current item…`, `adds and removes source modifiers…`)
 30. **Инструмент не изобретает механику.** Комбинация «сфера + omen» применима, только если в
     данных есть действие ровно с такими расходниками; иначе `unsupported`.
     (`does not invent an action for a combination nobody modelled`)
@@ -124,3 +127,22 @@
 50. **Выбор не сбрасывает пул.** После клика пул остаётся открыт на той же вкладке, семействе, поиске,
     теге и фильтре статуса; выбранная строка не исчезает из-за фильтра.
     (`ModifierPoolPanel.test.tsx`)
+
+Инварианты v0.6 (ручная правка текущего предмета и контекстное меню, ADR 009):
+
+51. **Ручная правка current — шаг истории, а не крафт.** `ManualEditStepRecord` (`kind: 'manual-edit'`)
+    стоит в общей истории с craft-шагами, двигает только current, не тратит валюту и не использует
+    бросок. (`a retier changes only current, costs nothing and is recorded as a manual step`)
+52. **Undo / redo одинаковы для обоих видов шагов.** Redo возвращает записанный результат без нового
+    броска; любой новый шаг — крафт или правка — стирает redo-ветку.
+    (`craft → manual remove → manual fracture → craft…`, `a new manual edit or a new craft after undo…`)
+53. **«Потрачено» — только craft-шаги.** Если в активной ветке есть ручная правка, панель затрат это
+    показывает; оценки этапа от правок не меняются. (`asks once, then edits current only…`)
+54. **Ручная правка ≠ игровая механика.** Удаление — не Orb of Annulment, fractured — не Fracturing Orb,
+    повышение тира — не целевое улучшение. Настоящие механики будут отдельными вероятностными
+    `CraftAction`. (`fracture and unfracture set the flag of that explicit — not a Fracturing Orb`)
+55. **Правка соблюдает правила предмета.** Новый тир — только существующий тир того же семейства,
+    новый мод — только разрешённый manual-edit пулом без заменяемого; ilvl и группы проверяются.
+    (`"upgrade one tier" follows the real family list…`, `a retier keeps the item rules…`)
+56. **Одно требование на семейство и из меню.** «Добавить в цель» переносит минимальный тир
+    существующего требования семейства, а не создаёт второе. (`adds a new family, then moves the same family…`)

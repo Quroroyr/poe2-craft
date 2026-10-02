@@ -1,4 +1,4 @@
-import { useMemo, useState, type KeyboardEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { modifierText, type ModifierDefinition } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import { isPickSelected, type PickOption, type PickOptions } from '@poe2-craft/craft-session';
@@ -17,6 +17,18 @@ const TAB_LABEL: Record<ExplorerTabId, string> = { prefix: 'Префиксы', s
  */
 type StatusFilter = ExplorerStatus | 'all' | 'pickable';
 
+/**
+ * "Show in pool": open this tab and family and bring this tier into view. A navigation request,
+ * not a filter: it clears search, tag and status so the row cannot be hidden. `nonce` grows with
+ * every request, so asking again for the same modifier still scrolls to it.
+ */
+export interface PoolFocus {
+  readonly modifierId: string;
+  readonly tab: ExplorerTabId;
+  readonly familyKey: string;
+  readonly nonce: number;
+}
+
 interface ModifierPoolPanelProps {
   readonly explorer: PoolExplorer | null;
   readonly mode: ExplorerMode;
@@ -25,6 +37,7 @@ interface ModifierPoolPanelProps {
   readonly highlightIds: ReadonlySet<string>;
   /** What a click on each tier does in edit modes (from the real source / target); null in inspect. */
   readonly picks: PickOptions | null;
+  readonly focus: PoolFocus | null;
   readonly toolLabel: string | null;
   readonly onPick: (definition: ModifierDefinition) => void;
   readonly onExit: () => void;
@@ -45,6 +58,29 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
   const [tag, setTag] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(editing ? 'pickable' : 'all');
   const [familyKey, setFamilyKey] = useState<string | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const scrollPending = useRef(false);
+  const focus = props.focus;
+
+  useEffect(() => {
+    if (!focus) return;
+    setTabId(focus.tab);
+    setFamilyKey(focus.familyKey);
+    setQuery('');
+    setTag('');
+    setStatusFilter('all');
+    scrollPending.current = true;
+  }, [focus]);
+
+  // After the focused family is rendered, scroll its tier into the middle of the table.
+  useLayoutEffect(() => {
+    if (!scrollPending.current || !focus) return;
+    const wrap = tableRef.current;
+    const row = wrap?.querySelector<HTMLElement>(`[data-modifier-id="${focus.modifierId}"]`);
+    if (!wrap || !row) return;
+    scrollPending.current = false;
+    wrap.scrollTop = Math.max(0, row.offsetTop - wrap.clientHeight / 2);
+  });
 
   const tab = explorer?.tabs.find((t) => t.id === tabId) ?? explorer?.tabs[0];
   const allTags = useMemo(
@@ -175,7 +211,7 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
                 )}
               </div>
             ) : (
-              <div className="table-scroll pool-table-wrap">
+              <div ref={tableRef} className="table-scroll pool-table-wrap">
                 {shown.length === 0 ? (
                   <p className="empty">Ничего не найдено.</p>
                 ) : (
@@ -202,6 +238,7 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
                             group={g}
                             view={view}
                             isTarget={props.highlightIds.has(row.entry.definition.id)}
+                            isFocus={focus?.modifierId === row.entry.definition.id}
                           />
                         )),
                       )}
@@ -227,11 +264,13 @@ function ModeChip({ mode, toolLabel, onExit }: { mode: ExplorerMode; toolLabel: 
   const label =
     mode.kind === 'edit-target'
       ? 'Добавление требования в цель'
-      : mode.replaceIndex !== undefined
-        ? 'Замена мода исходного'
-        : 'Добавление мода в исходный';
+      : mode.kind === 'edit-current'
+        ? 'Замена мода текущего предмета — ручная правка, не крафт'
+        : mode.replaceIndex !== undefined
+          ? 'Замена мода исходного'
+          : 'Добавление мода в исходный';
   return (
-    <p className="mode-line mode-line-edit">
+    <p className={`mode-line mode-line-edit${mode.kind === 'edit-current' ? ' mode-line-manual' : ''}`}>
       {label}
       <button type="button" className="link-btn" onClick={onExit}>
         вернуться к осмотру <kbd>Esc</kbd>
@@ -241,12 +280,17 @@ function ModeChip({ mode, toolLabel, onExit }: { mode: ExplorerMode; toolLabel: 
 }
 
 /** Inspect mode: the technical row with every column. */
-function TierRow(props: { row: ExplorerRow; group: ExplorerGroup; view: CraftDbView; isTarget: boolean }) {
+function TierRow(props: { row: ExplorerRow; group: ExplorerGroup; view: CraftDbView; isTarget: boolean; isFocus: boolean }) {
   const { row } = props;
   const d = row.entry.definition;
   const reasons = row.status !== 'eligible' ? row.entry.reasons.map((r) => exclusionText(r, props.view)).join('; ') : undefined;
   return (
-    <tr className={`tier-row row-${row.status}${props.isTarget ? ' is-target' : ''}`} title={reasons}>
+    <tr
+      className={`tier-row row-${row.status}${props.isTarget ? ' is-target' : ''}${props.isFocus ? ' is-focus' : ''}`}
+      title={reasons}
+      data-modifier-id={d.id}
+      aria-current={props.isFocus || undefined}
+    >
       <td>
         <span className="pool-mod">{modifierText(d)}</span>
         <span className="pool-name">

@@ -15,7 +15,8 @@ import { resolveTool, type ToolSelection } from './tools';
 /**
  * One crafting session. Three different things, never aliases of one another by accident:
  * - source:  the base the user starts from (imported from the game, editable by hand);
- * - current: the item after every applied step — the only thing crafting actions change;
+ * - current: the item after every applied step — changed only by session steps (a craft step or
+ *            a manual edit step), undo / redo and reset (ADR 009);
  * - target:  the desired result as requirements (imported and/or built by hand).
  * The session is an immutable value: every operation returns a new session.
  */
@@ -28,12 +29,19 @@ export interface CraftSession {
   readonly current: ItemState | null;
   readonly target: TargetSpec | null;
   /** Applied steps, oldest first. `current` is the `after` of the last one (or the source). */
-  readonly steps: readonly CraftStepRecord[];
+  readonly steps: readonly SessionStep[];
   /** Undone steps, most recently undone last; `redo` re-applies them exactly as they were. */
-  readonly redoStack: readonly CraftStepRecord[];
+  readonly redoStack: readonly SessionStep[];
 }
 
+/**
+ * One entry of the history. Both kinds move `current` from `before` to `after`, so undo / redo
+ * treat them alike; only a craft step is a game action and only a craft step costs anything.
+ */
+export type SessionStep = CraftStepRecord | ManualEditStepRecord;
+
 export interface CraftStepRecord {
+  readonly kind: 'craft';
   /** 1-based position in the history. */
   readonly index: number;
   readonly actionId: CraftActionId;
@@ -51,6 +59,38 @@ export interface CraftStepRecord {
     /** Chance this exact modifier had at the moment of the roll. */
     readonly share: number;
   };
+}
+
+/** What a manual edit of the current item did. Sandbox only: not a game mechanic (ADR 009). */
+export type ManualEditOperation = 'retier' | 'remove' | 'replace' | 'fracture' | 'unfracture';
+
+/** A modifier as it was or became in a manual edit, for the history line. */
+export interface ManualEditModifier {
+  /** null for a modifier the data could not resolve. */
+  readonly modifierId: ModifierId | null;
+  readonly text: string;
+  readonly tier: number | null;
+  readonly side: AffixSide | null;
+}
+
+/**
+ * A hand edit of the current item: sandbox, not crafting. No consumable, no cost, no roll —
+ * it exists so that "what if this modifier were different" can be tried and undone.
+ */
+export interface ManualEditStepRecord {
+  readonly kind: 'manual-edit';
+  /** 1-based position in the history, shared with craft steps. */
+  readonly index: number;
+  readonly operation: ManualEditOperation;
+  /** Position of the edited explicit in `before.explicits`. */
+  readonly modifierIndex: number;
+  /** Plain description for logs and exports, e.g. "Manual edit: retier T3 → T2". The page renders its own text. */
+  readonly label: string;
+  readonly from: ManualEditModifier;
+  /** null when the modifier was removed. */
+  readonly to: ManualEditModifier | null;
+  readonly before: ItemState;
+  readonly after: ItemState;
 }
 
 export interface SessionInit {
@@ -152,6 +192,7 @@ export function applyStep(session: CraftSession, input: ApplyStepInput): ApplySt
 
   const action = input.db.forVersion(session.gameVersion).getAction(input.actionId);
   const step: CraftStepRecord = {
+    kind: 'craft',
     index: session.steps.length + 1,
     actionId: input.actionId,
     actionName: action?.name ?? input.actionId,
@@ -248,13 +289,26 @@ export interface SessionSpent {
   readonly mixedUnits: boolean;
 }
 
-/** What was actually spent on the current item, as recorded by its (not undone) steps. */
+export const isCraftStep = (step: SessionStep): step is CraftStepRecord => step.kind === 'craft';
+
+/** Craft steps of the active branch: the only ones that spend anything. */
+export function craftSteps(session: CraftSession): readonly CraftStepRecord[] {
+  return session.steps.filter(isCraftStep);
+}
+
+/** The active branch contains hand edits of the current item, so "spent" does not explain the whole item. */
+export function hasManualEdits(session: CraftSession): boolean {
+  return session.steps.some((s) => s.kind === 'manual-edit');
+}
+
+/** What was actually spent on the current item, as recorded by its (not undone) craft steps. Manual edits cost nothing. */
 export function sessionSpent(session: CraftSession): SessionSpent {
-  const unit = session.steps[0]?.cost.unit ?? null;
+  const steps = craftSteps(session);
+  const unit = steps[0]?.cost.unit ?? null;
   let total = 0;
   let incomplete = false;
   let mixedUnits = false;
-  for (const step of session.steps) {
+  for (const step of steps) {
     if (step.cost.unit !== unit) {
       mixedUnits = true;
       continue;
@@ -262,7 +316,7 @@ export function sessionSpent(session: CraftSession): SessionSpent {
     total += step.cost.total;
     if (!step.cost.complete) incomplete = true;
   }
-  return { unit, total, stepCount: session.steps.length, incomplete, mixedUnits };
+  return { unit, total, stepCount: steps.length, incomplete, mixedUnits };
 }
 
 export interface SpentLine {
@@ -280,9 +334,10 @@ export interface SpentLine {
  * as in `sessionSpent`.
  */
 export function sessionSpentByConsumable(session: CraftSession): readonly SpentLine[] {
-  const unit = session.steps[0]?.cost.unit ?? null;
+  const steps = craftSteps(session);
+  const unit = steps[0]?.cost.unit ?? null;
   const lines = new Map<string, { quantity: number; total: number; unpriced: boolean }>();
-  for (const step of session.steps) {
+  for (const step of steps) {
     if (step.cost.unit !== unit) continue;
     for (const line of step.cost.lines) {
       const entry = lines.get(line.consumableId) ?? { quantity: 0, total: 0, unpriced: false };
@@ -297,5 +352,33 @@ export function sessionSpentByConsumable(session: CraftSession): readonly SpentL
 
 /** Modifier ids added by the simulation in this session (to mark them on the current item). */
 export function simulatedModifierIds(session: CraftSession): ReadonlySet<ModifierId> {
-  return new Set(session.steps.map((s) => s.added.modifierId));
+  return new Set(craftSteps(session).map((s) => s.added.modifierId));
+}
+
+/** Where each explicit of the current item came from, by position. */
+export interface CurrentModifierMark {
+  /** Added by a craft step of the active branch. */
+  readonly crafted: boolean;
+  /** Changed by a manual edit (retier, replace, fracture, unfracture) after it appeared. */
+  readonly edited: boolean;
+}
+
+/**
+ * Replays the active branch over positions: a craft step appends, a removal drops a position,
+ * other manual edits mark it. Item states copy their modifiers, so positions — not object
+ * identity — are what links a modifier across steps.
+ */
+export function currentModifierMarks(session: CraftSession): readonly CurrentModifierMark[] {
+  const origin = session.steps[0]?.before ?? session.current;
+  let marks: CurrentModifierMark[] = (origin?.explicits ?? []).map(() => ({ crafted: false, edited: false }));
+  for (const step of session.steps) {
+    if (step.kind === 'craft') {
+      marks = [...marks, ...step.after.explicits.slice(marks.length).map(() => ({ crafted: true, edited: false }))];
+    } else if (step.operation === 'remove') {
+      marks = marks.filter((_, i) => i !== step.modifierIndex);
+    } else {
+      marks = marks.map((m, i) => (i === step.modifierIndex ? { ...m, edited: true } : m));
+    }
+  }
+  return marks;
 }

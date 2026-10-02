@@ -7,6 +7,7 @@ import { RARITY_LABEL, SIDE_LABEL, SIDE_SHORT, SLOT_LABEL, UNRESOLVED_LABEL } fr
 import { HeldToolCursor } from './HeldToolCursor';
 import { Icon } from './Icon';
 import { ArtFrame, BaseStats } from './ItemBits';
+import { ModMoreButton } from './ModMoreButton';
 import { Panel } from './Panel';
 
 /** Result of the last click on the item, for the short visual response. `id` grows with every click. */
@@ -33,6 +34,10 @@ interface CurrentItemPanelProps {
   readonly onUndo: () => void;
   readonly onRedo: () => void;
   readonly onReset: () => void;
+  /** Opens the modifier context menu at a viewport point (right click or the "…" button). */
+  readonly onModMenu: (index: number, x: number, y: number) => void;
+  /** Index of the modifier whose menu is open, to keep it highlighted. */
+  readonly menuIndex: number | null;
 }
 
 /** The crafting object: hold a tool from the strip below, click the item to use it. */
@@ -134,6 +139,8 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
             props.onCraft();
           }}
           onKeyDown={(e) => {
+            // Keys on the modifiers' own buttons ("…") belong to them, not to the craft click.
+            if (e.target !== e.currentTarget) return;
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               e.currentTarget.click();
@@ -173,7 +180,15 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
             <ul className="current-mods">
               {ordered.length === 0 && <li className="current-mods-empty">Модов нет — кликните валютой, чтобы добавить.</li>}
               {ordered.map(({ mod, index }) => (
-                <CurrentMod key={index} mod={mod} view={view} badge={props.badges.get(index)} fresh={props.freshIndex === index} />
+                <CurrentMod
+                  key={index}
+                  mod={mod}
+                  view={view}
+                  badge={props.badges.get(index)}
+                  fresh={props.freshIndex === index}
+                  menuOpen={props.menuIndex === index}
+                  onMenu={(x, y) => props.onModMenu(index, x, y)}
+                />
               ))}
             </ul>
 
@@ -214,7 +229,14 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
   );
 }
 
-function CurrentMod(props: { mod: ExplicitModifier; view: CraftDbView; badge: ModBadge | undefined; fresh: boolean }) {
+function CurrentMod(props: {
+  mod: ExplicitModifier;
+  view: CraftDbView;
+  badge: ModBadge | undefined;
+  fresh: boolean;
+  menuOpen: boolean;
+  onMenu: (x: number, y: number) => void;
+}) {
   const { mod, badge } = props;
   const def = mod.kind === 'resolved' ? props.view.getModifier(mod.modifierId) : undefined;
   const classes = [
@@ -223,11 +245,20 @@ function CurrentMod(props: { mod: ExplicitModifier; view: CraftDbView; badge: Mo
     mod.kind === 'unresolved' && 'is-unresolved',
     badge?.tone === 'new' && 'is-new',
     props.fresh && 'is-fresh',
+    props.menuOpen && 'is-menu-open',
   ]
     .filter(Boolean)
     .join(' ');
   return (
-    <li className={classes}>
+    <li
+      className={classes}
+      onContextMenu={(e) => {
+        // A right click on a modifier opens its menu, never the browser's and never a craft click.
+        e.preventDefault();
+        e.stopPropagation();
+        props.onMenu(e.clientX, e.clientY);
+      }}
+    >
       <span className={`side-mark side-${def?.side ?? 'unknown'}`} title={def ? SIDE_LABEL[def.side] : 'сторона неизвестна'}>
         {def ? SIDE_SHORT[def.side] : '?'}
       </span>
@@ -246,6 +277,8 @@ function CurrentMod(props: { mod: ExplicitModifier; view: CraftDbView; badge: Mo
         </span>
       </span>
       <span className="tier-badge">{def ? `T${def.tier}` : '—'}</span>
+      <ModMoreButton label="Действия с модом" open={props.menuOpen} onMenu={props.onMenu} />
     </li>
   );
 }
+

@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from 'react';
 import type { CraftDbView } from '@poe2-craft/craft-db';
-import type { CraftSession, CraftStepRecord } from '@poe2-craft/craft-session';
+import type { CraftSession, SessionStep } from '@poe2-craft/craft-session';
 import { formatCost, formatPercent } from '@/lib/format';
 import { consumableIconUrl } from '@/lib/icons';
-import { SIDE_SHORT } from '@/lib/texts';
+import { MANUAL_OPERATION_LABEL, SIDE_SHORT, manualEditText } from '@/lib/texts';
 import { GameIcon } from './GameIcon';
 import { Icon } from './Icon';
 import { Panel } from './Panel';
@@ -12,7 +12,7 @@ interface HistoryPanelProps {
   readonly session: CraftSession;
   readonly view: CraftDbView;
   /** When each step was applied (recorded by the page, not by the session). */
-  readonly timeOf: (step: CraftStepRecord) => number | undefined;
+  readonly timeOf: (step: SessionStep) => number | undefined;
   readonly onUndo: () => void;
   readonly onRedo: () => void;
   readonly onUndoTo: (index: number) => void;
@@ -22,7 +22,11 @@ type Filter = 'all' | 'applied' | 'undone';
 
 const timeFormat = new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-/** Craft history, newest first: applied steps, then undone ones (dimmed, redoable), then the source. */
+/**
+ * Session history, newest first: applied steps, then undone ones (dimmed, redoable), then the
+ * source. Craft steps and manual edits share one timeline; a manual edit is drawn apart (dashed,
+ * pencil, no price) because it is not a game action.
+ */
 export function HistoryPanel(props: HistoryPanelProps) {
   const { session, view } = props;
   const [filter, setFilter] = useState<Filter>('all');
@@ -125,13 +129,46 @@ export function HistoryPanel(props: HistoryPanelProps) {
 }
 
 function StepRow(props: {
-  step: CraftStepRecord;
+  step: SessionStep;
   view: CraftDbView;
   time: number | undefined;
   state: 'current' | 'applied' | 'undone';
   action: ReactNode;
 }) {
   const { step, view } = props;
+  const tail = (
+    <>
+      <td className="num right hide-md muted">{props.time ? timeFormat.format(props.time) : '—'}</td>
+      <td className="right">{props.state === 'undone' ? <span className="muted small">отменён </span> : null}{props.action}</td>
+    </>
+  );
+  if (step.kind === 'manual-edit') {
+    return (
+      <tr className={`history-row history-${props.state} history-manual`}>
+        <td className="num right">{step.index}</td>
+        <td>
+          <span className="history-action">
+            <span className="history-icons history-manual-icon" aria-hidden>
+              <Icon name="pencil" size={15} />
+            </span>
+            <span>
+              Ручная правка <span className="muted small">· {MANUAL_OPERATION_LABEL[step.operation]}</span>
+            </span>
+          </span>
+        </td>
+        <td>
+          <span className="history-result" title={step.label}>
+            {step.from.side && <span className="side-mark-sm">{SIDE_SHORT[step.from.side]}</span>}
+            <span className="mod-text">{manualEditText(step)}</span>
+          </span>
+        </td>
+        <td className="num right muted" title="Ручная правка не тратит валюту">
+          —
+        </td>
+        {tail}
+      </tr>
+    );
+  }
   const consumables = step.cost.lines.map((l) => view.getConsumable(l.consumableId));
   return (
     <tr className={`history-row history-${props.state}`}>
@@ -154,8 +191,7 @@ function StepRow(props: {
         </span>
       </td>
       <td className="num right">{formatCost(step.cost.total, step.cost.unit)}</td>
-      <td className="num right hide-md muted">{props.time ? timeFormat.format(props.time) : '—'}</td>
-      <td className="right">{props.state === 'undone' ? <span className="muted small">отменён </span> : null}{props.action}</td>
+      {tail}
     </tr>
   );
 }

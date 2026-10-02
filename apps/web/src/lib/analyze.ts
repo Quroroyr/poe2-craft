@@ -71,7 +71,9 @@ export interface StageTargetOption {
 export type ExplorerMode =
   | { readonly kind: 'inspect' }
   | { readonly kind: 'edit-source'; readonly side: 'prefix' | 'suffix'; readonly replaceIndex?: number }
-  | { readonly kind: 'edit-target'; readonly side: 'prefix' | 'suffix' };
+  | { readonly kind: 'edit-target'; readonly side: 'prefix' | 'suffix' }
+  /** Manual edit of the current item: replace the modifier at `replaceIndex` (sandbox, ADR 009). */
+  | { readonly kind: 'edit-current'; readonly side: 'prefix' | 'suffix'; readonly replaceIndex: number };
 
 export interface WorkspaceInput {
   readonly session: CraftSession;
@@ -175,6 +177,10 @@ function pickOptions(session: CraftSession, mode: ExplorerMode): PickOptions | n
   if (mode.kind === 'edit-target' && session.target) {
     return targetPickOptions(craftDb, gameVersion, session.target, session.source);
   }
+  if (mode.kind === 'edit-current' && session.current) {
+    // The same item rules as the source setup, applied to the current item.
+    return sourcePickOptions(craftDb, gameVersion, session.current, mode.replaceIndex);
+  }
   return null;
 }
 
@@ -188,6 +194,8 @@ function toPoolMode(mode: ExplorerMode, actionId: string | null): PoolMode {
         : { kind: 'edit-source', replaceIndex: mode.replaceIndex };
     case 'edit-target':
       return { kind: 'edit-target' };
+    case 'edit-current':
+      return { kind: 'edit-current', replaceIndex: mode.replaceIndex };
   }
 }
 

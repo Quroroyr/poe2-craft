@@ -1,6 +1,7 @@
 import {
   addRequirement,
   createItemState,
+  setRequirementFractured,
   setRequirementTier,
   type GameVersion,
   type ItemState,
@@ -155,6 +156,48 @@ export function applyTargetPick(target: TargetSpec, option: PickOption | undefin
     default:
       return target;
   }
+}
+
+/**
+ * - added: a new requirement for this family;
+ * - retiered: the family was already required, now at this tier as the minimum;
+ * - updated: the exact requirement existed, only its fractured flag changed;
+ * - already: nothing to do;
+ * - not-allowed: the target cannot take it (`reasons`).
+ */
+export type AddToTargetStatus = 'added' | 'retiered' | 'updated' | 'already' | 'not-allowed';
+
+export interface AddToTargetResult {
+  readonly status: AddToTargetStatus;
+  readonly target: TargetSpec;
+  readonly reasons: readonly ExclusionReason[];
+}
+
+/**
+ * "Add to target" for a modifier seen on an item: one requirement per family. A family already
+ * required moves to this tier as the minimum acceptable one instead of getting a duplicate.
+ * `fractured` asks for a fractured requirement (kept from a fractured modifier).
+ */
+export function addModifierToTarget(
+  db: CraftDb,
+  gameVersion: GameVersion,
+  target: TargetSpec,
+  fallback: ItemState | null,
+  modifierId: ModifierId,
+  fractured = false,
+): AddToTargetResult {
+  const option = targetPickOptions(db, gameVersion, target, fallback).get(modifierId);
+  if (!option) return { status: 'not-allowed', target, reasons: [] };
+  if (isPickSelected(option)) {
+    const requirement = target.requirements.find((r) => r.modifierId === modifierId);
+    if (!requirement || !fractured || requirement.fractured) return { status: 'already', target, reasons: [] };
+    return { status: 'updated', target: setRequirementFractured(target, requirement.id, true), reasons: [] };
+  }
+  if (!option.allowed) return { status: 'not-allowed', target, reasons: option.reasons };
+  let next = applyTargetPick(target, option);
+  const requirement = next.requirements.find((r) => r.modifierId === modifierId);
+  if (fractured && requirement && !requirement.fractured) next = setRequirementFractured(next, requirement.id, true);
+  return { status: option.action.kind === 'retier' ? 'retiered' : 'added', target: next, reasons: [] };
 }
 
 function selected(definition: ModifierDefinition): PickOption {

@@ -13,6 +13,7 @@ import { buildEligiblePool } from '@poe2-craft/probability-engine';
 import {
   applyAction,
   applyStep,
+  craftSteps,
   createSeededRng,
   createSession,
   pickWeighted,
@@ -100,7 +101,7 @@ describe('craft session state', () => {
     expect(session.steps.map((s) => s.index)).toEqual([1, 2]);
     expect(session.steps[1]?.before).toBe(session.steps[0]?.after);
     expect(session.steps[1]?.after).toBe(session.current);
-    expect(session.steps[0]?.added.modifierId).toBe(
+    expect(craftSteps(session)[0]?.added.modifierId).toBe(
       (session.steps[0]?.after.explicits[1] as ResolvedModifier).modifierId,
     );
     expect(sessionSpent(session)).toMatchObject({ unit: 'div', total: 0.42, stepCount: 2 });

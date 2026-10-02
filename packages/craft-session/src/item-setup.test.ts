@@ -22,6 +22,7 @@ import {
   removeSourceModifier,
   replaceSourceModifier,
   resetToSource,
+  craftSteps,
   resolveTool,
   selectCurrency,
   sessionSpent,
@@ -361,7 +362,7 @@ describe('held tool → click on the current item', () => {
     const before = session();
     const after = click(before);
     expect(after.steps).toHaveLength(1);
-    expect(after.steps[0]?.actionId).toBe('action.add-random-modifier');
+    expect(craftSteps(after)[0]?.actionId).toBe('action.add-random-modifier');
     expect(after.current?.explicits).toHaveLength(2);
     expect(sessionSpent(after).total).toBe(0.25);
     expect(after.source).toBe(before.source);

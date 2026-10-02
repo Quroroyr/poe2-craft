@@ -5,16 +5,18 @@ import { MANUAL_EDIT_ACTION, targetAsItem } from './editing';
 import type { CraftSession } from './session';
 
 /**
- * One modifier pool explorer, three jobs:
- * - inspect:     what the active tool could add to the current item;
- * - edit-source: what could legally be added to the source by hand (any side);
- * - edit-target: what could still be added to the target requirements.
+ * One modifier pool explorer, four jobs:
+ * - inspect:      what the active tool could add to the current item;
+ * - edit-source:  what could legally be added to the source by hand (any side);
+ * - edit-target:  what could still be added to the target requirements;
+ * - edit-current: what could replace one modifier of the current item in a manual edit (ADR 009).
  * `replaceIndex` evaluates the item as if that modifier were already removed.
  */
 export type PoolMode =
   | { readonly kind: 'inspect'; readonly actionId: CraftActionId | null }
   | { readonly kind: 'edit-source'; readonly replaceIndex?: number }
-  | { readonly kind: 'edit-target' };
+  | { readonly kind: 'edit-target' }
+  | { readonly kind: 'edit-current'; readonly replaceIndex: number };
 
 export interface ModePool {
   readonly mode: PoolMode;
@@ -46,6 +48,10 @@ function itemForMode(session: CraftSession, mode: PoolMode): ItemState | null {
     }
     case 'edit-target':
       return session.target ? targetAsItem(session.target, session.source) : null;
+    case 'edit-current': {
+      const current = session.current;
+      return current ? { ...current, explicits: current.explicits.filter((_, i) => i !== mode.replaceIndex) } : null;
+    }
   }
 }
 

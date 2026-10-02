@@ -13,7 +13,14 @@ import type {
 } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ParseDiagnostic } from '@poe2-craft/item-parser';
-import type { ApplyRejection, TargetModStatus, TargetRowState } from '@poe2-craft/craft-session';
+import type {
+  ApplyRejection,
+  ManualEditOperation,
+  ManualEditRejection,
+  ManualEditStepRecord,
+  TargetModStatus,
+  TargetRowState,
+} from '@poe2-craft/craft-session';
 import type { ExclusionReason, ExplorerStatus, PoolCaveat, PoolIssue } from '@poe2-craft/probability-engine';
 
 export const SIDE_LABEL: Record<AffixSide, string> = { prefix: 'Префикс', suffix: 'Суффикс' };
@@ -207,5 +214,54 @@ export function applyRejectionText(rejection: ApplyRejection | null): string {
       return 'Нет ни одного мода, который действие могло бы добавить: всё подходящее заблокировано.';
     case 'unknown-weights':
       return `У ${rejection.modifierIds.length} мод(ов) в пуле неизвестен вес — честно выбрать результат нельзя.`;
+  }
+}
+
+/** The one-time notice before the first hand edit of the current item. */
+export const MANUAL_EDIT_NOTICE =
+  'Ручная правка текущего предмета не является игровым крафтом. Она не учитывается как расход валюты.';
+
+export const MANUAL_OPERATION_LABEL: Record<ManualEditOperation, string> = {
+  retier: 'Смена тира',
+  remove: 'Удаление мода',
+  replace: 'Замена мода',
+  fracture: 'Отметка fractured',
+  unfracture: 'Снятие fractured',
+};
+
+/** One history line for a manual edit, e.g. "T3 → T2 · 12% increased Attack Speed". */
+export function manualEditText(step: ManualEditStepRecord): string {
+  const tier = (t: number | null) => (t === null ? '?' : `T${t}`);
+  const text = (t: string) => t.replace(/\s*\(fractured\)$/i, '').replace(/\n/g, ' / ');
+  switch (step.operation) {
+    case 'retier':
+      return `${tier(step.from.tier)} → ${tier(step.to?.tier ?? null)} · ${text(step.to?.text ?? step.from.text)}`;
+    case 'replace':
+      return `${text(step.from.text)} → ${text(step.to?.text ?? '')}`;
+    case 'remove':
+      return `− ${text(step.from.text)}`;
+    case 'fracture':
+    case 'unfracture':
+      return text(step.from.text);
+  }
+}
+
+export function manualEditRejectionText(reason: ManualEditRejection, details: readonly ExclusionReason[], view: CraftDbView): string {
+  switch (reason) {
+    case 'no-item':
+    case 'no-modifier':
+      return 'Этого мода на предмете уже нет.';
+    case 'unresolved-modifier':
+      return 'Мод не распознан — тир сменить нельзя.';
+    case 'unknown-modifier':
+      return 'Такого мода нет в этой версии игры.';
+    case 'not-same-family':
+      return 'Тир меняется только внутри своего семейства.';
+    case 'no-change':
+      return 'Предмет и так такой.';
+    case 'not-allowed':
+      return details.length > 0
+        ? `Нельзя: ${details.map((r) => exclusionText(r, view)).join('; ')}.`
+        : 'Нельзя: такой мод уже есть на предмете.';
   }
 }

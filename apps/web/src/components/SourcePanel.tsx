@@ -16,6 +16,7 @@ import {
 import type { ExplorerMode, SourceSetupView } from '@/lib/analyze';
 import { ITEM_CATEGORY_LABEL, RARITY_LABEL, SIDE_LABEL, SLOT_LABEL, exclusionText, sourceTitle } from '@/lib/texts';
 import { Stepper } from './Controls';
+import { ModMoreButton } from './ModMoreButton';
 import { Icon } from './Icon';
 import { ImportBox } from './ImportBox';
 import { ArtFrame } from './ItemBits';
@@ -35,6 +36,9 @@ interface SourcePanelProps {
   readonly onChooseBase: (baseId: ItemBaseId) => void;
   readonly onOpenCatalog: () => void;
   readonly onClear: () => void;
+  /** Opens the modifier context menu of the source modifier at `index`. */
+  readonly onModMenu: (index: number, x: number, y: number) => void;
+  readonly menuIndex: number | null;
 }
 
 /**
@@ -329,9 +333,17 @@ function SourceModChip(props: SourcePanelProps & { source: ItemState; mod: Expli
   const tiers = props.setup?.tierOptions.get(index) ?? [];
   const issue = props.setup?.issues.get(index);
   return (
-    <li className={`mod-chip${mod.fractured ? ' mod-chip-fractured' : ''}`}>
+    <li
+      className={`mod-chip${mod.fractured ? ' mod-chip-fractured' : ''}${props.menuIndex === index ? ' is-menu-open' : ''}`}
+      onContextMenu={(e) => {
+        if (e.target instanceof HTMLSelectElement) return;
+        e.preventDefault();
+        props.onModMenu(index, e.clientX, e.clientY);
+      }}
+    >
       <div className="mod-chip-main">
         <span className="mod-text">{mod.sourceText.replace(/\s*\(fractured\)$/i, '')}</span>
+        <ModMoreButton label="Действия с модом исходного" open={props.menuIndex === index} onMenu={(x, y) => props.onModMenu(index, x, y)} />
         <button
           type="button"
           className="icon-btn icon-btn-quiet"

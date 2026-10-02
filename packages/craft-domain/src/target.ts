@@ -87,3 +87,11 @@ export function setRequirementTier(spec: TargetSpec, id: TargetRequirementId, mo
     requirements: spec.requirements.map((r) => (r.id === id ? { ...r, modifierId } : r)),
   };
 }
+
+/** Whether the requirement must be met by a fractured modifier. */
+export function setRequirementFractured(spec: TargetSpec, id: TargetRequirementId, fractured: boolean): TargetSpec {
+  return {
+    ...spec,
+    requirements: spec.requirements.map((r) => (r.id === id ? { ...r, fractured } : r)),
+  };
+}

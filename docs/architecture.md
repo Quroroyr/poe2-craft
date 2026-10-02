@@ -60,6 +60,18 @@ ilvl / качество / сокеты ──setItemLevel / setQuality / setSlot
 клик по текущему с валютой в руке ──applyToolStep──► шаг | отказ без трат
 ```
 
+### Ручная правка текущего и контекстное меню (v0.6, ADR 009)
+
+```
+ПКМ / «…» по моду ──buildModMenu (lib/mod-menu.ts)──► ContextMenu ──MenuIntent──► Workspace
+  current: applyManualEdit ──► ManualEditStep (retier | remove | replace | fracture | unfracture), 0 стоимости
+           «Заменить из пула» ──► ModifierPool, режим edit-current (replaceIndex) ──► applyManualEdit(replace)
+  source:  replaceSourceModifier / setSourceModifierFractured / removeSourceModifier   (настройка, не шаг)
+  target:  setRequirementTier / setRequirementFractured / removeRequirement
+  все:     «Показать в пуле» (вкладка + семейство + тир) · «Добавить в цель» = addModifierToTarget (без дублей)
+история: SessionStep = craft | manual-edit → undo / redo одинаково; потрачено = только craft-шаги
+```
+
 Арт: `ItemBase.artAssetId` / `Consumable.art` (id) → `apps/web/src/lib/art-manifest.ts` (файл, размер,
 источник) → `/icons/game/*.png`. Домен не знает ни путей, ни URL.
 
@@ -83,7 +95,7 @@ ilvl / качество / сокеты ──setItemLevel / setQuality / setSlot
 | `item-parser` | Текст предмета → `ItemState`; каталог — порт `ItemCatalog` | craft-domain |
 | `probability-engine` | Пул модов, обозреватель пула, вероятность, геометрическое распределение, объяснение | craft-domain, craft-db |
 | `economy` | Снимок цен, стоимость попытки, ожидаемая стоимость этапа, квантили | craft-domain, probability-engine |
-| `craft-session` | Демо-применение действий, сессия крафта, сравнение с целевым предметом | craft-domain, craft-db, probability-engine, economy |
+| `craft-session` | Демо-применение действий, сессия крафта (craft-шаги и ручные правки), сравнение с целевым предметом | craft-domain, craft-db, probability-engine, economy |
 | `apps/web` | Next.js сайт | все пакеты выше |
 
 Направление проверяет `tests/architecture.test.ts`: пакеты не импортируют React/Next.js и не
@@ -106,6 +118,8 @@ ilvl / качество / сокеты ──setItemLevel / setQuality / setSlot
 | `src/lib/icons.ts`, `src/lib/art-manifest.ts` | id игрового арта → локальный файл; манифест с источником каждой картинки |
 | `src/lib/base-catalog.ts` | поиск / фильтр по классу / сортировка в селекторе баз (без игровых правил) |
 | `src/lib/held-tool.ts` | что «держит» курсор: иконки и ready / blocked с причиной |
+| `src/lib/mod-menu.ts` | пункты контекстного меню мода (current / source / target) как данные и намерения |
+| `src/components/ContextMenu.tsx`, `ModMoreButton.tsx`, `ManualEditDialog.tsx` | меню у курсора (портал, в пределах экрана, клавиатура), кнопка «…», одноразовое предупреждение о ручной правке |
 | `src/components/BaseSelector.tsx` | модальное окно выбора базы (`<dialog>`) |
 | `src/components/HeldToolCursor.tsx` | оверлей валюты у курсора над предметом (портал, `pointer-events: none`), Omen — кольцевой значок |
 | `src/components/Masthead.tsx`, `ToolPalette.tsx`, `HistoryPanel.tsx`, `SpendingPanel.tsx`, `ItemBits.tsx` | шапка, полоса инструментов с активным крафтом, история, затраты, рамка арта и свойства базы |

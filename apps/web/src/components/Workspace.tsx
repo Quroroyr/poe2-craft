@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type ItemBaseId,
   type ItemState,
@@ -9,12 +9,15 @@ import {
 } from '@poe2-craft/craft-domain';
 import {
   EMPTY_TOOL,
+  addModifierToTarget,
+  applyManualEdit,
   applySourcePick,
   applyTargetPick,
   applyToolStep,
   createItemFromBase,
   createSession,
   hasCraftHistory,
+  hasManualEdits,
   isSourceOutOfSync,
   redoStep,
   resetToSource,
@@ -27,7 +30,8 @@ import {
   undoToStep,
   withTarget,
   type CraftSession,
-  type CraftStepRecord,
+  type ManualEdit,
+  type SessionStep,
   type ToolSelection,
 } from '@poe2-craft/craft-session';
 import { calculateAttemptCost, calculateStageCost } from '@poe2-craft/economy';
@@ -41,16 +45,19 @@ import {
   type ExplorerMode,
 } from '@/lib/analyze';
 import { heldTool } from '@/lib/held-tool';
+import { buildModMenu, type MenuIntent, type ModMenuTarget } from '@/lib/mod-menu';
 import { INITIAL_PRICE_INPUTS, snapshotFromInputs, type PriceInputs } from '@/lib/prices';
 import { applyNotice, currentItemBadges, randomSeed, type WorkspaceNotice } from '@/lib/session-ui';
-import { applyRejectionText } from '@/lib/texts';
+import { MANUAL_OPERATION_LABEL, applyRejectionText, exclusionText, manualEditRejectionText, manualEditText } from '@/lib/texts';
 import { BaseSelector } from './BaseSelector';
+import { ContextMenu } from './ContextMenu';
 import { CurrentItemPanel, type CraftFeedback } from './CurrentItemPanel';
 import { DataPanel } from './DataPanel';
 import { ExplanationPanel } from './ExplanationPanel';
 import { HistoryPanel } from './HistoryPanel';
 import { Masthead } from './Masthead';
-import { ModifierPoolPanel } from './ModifierPoolPanel';
+import { ManualEditDialog } from './ManualEditDialog';
+import { ModifierPoolPanel, type PoolFocus } from './ModifierPoolPanel';
 import { ProbabilityPanel } from './ProbabilityPanel';
 import { SourcePanel } from './SourcePanel';
 import { SpendingPanel } from './SpendingPanel';
@@ -84,9 +91,14 @@ export function Workspace() {
   const [notice, setNotice] = useState<WorkspaceNotice | null>(null);
   const [feedback, setFeedback] = useState<CraftFeedback | null>(null);
   const [baseSelectorOpen, setBaseSelectorOpen] = useState(false);
+  const [menu, setMenu] = useState<{ target: ModMenuTarget; x: number; y: number } | null>(null);
+  const [poolFocus, setPoolFocus] = useState<PoolFocus | null>(null);
+  // A manual edit of the current item waits here until the one-time notice is confirmed.
+  const [pendingEdit, setPendingEdit] = useState<ManualEdit | null>(null);
+  const [manualEditAcknowledged, setManualEditAcknowledged] = useState(false);
   const explorerRef = useRef<HTMLDivElement>(null);
   // When each step was applied. Kept by the page: the session itself stays free of clocks.
-  const stepTimes = useRef(new WeakMap<CraftStepRecord, number>());
+  const stepTimes = useRef(new WeakMap<SessionStep, number>());
 
   const analysis = useMemo(
     () => analyzeWorkspace({ session, tool, stageTargetKey, explorerMode }),
@@ -150,9 +162,12 @@ export function Workspace() {
     }
   };
 
+  const scrollToPool = () =>
+    requestAnimationFrame(() => explorerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   const explore = (mode: ExplorerMode) => {
     setExplorerMode(mode);
-    requestAnimationFrame(() => explorerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    setPoolFocus(null);
+    scrollToPool();
   };
   const editSource = (source: ItemState | null) => setSession((s) => setSource(s, source));
   const editTarget = (target: TargetSpec | null) => setSession((s) => withTarget(s, target));
@@ -179,8 +194,87 @@ export function Workspace() {
       editSource(applySourcePick(session.source, option));
     } else if (explorerMode.kind === 'edit-target') {
       editTarget(applyTargetPick(session.target ?? targetForSource(session.source), option));
+    } else if (explorerMode.kind === 'edit-current') {
+      runManualEdit({ operation: 'replace', index: explorerMode.replaceIndex, modifierId: definition.id });
     }
   };
+
+  // Undo / redo / reset can take away the modifier a "replace from pool" was aimed at.
+  useEffect(() => {
+    if (explorerMode.kind === 'edit-current' && !session.current?.explicits[explorerMode.replaceIndex]) {
+      setExplorerMode(INSPECT);
+    }
+  }, [explorerMode, session.current]);
+
+  /** Sandbox edit of the current item: a ManualEditStep, never a craft and never spending (ADR 009). */
+  const applyManual = (edit: ManualEdit) => {
+    const result = applyManualEdit(session, craftDb, edit);
+    if (result.status === 'rejected') {
+      setNotice({ tone: 'bad', text: `Правка не применена. ${manualEditRejectionText(result.reason, result.reasons, view)}` });
+      return;
+    }
+    stepTimes.current.set(result.step, Date.now());
+    setSession(result.session);
+    setFeedback(null);
+    setNotice({
+      tone: 'ok',
+      text: `Шаг ${result.step.index} · ручная правка (${MANUAL_OPERATION_LABEL[edit.operation].toLowerCase()}): ${manualEditText(result.step)}. Это не крафт — валюта не потрачена.`,
+    });
+    // A removal shifts positions: a "replace from pool" aimed at one of them no longer applies.
+    if (edit.operation === 'remove' && explorerMode.kind === 'edit-current') setExplorerMode(INSPECT);
+  };
+  const runManualEdit = (edit: ManualEdit) => {
+    if (manualEditAcknowledged) applyManual(edit);
+    else setPendingEdit(edit);
+  };
+
+  const showInPool = (modifierId: string) => {
+    const definition = view.getModifier(modifierId);
+    if (!definition) return;
+    setExplorerMode(INSPECT);
+    setPoolFocus((prev) => ({
+      modifierId,
+      tab: definition.side,
+      familyKey: definition.groupIds.join('+'),
+      nonce: (prev?.nonce ?? 0) + 1,
+    }));
+    scrollToPool();
+  };
+
+  const addToTarget = (modifierId: string, fractured: boolean) => {
+    const fallback = session.source ?? session.current;
+    const target = session.target ?? targetForSource(fallback);
+    const result = addModifierToTarget(craftDb, session.gameVersion, target, fallback, modifierId, fractured);
+    if (result.status === 'not-allowed') {
+      const why = result.reasons.map((r) => exclusionText(r, view)).join('; ') || 'цель не может это принять';
+      setNotice({ tone: 'bad', text: `В цель не добавлено: ${why}.` });
+      return;
+    }
+    if (result.status !== 'already') editTarget(result.target);
+  };
+
+  const runIntent = (intent: MenuIntent) => {
+    switch (intent.kind) {
+      case 'manual-edit':
+        return runManualEdit(intent.edit);
+      case 'source':
+        return editSource(intent.source);
+      case 'target':
+        return editTarget(intent.target);
+      case 'explore':
+        return explore(intent.mode);
+      case 'show-in-pool':
+        return showInPool(intent.modifierId);
+      case 'add-to-target':
+        return addToTarget(intent.modifierId, intent.fractured);
+    }
+  };
+  const closeMenu = useCallback(() => setMenu(null), []);
+  // Built from the live session on every render, so the menu never acts on a stale item.
+  const menuModel = menu
+    ? buildModMenu(menu.target, { session, db: craftDb, view, poolAvailable: analysis.pool?.status === 'ready' })
+    : null;
+  const openMenu = (target: ModMenuTarget, x: number, y: number) => setMenu({ target, x, y });
 
   const changeVersion = (gameVersion: string) => {
     // Items refer to modifiers by stable id, so source and target survive; the crafted history does not.
@@ -201,7 +295,7 @@ export function Workspace() {
   const held = heldTool(analysis.tool, blockedReason);
   const outOfSync = isSourceOutOfSync(session);
   const lastStep = session.steps[session.steps.length - 1];
-  const freshIndex = feedback?.tone === 'ok' && lastStep ? lastStep.after.explicits.length - 1 : null;
+  const freshIndex = feedback?.tone === 'ok' && lastStep?.kind === 'craft' ? lastStep.after.explicits.length - 1 : null;
 
   return (
     <div className="page">
@@ -224,6 +318,8 @@ export function Workspace() {
               const baseId = session.source?.baseId;
               if (baseId) chooseBase(baseId);
             }}
+            onModMenu={(index, x, y) => openMenu({ scope: 'source', index }, x, y)}
+            menuIndex={menu?.target.scope === 'source' ? menu.target.index : null}
           />
           <CurrentItemPanel
             item={session.current}
@@ -244,6 +340,8 @@ export function Workspace() {
               setSession(resetToSource);
               clearMoment();
             }}
+            onModMenu={(index, x, y) => openMenu({ scope: 'current', index }, x, y)}
+            menuIndex={menu?.target.scope === 'current' ? menu.target.index : null}
           />
           <TargetPanel
             target={session.target}
@@ -256,6 +354,8 @@ export function Workspace() {
             onEdit={editTarget}
             onCreate={() => editTarget(targetForSource(session.source))}
             onExplore={explore}
+            onModMenu={(requirementId, x, y) => openMenu({ scope: 'target', requirementId }, x, y)}
+            menuRequirementId={menu?.target.scope === 'target' ? menu.target.requirementId : null}
           />
         </section>
 
@@ -283,6 +383,7 @@ export function Workspace() {
               view={view}
               highlightIds={new Set(analysis.stageTarget?.target.modifierIds ?? [])}
               picks={analysis.picks}
+              focus={poolFocus}
               toolLabel={held ? held.icons.map((i) => i.name).join(' + ') : null}
               onPick={pick}
               onExit={() => setExplorerMode(INSPECT)}
@@ -303,6 +404,7 @@ export function Workspace() {
             view={view}
             spent={spent}
             spentLines={spentLines}
+            hasManualEdits={hasManualEdits(session)}
             attemptCost={attemptCost}
             stageCost={stageCost}
             probability={probability}
@@ -327,6 +429,17 @@ export function Workspace() {
           <DataPanel view={view} probability={probability} />
         </details>
       </main>
+
+      {menu && menuModel && <ContextMenu model={menuModel} x={menu.x} y={menu.y} onIntent={runIntent} onClose={closeMenu} />}
+      <ManualEditDialog
+        open={pendingEdit !== null}
+        onConfirm={() => {
+          setManualEditAcknowledged(true);
+          if (pendingEdit) applyManual(pendingEdit);
+          setPendingEdit(null);
+        }}
+        onCancel={() => setPendingEdit(null)}
+      />
 
       <BaseSelector
         open={baseSelectorOpen}

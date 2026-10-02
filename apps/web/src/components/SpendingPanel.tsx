@@ -8,12 +8,15 @@ import { formatAttempts, formatCost, formatPercent, formatQuantile } from '@/lib
 import { consumableIconUrl, unitIconUrl } from '@/lib/icons';
 import type { PriceInputs } from '@/lib/prices';
 import { GameIcon } from './GameIcon';
+import { Icon } from './Icon';
 import { Panel } from './Panel';
 
 interface SpendingPanelProps {
   readonly view: CraftDbView;
   readonly spent: SessionSpent;
   readonly spentLines: readonly SpentLine[];
+  /** The active branch has manual edits of the current item: "spent" covers craft steps only. */
+  readonly hasManualEdits: boolean;
   readonly attemptCost: AttemptCost | null;
   readonly stageCost: StageCost | null;
   readonly probability: ProbabilityResult | null;
@@ -51,6 +54,12 @@ export function SpendingPanel(props: SpendingPanelProps) {
       ) : (
         <>
           <h3 className="sub-head">Потрачено — факт</h3>
+          {props.hasManualEdits && (
+            <p className="state-box state-warn spent-manual" role="note">
+              <Icon name="alert" size={14} />
+              <span>Сессия содержит ручные изменения. «Потрачено» учитывает только смоделированные craft-действия.</span>
+            </p>
+          )}
           {props.spentLines.length === 0 ? (
             <p className="empty small">Пока ничего: шаги крафта не записаны.</p>
           ) : (
