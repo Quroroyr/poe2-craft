@@ -34,6 +34,7 @@ function Step({ step, view }: { step: ExplanationStep; view: CraftDbView }) {
   const { t, locale } = useI18n();
   const intl = INTL_LOCALE[locale];
   switch (step.code) {
+    case 'compound-action': return <span>{t('prob.compound')}</span>;
     case 'dataset':
       return (
         <>

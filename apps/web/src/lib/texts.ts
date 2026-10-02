@@ -79,6 +79,7 @@ export const exclusionsText = (t: Translator, reasons: readonly ExclusionReason[
 
 export function issueText(t: Translator, issue: PoolIssue): string {
   switch (issue.code) {
+    case 'action-requirements-not-met': return t('issue.requirements');
     case 'base-not-supported': return t('issue.baseUnsupported');
     case 'action-unknown':
       return t('issue.actionUnknown', { id: issue.actionId });
@@ -116,6 +117,7 @@ export function caveatText(t: Translator, caveat: PoolCaveat): string {
 /** Import diagnostics; `text-warning` messages come from the parser as they are. */
 export function diagnosticText(t: Translator, d: ParseDiagnostic): string {
   switch (d.code) {
+    case 'base-ambiguous': return t('import.baseAmbiguous');
     case 'text-warning':
       return d.message;
     case 'base-not-in-catalog':
@@ -130,6 +132,7 @@ export function diagnosticText(t: Translator, d: ParseDiagnostic): string {
 export function applyRejectionText(t: Translator, rejection: ApplyRejection | null): string {
   if (!rejection) return t('applyRejection.noItem');
   switch (rejection.code) {
+    case 'operation-not-applicable': return t('issue.requirements');
     case 'pool-blocked':
       return t('applyRejection.poolBlocked', { issues: rejection.issues.map((i) => issueText(t, i)).join(' ') });
     case 'no-free-slot':

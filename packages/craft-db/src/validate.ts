@@ -1,4 +1,4 @@
-import { rangesOverlap, type Provenance, type VersionRange } from '@poe2-craft/craft-domain';
+import { modifyAction, rangesOverlap, type Provenance, type VersionRange } from '@poe2-craft/craft-domain';
 import type { CraftDataset } from './dataset';
 
 interface Versioned {
@@ -139,7 +139,7 @@ export function validateDataset(dataset: CraftDataset): string[] {
   }
   for (const c of dataset.consumables) {
     checkProvenance(`consumable ${c.id}`, c.provenance);
-    if ((c.craftStatus === 'modelled' || c.craftStatus === 'verified') && !dataset.actions.some((a) => rangesOverlap(a.versions, c.versions) && a.defaultCost.some((cost) => cost.consumableId === c.id && cost.quantity > 0))) {
+    if ((c.craftStatus === 'modelled' || c.craftStatus === 'verified') && !dataset.actions.some((a) => rangesOverlap(a.versions, c.versions) && (a.defaultCost.some((cost) => cost.consumableId === c.id && cost.quantity > 0) || (c.actionModifiers && c.modifies?.consumableIds.some((id) => a.defaultCost.some((cost) => cost.consumableId === id)) && modifyAction(a, c.id, c.actionModifiers))))) {
       problems.push(`consumable ${c.id}: modelled status needs an action that spends it`);
     }
     if (!c.modifies) continue;

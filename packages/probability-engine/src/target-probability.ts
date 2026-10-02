@@ -71,7 +71,7 @@ export type ProbabilityResult =
     }
   | {
       readonly status: 'indeterminate';
-      readonly reason: 'target-weight-unknown';
+      readonly reason: 'target-weight-unknown' | 'compound-action';
       readonly modifierIds: readonly ModifierId[];
     };
 
@@ -85,6 +85,9 @@ export function calculateTargetProbability(
   options: ProbabilityOptions = {},
 ): ProbabilityResult {
   if (pool.status === 'blocked') return { status: 'blocked', issues: pool.issues };
+  if (pool.action.effect.kind === 'operations' && (pool.action.effect.operations.filter((op) => op.kind === 'add-random-mod').length !== 1 || pool.action.effect.operations.some((op) => op.kind !== 'set-rarity' && (op.kind !== 'add-random-mod' || op.count !== 1)))) {
+    return { status: 'indeterminate', reason: 'compound-action', modifierIds: [] };
+  }
 
   const wanted = new Set(target.modifierIds);
   const satisfied = [...pool.presentModifierIds].filter((id) => wanted.has(id));

@@ -1,0 +1,450 @@
+{
+  "actions": [
+    {
+      "id": "exalted",
+      "name": "Exalted Orb",
+      "description": "Pinned RePoE client 4.5.5.2, base_items.json, Exalted Orb. Augments a [ItemRarity|Rare] item with a new random modifier Right click this item then left click a rare item to apply it. Rare items can have up to six random modifiers. Uniform removal/value rolls are a community model, not independently verified.",
+      "requirements": {
+        "rarities": [
+          "rare"
+        ],
+        "uncorrupted": true
+      },
+      "effect": {
+        "kind": "operations",
+        "operations": [
+          {
+            "kind": "add-random-mod",
+            "count": 1,
+            "allowedSides": [
+              "prefix",
+              "suffix"
+            ]
+          }
+        ]
+      },
+      "defaultCost": [
+        {
+          "consumableId": "exalted",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "transmute",
+      "name": "Orb of Transmutation",
+      "description": "Pinned RePoE client 4.5.5.2, base_items.json, Orb of Transmutation. Upgrades a [ItemRarity|Normal] item to a [ItemRarity|Magic] item with 1 modifier Right click this item then left click a normal item to apply it. Uniform removal/value rolls are a community model, not independently verified.",
+      "requirements": {
+        "rarities": [
+          "normal"
+        ],
+        "uncorrupted": true,
+        "maxModifiers": 0
+      },
+      "effect": {
+        "kind": "operations",
+        "operations": [
+          {
+            "kind": "set-rarity",
+            "rarity": "magic"
+          },
+          {
+            "kind": "add-random-mod",
+            "count": 1,
+            "allowedSides": [
+              "prefix",
+              "suffix"
+            ]
+          }
+        ]
+      },
+      "defaultCost": [
+        {
+          "consumableId": "transmute",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "aug",
+      "name": "Orb of Augmentation",
+      "description": "Pinned RePoE client 4.5.5.2, base_items.json, Orb of Augmentation. Augments a [ItemRarity|Magic] item with a new random modifier Right click this item then left click a magic item to apply it. Magic items can have up to two random modifiers. Uniform removal/value rolls are a community model, not independently verified.",
+      "requirements": {
+        "rarities": [
+          "magic"
+        ],
+        "uncorrupted": true,
+        "maxModifiers": 1
+      },
+      "effect": {
+        "kind": "operations",
+        "operations": [
+          {
+            "kind": "add-random-mod",
+            "count": 1,
+            "allowedSides": [
+              "prefix",
+              "suffix"
+            ]
+          }
+        ]
+      },
+      "defaultCost": [
+        {
+          "consumableId": "aug",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "regal",
+      "name": "Regal Orb",
+      "description": "Pinned RePoE client 4.5.5.2, base_items.json, Regal Orb. Upgrades a [ItemRarity|Magic] item to a [ItemRarity|Rare] item, adding 1 modifier Right click this item then left click a magic item to apply it. Current modifiers are retained and a new one is added. Uniform removal/value rolls are a community model, not independently verified.",
+      "requirements": {
+        "rarities": [
+          "magic"
+        ],
+        "uncorrupted": true
+      },
+      "effect": {
+        "kind": "operations",
+        "operations": [
+          {
+            "kind": "set-rarity",
+            "rarity": "rare"
+          },
+          {
+            "kind": "add-random-mod",
+            "count": 1,
+            "allowedSides": [
+              "prefix",
+              "suffix"
+            ]
+          }
+        ]
+      },
+      "defaultCost": [
+        {
+          "consumableId": "regal",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "alch",
+      "name": "Orb of Alchemy",
+      "description": "Pinned RePoE client 4.5.5.2, base_items.json, Orb of Alchemy. Upgrades a [ItemRarity|Normal] or [ItemRarity|Magic] item to a [ItemRarity|Rare] item with 4 random modifiers Right click this item then left click a normal or magic item to apply it. Current modifiers are not retained. Uniform removal/value rolls are a community model, not independently verified.",
+      "requirements": {
+        "rarities": [
+          "normal",
+          "magic"
+        ],
+        "uncorrupted": true
+      },
+      "effect": {
+        "kind": "operations",
+        "operations": [
+          {
+            "kind": "set-rarity",
+            "rarity": "rare",
+            "clearModifiers": true
+          },
+          {
+            "kind": "add-random-mod",
+            "count": 4,
+            "allowedSides": [
+              "prefix",
+              "suffix"
+            ]
+          }
+        ]
+      },
+      "defaultCost": [
+        {
+          "consumableId": "alch",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "chaos",
+      "name": "Chaos Orb",
+      "description": "Pinned RePoE client 4.5.5.2, base_items.json, Chaos Orb. Removes a random modifier and augments a [ItemRarity|Rare] item with a new random modifier Right click this item then left click a rare item to apply it. Uniform removal/value rolls are a community model, not independently verified.",
+      "requirements": {
+        "rarities": [
+          "rare"
+        ],
+        "uncorrupted": true,
+        "minModifiers": 1
+      },
+      "effect": {
+        "kind": "operations",
+        "operations": [
+          {
+            "kind": "remove-random-mod",
+            "count": 1
+          },
+          {
+            "kind": "add-random-mod",
+            "count": 1,
+            "allowedSides": [
+              "prefix",
+              "suffix"
+            ]
+          }
+        ]
+      },
+      "defaultCost": [
+        {
+          "consumableId": "chaos",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "annul",
+      "name": "Orb of Annulment",
+      "description": "Pinned RePoE client 4.5.5.2, base_items.json, Orb of Annulment. Removes a random modifier from an item Right click this item then left click on a magic or rare item to apply it. Uniform removal/value rolls are a community model, not independently verified.",
+      "requirements": {
+        "rarities": [
+          "magic",
+          "rare"
+        ],
+        "uncorrupted": true,
+        "minModifiers": 1
+      },
+      "effect": {
+        "kind": "operations",
+        "operations": [
+          {
+            "kind": "remove-random-mod",
+            "count": 1
+          }
+        ]
+      },
+      "defaultCost": [
+        {
+          "consumableId": "annul",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "divine",
+      "name": "Divine Orb",
+      "description": "Pinned RePoE client 4.5.5.2, base_items.json, Divine Orb. Randomises the numeric values of modifiers on an item Right click this item then left click an item to apply it. Uniform removal/value rolls are a community model, not independently verified.",
+      "requirements": {
+        "rarities": [
+          "magic",
+          "rare"
+        ],
+        "uncorrupted": true,
+        "minModifiers": 1
+      },
+      "effect": {
+        "kind": "operations",
+        "operations": [
+          {
+            "kind": "reroll-values"
+          }
+        ]
+      },
+      "defaultCost": [
+        {
+          "consumableId": "divine",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "fracturing-orb",
+      "name": "Fracturing Orb",
+      "description": "Pinned RePoE client 4.5.5.2, base_items.json, Fracturing Orb. [Fracture|Fracture] a random modifier on a rare item with at least 4 modifiers, locking it in place. Right click this item then left click a rare item to apply it. Cannot be used on Fractured items. Uniform removal/value rolls are a community model, not independently verified.",
+      "requirements": {
+        "rarities": [
+          "rare"
+        ],
+        "uncorrupted": true,
+        "minModifiers": 4,
+        "unfractured": true
+      },
+      "effect": {
+        "kind": "operations",
+        "operations": [
+          {
+            "kind": "fracture-random-mod"
+          }
+        ]
+      },
+      "defaultCost": [
+        {
+          "consumableId": "fracturing-orb",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "consumables": {
+    "exalted": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE client 4.5.5.2, base_items.json, Exalted Orb. Augments a [ItemRarity|Rare] item with a new random modifier Right click this item then left click a rare item to apply it. Rare items can have up to six random modifiers. Uniform removal/value rolls are a community model, not independently verified."
+    },
+    "transmute": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE client 4.5.5.2, base_items.json, Orb of Transmutation. Upgrades a [ItemRarity|Normal] item to a [ItemRarity|Magic] item with 1 modifier Right click this item then left click a normal item to apply it. Uniform removal/value rolls are a community model, not independently verified."
+    },
+    "aug": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE client 4.5.5.2, base_items.json, Orb of Augmentation. Augments a [ItemRarity|Magic] item with a new random modifier Right click this item then left click a magic item to apply it. Magic items can have up to two random modifiers. Uniform removal/value rolls are a community model, not independently verified."
+    },
+    "regal": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE client 4.5.5.2, base_items.json, Regal Orb. Upgrades a [ItemRarity|Magic] item to a [ItemRarity|Rare] item, adding 1 modifier Right click this item then left click a magic item to apply it. Current modifiers are retained and a new one is added. Uniform removal/value rolls are a community model, not independently verified."
+    },
+    "alch": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE client 4.5.5.2, base_items.json, Orb of Alchemy. Upgrades a [ItemRarity|Normal] or [ItemRarity|Magic] item to a [ItemRarity|Rare] item with 4 random modifiers Right click this item then left click a normal or magic item to apply it. Current modifiers are not retained. Uniform removal/value rolls are a community model, not independently verified."
+    },
+    "chaos": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE client 4.5.5.2, base_items.json, Chaos Orb. Removes a random modifier and augments a [ItemRarity|Rare] item with a new random modifier Right click this item then left click a rare item to apply it. Uniform removal/value rolls are a community model, not independently verified."
+    },
+    "annul": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE client 4.5.5.2, base_items.json, Orb of Annulment. Removes a random modifier from an item Right click this item then left click on a magic or rare item to apply it. Uniform removal/value rolls are a community model, not independently verified."
+    },
+    "divine": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE client 4.5.5.2, base_items.json, Divine Orb. Randomises the numeric values of modifiers on an item Right click this item then left click an item to apply it. Uniform removal/value rolls are a community model, not independently verified."
+    },
+    "fracturing-orb": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE client 4.5.5.2, base_items.json, Fracturing Orb. [Fracture|Fracture] a random modifier on a rare item with at least 4 modifiers, locking it in place. Right click this item then left click a rare item to apply it. Cannot be used on Fractured items. Uniform removal/value rolls are a community model, not independently verified."
+    },
+    "omen-of-sinistral-exaltation": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE base_items.json: While this item is active in your inventory your next\nExalted Orb will add only prefix modifiers",
+      "actionModifiers": [
+        {
+          "kind": "restrict-side",
+          "operation": "add",
+          "side": "prefix"
+        }
+      ],
+      "modifies": {
+        "consumableIds": [
+          "exalted"
+        ]
+      }
+    },
+    "omen-of-dextral-exaltation": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE base_items.json: While this item is active in your inventory your next\nExalted Orb will add only suffix modifiers",
+      "actionModifiers": [
+        {
+          "kind": "restrict-side",
+          "operation": "add",
+          "side": "suffix"
+        }
+      ],
+      "modifies": {
+        "consumableIds": [
+          "exalted"
+        ]
+      }
+    },
+    "omen-of-greater-exaltation": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE base_items.json: While this item is active in your inventory your next\nExalted Orb will add two random modifiers",
+      "actionModifiers": [
+        {
+          "kind": "extra-mod",
+          "count": 1
+        }
+      ],
+      "modifies": {
+        "consumableIds": [
+          "exalted"
+        ]
+      }
+    },
+    "omen-of-sinistral-annulment": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE base_items.json: While this item is active in your inventory your next\nOrb of Annulment will remove only prefix modifiers",
+      "actionModifiers": [
+        {
+          "kind": "restrict-side",
+          "operation": "remove",
+          "side": "prefix"
+        }
+      ],
+      "modifies": {
+        "consumableIds": [
+          "annul"
+        ]
+      }
+    },
+    "omen-of-dextral-annulment": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE base_items.json: While this item is active in your inventory your next\nOrb of Annulment will remove only suffix modifiers",
+      "actionModifiers": [
+        {
+          "kind": "restrict-side",
+          "operation": "remove",
+          "side": "suffix"
+        }
+      ],
+      "modifies": {
+        "consumableIds": [
+          "annul"
+        ]
+      }
+    },
+    "omen-of-sinistral-erasure": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE base_items.json: While this item is active in your inventory your next\nChaos Orb will remove only prefix modifiers",
+      "actionModifiers": [
+        {
+          "kind": "restrict-side",
+          "operation": "remove",
+          "side": "prefix"
+        }
+      ],
+      "modifies": {
+        "consumableIds": [
+          "chaos"
+        ]
+      }
+    },
+    "omen-of-dextral-erasure": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE base_items.json: While this item is active in your inventory your next\nChaos Orb will remove only suffix modifiers",
+      "actionModifiers": [
+        {
+          "kind": "restrict-side",
+          "operation": "remove",
+          "side": "suffix"
+        }
+      ],
+      "modifies": {
+        "consumableIds": [
+          "chaos"
+        ]
+      }
+    },
+    "omen-of-whittling": {
+      "craftStatus": "modelled",
+      "mechanicNotes": "Pinned RePoE base_items.json: While this item is active in your inventory your next\nChaos Orb will remove the lowest level modifier",
+      "actionModifiers": [
+        {
+          "kind": "remove-lowest-level"
+        }
+      ],
+      "modifies": {
+        "consumableIds": [
+          "chaos"
+        ]
+      }
+    }
+  }
+}

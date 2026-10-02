@@ -58,6 +58,7 @@ export interface PoolEntry {
 
 /** The pool cannot be built at all. */
 export type PoolIssue =
+  | { readonly code: 'action-requirements-not-met' }
   | { readonly code: 'base-not-supported' }
   | { readonly code: 'action-unknown'; readonly actionId: CraftActionId }
   | { readonly code: 'base-unknown'; readonly baseName: string | null }
@@ -112,7 +113,9 @@ export type EligiblePool = ReadyPool | BlockedPool;
  * exclusion. Contains no modifier-specific logic: everything comes from the data.
  */
 export function buildEligiblePool(input: PoolInput): EligiblePool {
-  const { item, context, db } = input;
+  const { context, db } = input;
+  const originalItem = input.item;
+  let item = originalItem;
   const view = db.forVersion(context.gameVersion);
   const action = 'action' in input ? input.action : (view.getAction(input.actionId) ?? null);
   const base = item.baseId === null ? undefined : view.getBase(item.baseId);
@@ -120,19 +123,20 @@ export function buildEligiblePool(input: PoolInput): EligiblePool {
   const issues: PoolIssue[] = [];
   if (!action) issues.push({ code: 'action-unknown', actionId: 'actionId' in input ? input.actionId : '' });
   if (!base) issues.push({ code: 'base-unknown', baseName: item.baseName });
+  if (action && ((action.requirements.uncorrupted && item.corrupted) || (action.requirements.unfractured && item.explicits.some((m) => m.fractured)) || (action.requirements.minModifiers !== undefined && item.explicits.length < action.requirements.minModifiers) || (action.requirements.maxModifiers !== undefined && item.explicits.length > action.requirements.maxModifiers))) issues.push({ code: 'action-requirements-not-met' });
+  if (action && item.rarity !== null && !action.requirements.rarities.includes(item.rarity)) issues.push({ code: 'rarity-not-allowed', rarity: item.rarity, allowed: action.requirements.rarities });
+  if (action?.effect.kind === 'operations') {
+    for (const op of action.effect.operations) {
+      if (op.kind === 'set-rarity') item = { ...item, rarity: op.rarity, explicits: op.clearModifiers ? item.explicits.filter((m) => m.fractured) : item.explicits };
+      else break;
+    }
+  }
   if (item.itemLevel === null) issues.push({ code: 'item-level-unknown' });
   if (item.rarity === null) issues.push({ code: 'rarity-unknown' });
   if (base?.dataStatus === 'unsupported') issues.push({ code: 'base-not-supported' });
   const limits = item.rarity === null ? undefined : view.getAffixLimits(item.rarity, base?.itemClassId);
   if (item.rarity !== null && !limits) {
     issues.push({ code: 'affix-limits-unknown', rarity: item.rarity });
-  }
-  if (action && item.rarity !== null && !action.requirements.rarities.includes(item.rarity)) {
-    issues.push({
-      code: 'rarity-not-allowed',
-      rarity: item.rarity,
-      allowed: action.requirements.rarities,
-    });
   }
 
   if (issues.length > 0 || !action || !base || !limits || item.itemLevel === null || item.rarity === null) {
@@ -141,7 +145,8 @@ export function buildEligiblePool(input: PoolInput): EligiblePool {
 
   const facts = collectAffixFacts(item, view, limits);
   const itemLevel = item.itemLevel;
-  const effect = action.effect;
+  const effect = action.effect.kind === 'add-random-modifier' ? action.effect :
+    action.effect.operations.find((op) => op.kind === 'add-random-mod') ?? { allowedSides: [] as AffixSide[], minModifierLevel: undefined, layer: undefined };
   const occupantsByGroup = new Map<ModifierGroupId, GroupOccupant>();
   for (const occupant of facts.occupiedGroups) {
     if (!occupantsByGroup.has(occupant.groupId)) occupantsByGroup.set(occupant.groupId, occupant);
@@ -213,7 +218,7 @@ export function buildEligiblePool(input: PoolInput): EligiblePool {
     context,
     dataset: view.info,
     action,
-    item,
+    item: originalItem,
     base,
     itemLevel,
     rarity: item.rarity,

@@ -4,6 +4,7 @@ import {
   isSpawnable,
   resolveSpawnWeight,
   sameDomain,
+  modifyAction,
   type AffixLimitRule,
   type AffixSide,
   type Consumable,
@@ -219,7 +220,16 @@ function createView(dataset: CraftDataset, version: GameVersion): CraftDbView {
     },
     getSpecialModifier: (id) => specialById.get(id),
     listSpecialModifiers: () => specialModifiers,
-    getAction: (id) => actionById.get(id),
+    getAction: (id) => {
+      const [primaryId, ...omenIds] = id.split('+');
+      let action = actionById.get(primaryId!);
+      for (const omenId of omenIds) {
+        const omen = consumableById.get(omenId);
+        if (!action || !omen?.actionModifiers || !omen.modifies?.consumableIds.some((c) => action!.defaultCost.some((cost) => cost.consumableId === c))) return undefined;
+        action = modifyAction(action, omenId, omen.actionModifiers) ?? undefined;
+      }
+      return action;
+    },
     listActions: () => actions,
     getTarget: (id) => targetById.get(id),
     listTargets: () => targets,

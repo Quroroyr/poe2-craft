@@ -42,6 +42,9 @@ export type OtherLineSource = 'implicit' | 'rune' | 'enchant' | 'other';
 export interface OtherItemLine {
   readonly source: OtherLineSource;
   readonly text: string;
+  readonly modifierId?: ModifierId;
+  readonly values?: readonly number[];
+  readonly unresolvedReason?: UnresolvedReason;
 }
 
 /** How many slots of one kind the item has, e.g. 1 rune socket. Contents of the slots come later. */

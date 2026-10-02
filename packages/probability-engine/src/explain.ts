@@ -60,6 +60,7 @@ export type ExplanationStep =
     }
   | { readonly code: 'already-satisfied'; readonly modifierIds: readonly ModifierId[] }
   | { readonly code: 'target-weight-unknown'; readonly modifierIds: readonly ModifierId[] }
+  | { readonly code: 'compound-action' }
   | { readonly code: 'caveat'; readonly caveat: PoolCaveat };
 
 export function explainCalculation(
@@ -81,6 +82,7 @@ export function explainCalculation(
     return steps;
   }
 
+  const addition = pool.action.effect.kind === 'add-random-modifier' ? pool.action.effect : pool.action.effect.operations.find((op) => op.kind === 'add-random-mod');
   steps.push(
     {
       code: 'item',
@@ -94,8 +96,8 @@ export function explainCalculation(
     {
       code: 'action',
       name: pool.action.name,
-      allowedSides: pool.action.effect.allowedSides,
-      minModifierLevel: pool.action.effect.minModifierLevel ?? null,
+      allowedSides: addition?.allowedSides ?? [],
+      minModifierLevel: addition?.minModifierLevel ?? null,
     },
   );
 
@@ -134,7 +136,7 @@ export function explainCalculation(
   } else if (result.status === 'already-satisfied') {
     steps.push({ code: 'already-satisfied', modifierIds: result.modifierIds });
   } else if (result.status === 'indeterminate') {
-    steps.push({ code: 'target-weight-unknown', modifierIds: result.modifierIds });
+    steps.push(result.reason === 'compound-action' ? { code: 'compound-action' } : { code: 'target-weight-unknown', modifierIds: result.modifierIds });
   }
 
   for (const caveat of pool.caveats) steps.push({ code: 'caveat', caveat });

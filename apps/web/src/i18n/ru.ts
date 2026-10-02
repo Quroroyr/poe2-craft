@@ -2,6 +2,16 @@ import type { Messages } from './core';
 
 /** Русский интерфейс. Тип `Messages` требует каждый ключ английского набора. */
 export const ru: Messages = {
+  'prob.compound': 'Вероятность для этой последовательности операций не смоделирована.',
+  'import.baseAmbiguous': 'Несколько баз имеют это имя; выберите точную базу перед крафтом.',
+  'notice.operations': 'Шаг {index}: применено {action}.',
+  'issue.requirements': 'Предмет не соответствует требованиям действия.',
+  'operation.set-rarity': 'Редкость изменена',
+  'operation.add-random-mod': 'Мод добавлен',
+  'operation.remove-random-mod': 'Мод удалён',
+  'operation.reroll-values': 'Значения переброшены',
+  'operation.fracture-random-mod': 'Мод зафиксирован',
+  'operation.corrupt': 'Порча',
   'exclusionTitle.wrong-domain': 'Домен модификатора',
   'exclusionTitle.layer-not-allowed': 'Слой модификатора',
   'reason.domain': 'Другой домен модификатора',

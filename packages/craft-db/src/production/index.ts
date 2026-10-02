@@ -5,6 +5,7 @@
  */
 import type {
   Consumable,
+  CraftAction,
   ItemBase,
   ItemClass,
   ModifierDefinition,
@@ -13,6 +14,8 @@ import type {
 } from '@poe2-craft/craft-domain';
 import type { CraftDataset } from '../dataset';
 import data from './poe2-data.json';
+import mechanics from './mechanics.json';
+import { RULES_SOURCE_ID } from './rules';
 import { AFFIX_RULE_CATEGORIES, PRODUCTION_SOURCES, QUALITY_CATEGORIES, QUALITY_RULE, affixLimitRules } from './rules';
 
 interface GeneratedData {
@@ -42,6 +45,14 @@ function buildProductionDataset(generated: GeneratedData): CraftDataset {
     const quality = QUALITY_CATEGORIES.includes(categoryOf.get(base.itemClassId) ?? '');
     return { ...base, dataStatus, ...(quality ? { setup: { quality: QUALITY_RULE } } : {}) };
   });
+  const provenance = { sourceId: RULES_SOURCE_ID, confidence: 'community' as const, lastVerified: '2026-10-02' };
+  const versions = { introducedIn: generated.gameVersion };
+  const actions = mechanics.actions.map((a) => ({ ...a, versions, provenance })) as unknown as CraftAction[];
+  const metadata = mechanics.consumables as unknown as Record<string, Partial<Consumable>>;
+  const consumables = generated.consumables.map((c): Consumable => {
+    const meta = metadata[c.id];
+    return { ...c, ...meta, ...(meta?.modifies ? { modifies: { ...meta.modifies, provenance } } : {}) };
+  });
 
   return {
     info: {
@@ -59,10 +70,10 @@ function buildProductionDataset(generated: GeneratedData): CraftDataset {
     groups: generated.groups,
     modifiers: generated.modifiers,
     specialModifiers: generated.specialModifiers,
-    actions: [],
+    actions,
     targets: [],
     affixLimits: affixLimitRules(ruledClasses, generated.gameVersion),
-    consumables: generated.consumables,
+    consumables,
   };
 }
 

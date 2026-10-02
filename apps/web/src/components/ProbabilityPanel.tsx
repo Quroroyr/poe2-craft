@@ -46,7 +46,7 @@ function ProbabilityBody({ result, view }: ProbabilityPanelProps) {
     case 'indeterminate':
       return (
         <div className="state-box state-warn">
-          {t('prob.indeterminate', { ids: result.modifierIds.join(', ') })}
+          {result.reason === 'compound-action' ? t('prob.compound') : t('prob.indeterminate', { ids: result.modifierIds.join(', ') })}
         </div>
       );
     case 'target-unavailable':

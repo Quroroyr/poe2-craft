@@ -1,5 +1,6 @@
 import type { Provenance } from './provenance';
 import type { VersionRange } from './version';
+import type { ActionModifier } from './craft-action';
 
 export type ConsumableId = string;
 
@@ -55,6 +56,7 @@ export interface Consumable {
   readonly craftStatus?: CraftSupportStatus;
   /** Notes on the researched mechanic (what it does, source), when there are any. */
   readonly mechanicNotes?: string;
+  readonly actionModifiers?: readonly ActionModifier[];
   /** Official trade group the record was taken from. */
   readonly tradeGroup?: string;
   readonly versions: VersionRange;

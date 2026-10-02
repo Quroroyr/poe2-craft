@@ -58,7 +58,8 @@ export interface CraftStepRecord {
     readonly side: AffixSide;
     /** Chance this exact modifier had at the moment of the roll. */
     readonly share: number;
-  };
+  } | null;
+  readonly changes?: readonly { readonly kind: string; readonly modifierId?: string; readonly index?: number }[];
 }
 
 /** What a manual edit of the current item did. Sandbox only: not a game mechanic (ADR 009). */
@@ -199,14 +200,15 @@ export function applyStep(session: CraftSession, input: ApplyStepInput): ApplySt
     cost: input.cost,
     before: outcome.before,
     after: outcome.item,
-    added: {
+    added: 'added' in outcome ? {
       modifierId: outcome.definition.id,
       text: outcome.added.sourceText,
       name: outcome.definition.name,
       tier: input.db.forVersion(session.gameVersion).tierOf(outcome.definition.id, session.current.baseId),
       side: outcome.definition.side,
       share: outcome.share,
-    },
+    } : null,
+    ...('changes' in outcome ? { changes: outcome.changes } : {}),
   };
   return {
     status: 'applied',
@@ -352,7 +354,7 @@ export function sessionSpentByConsumable(session: CraftSession): readonly SpentL
 
 /** Modifier ids added by the simulation in this session (to mark them on the current item). */
 export function simulatedModifierIds(session: CraftSession): ReadonlySet<ModifierId> {
-  return new Set(craftSteps(session).map((s) => s.added.modifierId));
+  return new Set(craftSteps(session).flatMap((s) => s.added ? [s.added.modifierId] : (s.changes ?? []).filter((c) => c.kind === 'add-random-mod').flatMap((c) => c.modifierId ?? [])));
 }
 
 /** Where each explicit of the current item came from, by position. */
@@ -373,7 +375,13 @@ export function currentModifierMarks(session: CraftSession): readonly CurrentMod
   let marks: CurrentModifierMark[] = (origin?.explicits ?? []).map(() => ({ crafted: false, edited: false }));
   for (const step of session.steps) {
     if (step.kind === 'craft') {
-      marks = [...marks, ...step.after.explicits.slice(marks.length).map(() => ({ crafted: true, edited: false }))];
+      if (step.changes) {
+        for (const change of step.changes) {
+          if (change.kind === 'remove-random-mod') marks = marks.filter((_, i) => i !== change.index);
+          if (change.kind === 'add-random-mod') marks.push({ crafted: true, edited: false });
+        }
+        marks = step.after.explicits.map((_, i) => marks[i] ?? { crafted: true, edited: false });
+      } else marks = [...marks, ...step.after.explicits.slice(marks.length).map(() => ({ crafted: true, edited: false }))];
     } else if (step.operation === 'remove') {
       marks = marks.filter((_, i) => i !== step.modifierIndex);
     } else {

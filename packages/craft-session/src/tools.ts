@@ -45,6 +45,7 @@ export interface ToolPalette {
  */
 export function toolPalette(view: CraftDbView): ToolPalette {
   const modelled = new Set(view.listActions().flatMap((a) => a.defaultCost.map((c) => c.consumableId)));
+  for (const c of view.listConsumables()) if (c.actionModifiers && (c.craftStatus === 'modelled' || c.craftStatus === 'verified')) modelled.add(c.id);
   const byCategory: Partial<Record<ConsumableCategory, Consumable[]>> = {};
   for (const consumable of view.listConsumables()) {
     (byCategory[consumable.category] ??= []).push(consumable);
@@ -91,7 +92,10 @@ export function resolveTool(view: CraftDbView, tool: ToolSelection): ResolvedToo
   const action = view
     .listActions()
     .find((a) => a.defaultCost.map((c) => c.consumableId).sort().join('|') === key);
-  return action ? { status: 'ready', action, consumables } : { status: 'unsupported', consumables };
+  if (action) return { status: 'ready', action, consumables };
+  const primaryAction = view.listActions().find((a) => a.defaultCost.length === 1 && a.defaultCost[0]?.consumableId === tool.currencyId);
+  const composed = primaryAction && tool.omenIds.length ? view.getAction([primaryAction.id, ...tool.omenIds].join('+')) : undefined;
+  return composed ? { status: 'ready', action: { ...composed, name: consumables.map((c) => c.name).join(' + ') }, consumables } : { status: 'unsupported', consumables };
 }
 
 /** The selection that corresponds to an action (e.g. to show which tool a history step used). */

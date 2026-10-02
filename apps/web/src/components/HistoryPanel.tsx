@@ -185,11 +185,11 @@ function StepRow(props: {
         </span>
       </td>
       <td>
-        <span className="history-result" title={t('history.chance', { chance: formatPercent(step.added.share) })}>
+        {step.added ? <span className="history-result" title={t('history.chance', { chance: formatPercent(step.added.share) })}>
           <span className="side-mark-sm">{SIDE_SHORT[step.added.side]}</span>
           <span className="mod-text">+ {step.added.text.replace(/\n/g, ' / ')}</span>
           <span className="tier-badge">T{step.added.tier}</span>
-        </span>
+        </span> : <span>{(step.changes ?? []).map((change) => t(`operation.${change.kind}` as import('@/i18n/core').MessageKey)).join(' · ')}</span>}
       </td>
       <td className="num right">{formatCost(step.cost.total, step.cost.unit)}</td>
       {tail}

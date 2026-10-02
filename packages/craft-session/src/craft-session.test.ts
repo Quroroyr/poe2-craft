@@ -101,7 +101,7 @@ describe('craft session state', () => {
     expect(session.steps.map((s) => s.index)).toEqual([1, 2]);
     expect(session.steps[1]?.before).toBe(session.steps[0]?.after);
     expect(session.steps[1]?.after).toBe(session.current);
-    expect(craftSteps(session)[0]?.added.modifierId).toBe(
+    expect(craftSteps(session)[0]?.added?.modifierId).toBe(
       (session.steps[0]?.after.explicits[1] as ResolvedModifier).modifierId,
     );
     expect(sessionSpent(session)).toMatchObject({ unit: 'div', total: 0.42, stepCount: 2 });
@@ -163,7 +163,7 @@ describe('craft session state', () => {
 describe('action application (demo simulation)', () => {
   it('adds one eligible modifier with values inside its tier', () => {
     const outcome = apply(SOURCE, 'action.add-random-modifier', 11);
-    if (outcome.status !== 'applied') throw new Error(outcome.status);
+    if (outcome.status !== 'applied' || !('added' in outcome)) throw new Error(outcome.status);
     const pool = buildEligiblePool({ item: SOURCE, context, db, actionId: 'action.add-random-modifier' });
     const eligibleIds = pool.status === 'ready' ? pool.eligible.map((e) => e.definition.id) : [];
     expect(eligibleIds).toContain(outcome.added.modifierId);
@@ -187,7 +187,7 @@ describe('action application (demo simulation)', () => {
     for (let seed = 0; seed < 60; seed++) {
       const suffix = apply(SOURCE, 'action.add-random-suffix', seed);
       const prefix = apply(SOURCE, 'action.add-random-prefix', seed);
-      if (suffix.status !== 'applied' || prefix.status !== 'applied') throw new Error('rejected');
+      if (suffix.status !== 'applied' || prefix.status !== 'applied' || !('added' in suffix) || !('added' in prefix)) throw new Error('rejected');
       expect(sideOf(suffix.added)).toBe('suffix');
       expect(sideOf(prefix.added)).toBe('prefix');
     }
@@ -196,7 +196,7 @@ describe('action application (demo simulation)', () => {
   it('never adds a modifier from a group already on the item', () => {
     for (let seed = 0; seed < 60; seed++) {
       const outcome = apply(SOURCE, 'action.add-random-suffix', seed);
-      if (outcome.status !== 'applied') throw new Error('rejected');
+      if (outcome.status !== 'applied' || !('added' in outcome)) throw new Error('rejected');
       expect(outcome.definition.groupIds).not.toContain('group.local-critical-chance');
     }
   });

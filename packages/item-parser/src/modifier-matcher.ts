@@ -69,6 +69,7 @@ function valuesFit(candidate: Candidate): boolean {
 export interface MatchOptions {
   /** Base spawn tags. When given, definitions spawnable on the base win over others with the same text. */
   readonly baseTags?: readonly string[];
+  readonly tierOf?: (id: string) => number;
 }
 
 /**
@@ -137,7 +138,7 @@ function resolveSpan(
 
   let fitting = pool.filter(valuesFit);
   if (fitting.length > 1 && header?.tier !== undefined) {
-    const byTier = fitting.filter((c) => c.definition.tier === header.tier);
+    const byTier = fitting.filter((c) => (options.tierOf?.(c.definition.id) ?? c.definition.tier) === header.tier);
     if (byTier.length > 0) fitting = byTier;
   }
   if (fitting.length > 1 && header?.affixName !== undefined) {

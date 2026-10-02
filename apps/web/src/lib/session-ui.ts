@@ -50,6 +50,7 @@ export function currentItemBadges(t: Translator, session: CraftSession, comparis
 export function applyNotice(t: Translator, result: ApplyStepResult, view: CraftDbView): WorkspaceNotice {
   if (result.status === 'applied') {
     const { added, index, actionName } = result.step;
+    if (!added) return { tone: 'ok', text: t('notice.operations', { index, action: actionName }) };
     const tier = view.tierOf(added.modifierId, result.step.after.baseId) || added.tier;
     return {
       tone: 'ok',

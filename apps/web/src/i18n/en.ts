@@ -3,6 +3,16 @@
  * Game names (bases, currencies, modifier text, tags) come from the dataset and are not here.
  */
 export const en = {
+  'prob.compound': 'Probability for this operation sequence is not modelled.',
+  'import.baseAmbiguous': 'Several bases share this name; select the exact base before crafting.',
+  'notice.operations': 'Step {index}: {action} applied.',
+  'issue.requirements': 'The item does not meet the action requirements.',
+  'operation.set-rarity': 'Rarity changed',
+  'operation.add-random-mod': 'Modifier added',
+  'operation.remove-random-mod': 'Modifier removed',
+  'operation.reroll-values': 'Values rerolled',
+  'operation.fracture-random-mod': 'Modifier fractured',
+  'operation.corrupt': 'Corrupted',
   'exclusionTitle.wrong-domain': 'Modifier domain',
   'exclusionTitle.layer-not-allowed': 'Modifier layer',
   'reason.domain': 'Different modifier domain',
