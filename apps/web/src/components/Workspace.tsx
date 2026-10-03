@@ -503,6 +503,7 @@ export function Workspace(props: WorkspaceProps) {
                   priceUnit={snapshot.unit}
                   view={view}
                   palette={analysis.palette}
+                  item={session.current}
                   selection={tool}
                   onSelect={setTool}
                   resolved={analysis.tool}

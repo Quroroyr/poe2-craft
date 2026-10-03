@@ -272,9 +272,8 @@ describe('interface language', () => {
 describe('v0.6 behaviour on the new layout', () => {
   it('currency + Omen craft, manual edit, undo / redo and the spending warning', async () => {
     await mount({ session: demoSession() });
-    await click(button($('.panel-tools'), 'Omens'));
+    // "Usable" (default) lists currencies and omens in one strip, no category tabs.
     await click($('.panel-tools [aria-label="Tools"] [title^="Omen of Dextral Exaltation"]'));
-    await click(button($('.panel-tools'), 'Currency'));
     await click($('.panel-current .craft-zone'));
     expect(historyRows()[0]!.textContent).toContain('Omen');
 

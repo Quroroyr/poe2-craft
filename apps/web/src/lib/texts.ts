@@ -3,7 +3,7 @@
  * Presentation only: the meaning of each code is defined by the package that emits it. Every
  * function takes the translator; no text is hard-coded here.
  */
-import type { AffixSide, ConsumableCategory, Confidence, Provenance, Rarity, UnresolvedReason } from '@poe2-craft/craft-domain';
+import type { AffixSide, ConsumableCategory, Confidence, Provenance, Rarity, UnresolvedReason, WeightEvidence } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ParseDiagnostic } from '@poe2-craft/item-parser';
 import type {
@@ -45,6 +45,25 @@ export function sourceTitle(t: Translator, view: CraftDbView, provenance: Proven
   const parts = [source ? t(`sourceKind.${source.kind}`) : provenance.sourceId, provenance.confidence];
   if (provenance.lastVerified) parts.push(provenance.lastVerified);
   return parts.join(' · ');
+}
+
+/**
+ * Where the weights behind a chance come from, short for the line under the number and long for its
+ * tooltip: "Weights: PoE2DB · 2026-10-03" / source, method, confidence, patch, group. Null when the
+ * weights carry no evidence (hand-written demo weights, labelled elsewhere).
+ */
+export function weightSourceNote(t: Translator, view: CraftDbView, entries: readonly { readonly weightEvidence?: WeightEvidence }[]): { short: string; title: string } | null {
+  const evidence = entries.find((e) => e.weightEvidence)?.weightEvidence;
+  if (!evidence) return null;
+  const source = view.getSource(evidence.sourceId);
+  const name = source ? t(`sourceKind.${source.kind}`) : evidence.sourceId;
+  return {
+    short: t('weights.short', { source: name, date: evidence.capturedAt ?? '?' }),
+    title: t('weights.title', {
+      source: source?.title ?? name, confidence: evidence.confidence, method: t(`weights.method.${evidence.method}`),
+      date: evidence.capturedAt ?? '?', patch: evidence.patch ?? '?', context: evidence.context ?? '',
+    }),
+  };
 }
 
 export function exclusionText(t: Translator, reason: ExclusionReason, view: CraftDbView): string {

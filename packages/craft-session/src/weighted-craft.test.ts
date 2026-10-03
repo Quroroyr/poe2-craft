@@ -142,3 +142,25 @@ describe('weighted crafting on real data (PoE2DB weights)', () => {
     expect(redoStep(undone).current).toBe(after);
   });
 });
+
+describe('usable tools', () => {
+  it('lists only modelled tools: usable currencies first, omens next, blocked currencies last with the reason', async () => {
+    const { toolPalette, usableTools } = await import('./tools');
+    const palette = toolPalette(view);
+    const all = Object.values(palette.byCategory).flat().length;
+    const rows = usableTools(view, palette, blankRare, { currencyId: 'exalted', omenIds: [] });
+    expect(rows.length).toBe(palette.modelled.size);
+    expect(rows.length).toBeLessThan(all);
+    const kinds = rows.map((r) => (r.consumable.category === 'omen' ? 'omen' : r.block === null ? 'usable' : 'blocked'));
+    expect(kinds).toEqual([...kinds].sort((a, b) => ['usable', 'omen', 'blocked'].indexOf(a) - ['usable', 'omen', 'blocked'].indexOf(b)));
+    // A rare item without modifiers: Exalted applies, Transmutation needs a normal item, Chaos needs a modifier.
+    expect(rows.find((r) => r.consumable.id === 'exalted')!.block).toBeNull();
+    expect(rows.find((r) => r.consumable.id === 'transmute')!.block).toBe('rarity');
+    expect(rows.find((r) => r.consumable.id === 'chaos')!.block).toBe('too-few-modifiers');
+    // Omens that modify the held currency come before other omens.
+    const omens = rows.filter((r) => r.consumable.category === 'omen').map((r) => r.consumable);
+    const firstOther = omens.findIndex((o) => !o.modifies?.consumableIds.includes('exalted'));
+    expect(omens.slice(firstOther).every((o) => !o.modifies?.consumableIds.includes('exalted'))).toBe(true);
+    expect(usableTools(view, palette, null, { currencyId: null, omenIds: [] }).filter((r) => r.consumable.category !== 'omen').every((r) => r.block === 'no-item')).toBe(true);
+  });
+});

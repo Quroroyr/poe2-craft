@@ -1,11 +1,13 @@
-import { useMemo, useRef, useState } from 'react';
-import type { Consumable, ConsumableCategory } from '@poe2-craft/craft-domain';
+import { Fragment, useMemo, useRef, useState } from 'react';
+import type { Consumable, ConsumableCategory, ItemState } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import {
   EMPTY_TOOL,
   clearOmens,
   pickTool,
+  usableTools,
   type ResolvedTool,
+  type ToolBlock,
   type ToolPalette as Palette,
   type ToolSelection,
 } from '@poe2-craft/craft-session';
@@ -20,12 +22,15 @@ import { toolCategoryLabel } from '@/lib/texts';
 import { GameIcon } from './GameIcon';
 import { Icon } from './Icon';
 import { Panel } from './Panel';
+import { WeightSource } from './ProbabilityPanel';
 
 const CATEGORIES: readonly ConsumableCategory[] = ['currency', 'omen', 'essence', 'catalyst', 'rune', 'soul-core', 'liquid-emotion', 'abyssal-bone'];
 
 interface ToolPaletteProps {
   readonly view: CraftDbView;
   readonly palette: Palette;
+  /** The current item: the "usable" view orders tools by what applies to it. */
+  readonly item: ItemState | null;
   readonly selection: ToolSelection;
   readonly onSelect: (selection: ToolSelection) => void;
   readonly resolved: ResolvedTool;
@@ -39,18 +44,26 @@ interface ToolPaletteProps {
 export function ToolPalette(props: ToolPaletteProps) {
   const { palette, selection } = props;
   const { t } = useI18n();
+  const [scope, setScope] = useState<'usable' | 'all'>('usable');
   const [category, setCategory] = useState<ConsumableCategory>('currency');
   const [query, setQuery] = useState('');
   const [wrap, setWrap] = useState(false);
   const stripRef = useRef<HTMLDivElement>(null);
 
+  const usable = useMemo(() => usableTools(props.view, palette, props.item, selection), [props.view, palette, props.item, selection]);
+  const blocks = useMemo(() => new Map(usable.map((u) => [u.consumable.id, u.block] as const)), [usable]);
+  const allCount = useMemo(() => CATEGORIES.reduce((n, c) => n + (palette.byCategory[c]?.length ?? 0), 0), [palette]);
   const tools = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = q
-      ? CATEGORIES.flatMap((c) => palette.byCategory[c] ?? [])
-      : (palette.byCategory[category] ?? []);
-    return q ? list.filter((c) => c.name.toLowerCase().includes(q)) : list;
-  }, [palette, category, query]);
+    const list = scope === 'usable'
+      ? usable.map((u) => u.consumable)
+      : q
+        ? CATEGORIES.flatMap((c) => palette.byCategory[c] ?? [])
+        : (palette.byCategory[category] ?? []);
+    const found = q ? list.filter((c) => c.name.toLowerCase().includes(q)) : list;
+    // "All": modelled tools first, the catalogued rest after a divider.
+    return scope === 'all' ? [...found.filter((c) => palette.modelled.has(c.id)), ...found.filter((c) => !palette.modelled.has(c.id))] : found;
+  }, [palette, category, query, scope, usable]);
 
   const isSelected = (c: Consumable) => selection.currencyId === c.id || selection.omenIds.includes(c.id);
   const scroll = (dir: number) => stripRef.current?.scrollBy({ left: dir * 360, behavior: 'smooth' });
@@ -62,7 +75,15 @@ export function ToolPalette(props: ToolPaletteProps) {
       className="panel-tools"
       aside={
         <>
-          <div className="tool-tabs" role="tablist" aria-label={t('tools.categories')}>
+          <div className="segmented tool-scope" role="group" aria-label={t('tools.scope')}>
+            <button type="button" aria-pressed={scope === 'usable'} onClick={() => setScope('usable')}>
+              {t('tools.usable')} <span className="chip-count">{usable.length}</span>
+            </button>
+            <button type="button" aria-pressed={scope === 'all'} onClick={() => setScope('all')}>
+              {t('tools.all')} <span className="chip-count">{allCount}</span>
+            </button>
+          </div>
+          {scope === 'all' && <div className="tool-tabs" role="tablist" aria-label={t('tools.categories')}>
             {CATEGORIES.filter((c) => palette.byCategory[c]?.length).map((c) => (
               <button
                 key={c}
@@ -78,7 +99,7 @@ export function ToolPalette(props: ToolPaletteProps) {
                 {toolCategoryLabel(t, c)}
               </button>
             ))}
-          </div>
+          </div>}
           <label className="search-field search-compact">
             <Icon name="search" size={15} />
             <input
@@ -112,23 +133,31 @@ export function ToolPalette(props: ToolPaletteProps) {
           )}
           <div className="tool-strip" ref={stripRef} role="listbox" aria-label={t('tools.list')} aria-multiselectable="true">
             {tools.length === 0 && <p className="empty strip-empty">{t('tools.empty')}</p>}
-            {tools.map((c) => {
+            {tools.map((c, i) => {
               const modelled = palette.modelled.has(c.id);
+              const divider = scope === 'all' && !modelled && (i === 0 || palette.modelled.has(tools[i - 1]!.id));
+              const block = blocks.get(c.id) ?? null;
               const price = parsePriceInput(props.priceInputs[c.id]);
               return (
+                <Fragment key={c.id}>
+                {divider && (
+                  <span className="strip-divider" role="presentation">
+                    {t('tools.notModelledGroup')}
+                  </span>
+                )}
                 <button
-                  key={c.id}
                   type="button"
                   role="option"
                   aria-selected={isSelected(c)}
-                  className={`tool-tile${modelled ? '' : ' tool-tile-dim'}${c.category === 'omen' ? ' tool-tile-omen' : ''}`}
-                  title={`${modelled ? c.name : t('tools.notModelledTitle', { name: c.name })}${price === null ? '' : ` · ${formatCost(price, props.priceUnit ?? 'div')}`}`}
+                  className={`tool-tile${modelled && !block ? '' : ' tool-tile-dim'}${c.category === 'omen' ? ' tool-tile-omen' : ''}`}
+                  title={`${modelled ? c.name : t('tools.notModelledTitle', { name: c.name })}${block ? ` — ${blockText(t, block)}` : ''}${price === null ? '' : ` · ${formatCost(price, props.priceUnit ?? 'div')}`}`}
                   onClick={() => props.onSelect(pickTool(selection, c))}
                 >
                   <GameIcon src={consumableIconUrl(c)} label={c.name} size={44} />
                   <span className="tool-name">{c.name.replace(/^Omen of /, '')}</span>
-                  <span className="tool-flag">{t(modelled ? 'data.modelled' : 'tools.notModelled')}</span>
+                  <span className="tool-flag">{!modelled ? t('tools.notModelled') : block ? blockText(t, block) : t('data.modelled')}</span>
                 </button>
+                </Fragment>
               );
             })}
           </div>
@@ -197,6 +226,7 @@ function ActiveCraft(props: ToolPaletteProps) {
                   : probability?.status === 'already-satisfied'
                     ? t('active.already')
                     : t('active.unavailable')}
+                {probability?.status === 'ok' && <WeightSource view={view} entries={probability.targetEntries} />}
               </dd>
             </div>
           </dl>
@@ -227,4 +257,8 @@ function ActiveCraft(props: ToolPaletteProps) {
       )}
     </aside>
   );
+}
+
+function blockText(t: ReturnType<typeof useI18n>['t'], block: ToolBlock): string {
+  return t(`tools.block.${block}`);
 }

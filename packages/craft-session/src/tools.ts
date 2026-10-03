@@ -3,6 +3,7 @@ import type {
   ConsumableCategory,
   ConsumableId,
   CraftAction,
+  ItemState,
 } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 
@@ -103,4 +104,43 @@ export function toolForAction(view: CraftDbView, action: CraftAction): ToolSelec
   const ids = action.defaultCost.map((c) => c.consumableId);
   const currencyId = ids.find((id) => view.getConsumable(id)?.category !== 'omen') ?? null;
   return { currencyId, omenIds: ids.filter((id) => view.getConsumable(id)?.category === 'omen') };
+}
+
+/** Why a modelled tool cannot be used on the current item right now. */
+export type ToolBlock = 'no-item' | 'rarity' | 'corrupted' | 'too-few-modifiers' | 'too-many-modifiers' | 'fractured';
+
+export interface UsableTool {
+  readonly consumable: Consumable;
+  /** null = usable now (omens: can be held with a compatible currency). */
+  readonly block: ToolBlock | null;
+}
+
+/**
+ * The "usable" view of the palette: only modelled tools, ordered for the item at hand —
+ * currencies whose action requirements the item meets, then omens (held one first, then those that
+ * modify the held currency), then the remaining currencies with the requirement they miss.
+ * Ordering only; it recommends nothing and the full catalogue stays in `toolPalette`.
+ */
+export function usableTools(view: CraftDbView, palette: ToolPalette, item: ItemState | null, selection: ToolSelection): UsableTool[] {
+  const all = Object.values(palette.byCategory).flat().filter((c): c is Consumable => !!c && palette.modelled.has(c.id));
+  const actionOf = (id: ConsumableId) => view.listActions().find((a) => a.defaultCost.length === 1 && a.defaultCost[0]?.consumableId === id);
+  const blockOf = (c: Consumable): ToolBlock | null => {
+    const action = actionOf(c.id);
+    if (!action) return null;
+    if (!item) return 'no-item';
+    const r = action.requirements;
+    if (item.rarity === null || !r.rarities.includes(item.rarity)) return 'rarity';
+    if (r.uncorrupted && item.corrupted) return 'corrupted';
+    if (r.unfractured && item.explicits.some((m) => m.fractured)) return 'fractured';
+    if (r.minModifiers !== undefined && item.explicits.length < r.minModifiers) return 'too-few-modifiers';
+    if (r.maxModifiers !== undefined && item.explicits.length > r.maxModifiers) return 'too-many-modifiers';
+    return null;
+  };
+  const tools = all.map((consumable) => ({ consumable, block: consumable.category === 'omen' ? null : blockOf(consumable) }));
+  const rank = (t: UsableTool) => {
+    if (t.consumable.category !== 'omen') return t.block === null ? 0 : 3;
+    if (selection.omenIds.includes(t.consumable.id)) return 1;
+    return selection.currencyId && t.consumable.modifies?.consumableIds.includes(selection.currencyId) ? 1.5 : 2;
+  };
+  return tools.map((t, i) => ({ t, i })).sort((a, b) => rank(a.t) - rank(b.t) || a.i - b.i).map(({ t }) => t);
 }

@@ -2205,6 +2205,36 @@ select:hover,
   padding: 2px 2px 6px;
 }
 
+/* "All": the catalogued, not modelled tools start after this label. */
+.strip-divider {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 0 10px 0 14px;
+  border-left: 1px solid var(--border-strong);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--subtle);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.strip-wrap-grid .strip-divider {
+  flex-basis: 100%;
+  padding: 6px 2px 2px;
+  border-left: 0;
+  border-top: 1px solid var(--border-strong);
+  writing-mode: horizontal-tb;
+  transform: none;
+}
+
+.tool-scope button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .strip-wrap-grid .tool-strip {
   flex-wrap: wrap;
   overflow: visible;
@@ -3669,4 +3699,17 @@ tr.is-target td:first-child {
   padding: 4px 8px;
   font-size: 12px;
   letter-spacing: 0.04em;
+}
+
+/* Where the weights behind a chance come from (tooltip has the details). */
+.weight-source {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--subtle);
+  cursor: help;
 }

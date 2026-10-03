@@ -1,9 +1,11 @@
+import type { WeightEvidence } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ProbabilityResult } from '@poe2-craft/probability-engine';
 import { INTL_LOCALE } from '@/i18n/core';
 import { formatAttempts, formatInt, formatPercent, formatQuantile } from '@/lib/format';
 import { useI18n } from '@/i18n/I18nProvider';
-import { exclusionsText, issueText } from '@/lib/texts';
+import { exclusionsText, issueText, weightSourceNote } from '@/lib/texts';
+import { Icon } from './Icon';
 import { Panel } from './Panel';
 
 interface ProbabilityPanelProps {
@@ -77,6 +79,7 @@ function ProbabilityBody({ result, view }: ProbabilityPanelProps) {
               <span className="headline-value">
                 {formatPercent(result.probability)}
               </span>
+              <WeightSource view={view} entries={result.targetEntries} />
             </div>
             <div className="headline-side">
               <span className="headline-label">{t('prob.attempts')}</span>
@@ -127,4 +130,15 @@ function ProbabilityBody({ result, view }: ProbabilityPanelProps) {
         </>
       );
   }
+}
+
+/** Small line under a chance: where its weights come from; details in the tooltip. */
+export function WeightSource(props: { view: CraftDbView; entries: readonly { readonly weightEvidence?: WeightEvidence }[] }) {
+  const { t } = useI18n();
+  const note = weightSourceNote(t, props.view, props.entries);
+  return note ? (
+    <span className="weight-source" title={note.title}>
+      <Icon name="book" size={12} /> {note.short}
+    </span>
+  ) : null;
 }
