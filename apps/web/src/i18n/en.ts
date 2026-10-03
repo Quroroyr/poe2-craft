@@ -26,6 +26,10 @@ export const en = {
   'toolCategory.abyssal-bone': 'Abyssal Bones',
 
   'prob.compound': 'Probability for this operation sequence is not modelled.',
+  'prob.partialWeights': {
+    one: 'Unavailable — partial weight data: {count} modifier in the pool has no known weight.',
+    other: 'Unavailable — partial weight data: {count} modifiers in the pool have no known weight.',
+  },
   'import.baseAmbiguous': 'Several bases share this name; select the exact base before crafting.',
   'notice.operations': 'Step {index}: {action} applied.',
   'issue.requirements': 'The item does not meet the action requirements.',
@@ -474,6 +478,11 @@ export const en = {
   'why.alreadyLabel': 'Target already on the item:',
   'why.weightUnknownLabel': 'Target weight unknown',
   'why.weightUnknownText': '({ids}) — the probability is not calculated.',
+  'why.partialWeightsLabel': 'Partial weight data',
+  'why.partialWeightsText': {
+    one: '{count} competing modifier has no known weight, so the total weight is unknown — the probability is not calculated.',
+    other: '{count} competing modifiers have no known weight, so the total weight is unknown — the probability is not calculated.',
+  },
   'why.caveatLabel': 'Caveat.',
 
   // data
@@ -597,8 +606,8 @@ export const en = {
   'caveat.unresolvedGroups': 'Groups of unrecognised lines count as taken (a cautious estimate): {texts}.',
   'caveat.missingInVersion': 'Item modifiers missing in the selected game version: {ids}.',
   'caveat.unknownWeights': {
-    one: 'The weight of {count} modifier in the pool is unknown — the shown chance is an upper bound.',
-    other: 'The weights of {count} modifiers in the pool are unknown — the shown chance is an upper bound.',
+    one: 'The weight of {count} modifier in the pool is unknown — chances over this pool are not calculated and random additions are blocked.',
+    other: 'The weights of {count} modifiers in the pool are unknown — chances over this pool are not calculated and random additions are blocked.',
   },
   'confidence.official': 'official — stated by GGG',
   'confidence.verified': 'verified — checked against game data',

@@ -159,6 +159,12 @@ function Step({ step, view }: { step: ExplanationStep; view: CraftDbView }) {
           <b>{t('why.weightUnknownLabel')}</b> {t('why.weightUnknownText', { ids: step.modifierIds.join(', ') })}
         </>
       );
+    case 'partial-weights':
+      return (
+        <>
+          <b>{t('why.partialWeightsLabel')}</b> {t('why.partialWeightsText', { count: step.modifierIds.length })}
+        </>
+      );
     case 'caveat':
       return (
         <>

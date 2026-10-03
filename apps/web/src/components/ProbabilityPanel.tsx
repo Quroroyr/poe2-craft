@@ -46,7 +46,7 @@ function ProbabilityBody({ result, view }: ProbabilityPanelProps) {
     case 'indeterminate':
       return (
         <div className="state-box state-warn">
-          {result.reason === 'compound-action' ? t('prob.compound') : t('prob.indeterminate', { ids: result.modifierIds.join(', ') })}
+          {result.reason === 'compound-action' ? t('prob.compound') : result.reason === 'partial-weights' ? t('prob.partialWeights', { count: result.modifierIds.length }) : t('prob.indeterminate', { ids: result.modifierIds.join(', ') })}
         </div>
       );
     case 'target-unavailable':
@@ -75,7 +75,6 @@ function ProbabilityBody({ result, view }: ProbabilityPanelProps) {
             <div className="headline-main">
               <span className="headline-label">{t('prob.chance')}</span>
               <span className="headline-value">
-                {result.bound === 'upper-bound' && '≤ '}
                 {formatPercent(result.probability)}
               </span>
             </div>
