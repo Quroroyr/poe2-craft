@@ -21,9 +21,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      NEXT_PUBLIC_STATIC_SITE: '1'
-      NEXT_PUBLIC_BASE_PATH: /poe2-craft
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -41,7 +38,11 @@ jobs:
             mkdir -p apps/web/public/prices
             cp data/prices/latest.json apps/web/public/prices/latest.json
           fi
+      # The Pages variables only for the build: tests run against the default (root) paths.
       - name: Static export (the server-only price proxy is not part of it)
+        env:
+          NEXT_PUBLIC_STATIC_SITE: '1'
+          NEXT_PUBLIC_BASE_PATH: /poe2-craft
         run: |
           rm -rf apps/web/src/app/api
           pnpm --filter @poe2-craft/web build
