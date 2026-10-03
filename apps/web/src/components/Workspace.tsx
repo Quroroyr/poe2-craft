@@ -34,6 +34,7 @@ import { calculateAttemptCost, calculateStageCost, type PriceSnapshot } from '@p
 import { useI18n } from '@/i18n/I18nProvider';
 import { REAL_GAME_VERSION, analyzeWorkspace, demoCraftDb, realCraftDb, recognizeItem, type ExplorerMode } from '@/lib/analyze';
 import { heldTool } from '@/lib/held-tool';
+import { fetchLeagues, fetchPriceSnapshot } from '@/lib/price-source';
 import { buildModMenu, type MenuIntent, type ModMenuTarget } from '@/lib/mod-menu';
 import { INITIAL_PRICE_INPUTS, snapshotFromInputs, type PriceInputs } from '@/lib/prices';
 import { applyNotice, currentItemBadges, randomSeed, type WorkspaceNotice } from '@/lib/session-ui';
@@ -139,9 +140,7 @@ export function Workspace(props: WorkspaceProps) {
     const request = ++priceRequest.current;
     setPriceLoading(true); setPriceError(false);
     try {
-      const response = await fetch(`/api/prices?league=${encodeURIComponent(selected)}`);
-      if (!response.ok) throw new Error('price-api');
-      const next = await response.json() as PriceSnapshot;
+      const next = await fetchPriceSnapshot(selected);
       if (request === priceRequest.current) setMarket(next);
     } catch { if (request === priceRequest.current) setPriceError(true); }
     finally { if (request === priceRequest.current) setPriceLoading(false); }
@@ -149,9 +148,7 @@ export function Workspace(props: WorkspaceProps) {
   useEffect(() => {
     if (dataset !== 'real') return;
     let active = true;
-    fetch('/api/prices').then(async (response) => {
-      if (!response.ok) throw new Error('price-api');
-      const list = await response.json() as { id: string; name: string }[];
+    fetchLeagues().then((list) => {
       if (!active) return;
       setLeagues(list);
       if (list[0]) { setLeague(list[0].id); void refreshPrices(list[0].id); }

@@ -12,3 +12,4 @@ data/raw/*/
 .cache/
 /apps/web/public/art/
 data/prices/
+/apps/web/public/prices/

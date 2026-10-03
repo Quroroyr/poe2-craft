@@ -1,0 +1,61 @@
+# Static build of the site for GitHub Pages: https://quroroyr.github.io/poe2-craft/
+# Runs on every push to main and once a day (fresh poe.ninja price snapshot).
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_STATIC_SITE: '1'
+      NEXT_PUBLIC_BASE_PATH: /poe2-craft
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - name: Item art (downloaded, not stored in git)
+        run: pnpm data:art
+      - name: Price snapshot (the site keeps working with manual prices if poe.ninja is unavailable)
+        run: |
+          if pnpm data:prices; then
+            mkdir -p apps/web/public/prices
+            cp data/prices/latest.json apps/web/public/prices/latest.json
+          fi
+      - name: Static export (the server-only price proxy is not part of it)
+        run: |
+          rm -rf apps/web/src/app/api
+          pnpm --filter @poe2-craft/web build
+          touch apps/web/out/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -821,7 +821,7 @@ body::before {
   background:
     radial-gradient(70% 90% at 50% 30%, rgba(7, 8, 10, 0.9), rgba(7, 8, 10, 0.55) 75%),
     linear-gradient(rgba(7, 8, 10, 0.35), rgba(7, 8, 10, 0.92) 85%),
-    url('/img/workshop.webp') center top / cover no-repeat;
+    var(--workshop-image) center top / cover no-repeat;
 }
 
 .page {
