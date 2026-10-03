@@ -287,7 +287,9 @@
 .base-dialog {
   width: min(1120px, calc(100vw - 32px));
   max-width: none;
-  max-height: min(88vh, 960px);
+  /* One height for every step, so the sheet does not jump while navigating. */
+  height: min(88vh, 860px);
+  max-height: none;
   padding: 0;
   border: 1px solid var(--border-strong);
   border-radius: 12px;
@@ -342,15 +344,6 @@
   color: var(--muted);
 }
 
-.base-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 14px;
-  padding: 0 20px 14px;
-  border-bottom: 1px solid var(--border);
-}
-
 .search-field {
   display: inline-flex;
   align-items: center;
@@ -377,19 +370,6 @@
   outline: none;
 }
 
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.base-controls-end {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: auto;
-}
-
 .sheet-note {
   margin: 0;
   padding: 8px 20px;
@@ -403,106 +383,6 @@
   text-align: center;
 }
 
-.base-list {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 16px 20px 20px;
-  list-style: none;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.base-list-grid {
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-}
-
-.base-card {
-  display: grid;
-  grid-template-columns: 80px minmax(0, 1fr);
-  grid-template-rows: 1fr auto;
-  gap: 4px 14px;
-  width: 100%;
-  height: 100%;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--sunken);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 140ms ease,
-    background-color 140ms ease,
-    transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.base-card:hover {
-  border-color: var(--border-strong);
-  background: #13161a;
-}
-
-.base-card:hover .base-card-pick {
-  color: var(--accent-strong);
-}
-
-.base-card:active {
-  transform: scale(0.99);
-}
-
-.base-card-current {
-  border-color: rgba(214, 170, 76, 0.5);
-}
-
-.base-card-art {
-  grid-row: 1 / span 2;
-  display: grid;
-  place-items: center;
-  min-height: 160px;
-  border-radius: 8px;
-  background: radial-gradient(70% 60% at 50% 42%, rgba(255, 255, 255, 0.06), transparent 75%), #0b0c0f;
-}
-
-.base-card-body {
-  display: grid;
-  align-content: start;
-  gap: 4px;
-  min-width: 0;
-}
-
-.base-card-name {
-  font-family: var(--font-item);
-  font-size: 18px;
-  line-height: 1.15;
-  color: var(--heading);
-}
-
-.base-card-class {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.base-props {
-  display: grid;
-  gap: 1px;
-  margin-top: 4px;
-  font-size: 12.5px;
-}
-
-.base-prop {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0 8px;
-}
-
-.base-prop .num {
-  color: var(--text);
-  white-space: nowrap;
-}
-
 .base-implicit {
   font-size: 12px;
   color: var(--mod);
@@ -513,84 +393,281 @@
   color: var(--muted);
 }
 
-.base-source {
-  margin-top: 4px;
-  font-size: 10.5px;
+/* Steps of the base selector: type → kind → base (lib/base-navigation.ts). */
+.nav-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 0 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.nav-crumbs li + li::before {
+  content: '›';
+  padding: 0 6px;
   color: var(--subtle);
 }
 
-.base-card-pick {
-  align-self: end;
-  justify-self: start;
-  font-size: 12px;
+.crumb {
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+button.crumb:hover {
+  color: var(--accent-strong);
+}
+
+.crumb-here {
+  color: var(--heading);
+  cursor: default;
+}
+
+.nav-search {
+  margin-left: auto;
+}
+
+.nav-body {
+  flex: 1;
+  min-height: 0;
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.nav-sections {
+  display: grid;
+  gap: 20px;
+}
+
+.nav-section h3 {
+  margin: 0 0 8px;
+  font-size: 11.5px;
   font-weight: 600;
-  color: var(--accent);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-text);
 }
 
-.base-list-list {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
+.nav-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
 }
 
-.base-list-list .base-card {
-  grid-template-columns: 56px minmax(0, 1fr) auto;
-  grid-template-rows: auto;
+.nav-tile {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
   align-items: center;
-  padding: 8px 12px;
+  gap: 12px;
+  width: 100%;
+  min-height: 76px;
+  padding: 8px 12px 8px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--sunken);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
 }
 
-.base-list-list .base-card-art {
-  grid-row: auto;
-  min-height: 80px;
+.nav-tile:hover,
+.nav-tile:focus-visible {
+  border-color: var(--line);
+  background: #13161a;
 }
 
-.base-list-list .base-card-body {
-  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
-  align-items: baseline;
-  gap: 2px 16px;
+.nav-tile .icon {
+  color: var(--subtle);
 }
 
-.base-list-list .base-props {
-  grid-column: 2;
-  grid-row: 1 / span 3;
+.nav-tile:hover .icon {
+  color: var(--accent-strong);
+}
+
+.nav-tile-art {
+  display: grid;
+  place-items: center;
+  height: 64px;
+  border-radius: 6px;
+  background: radial-gradient(70% 60% at 50% 45%, rgba(255, 255, 255, 0.05), transparent 75%), #0b0c0f;
+  overflow: hidden;
+}
+
+.nav-tile-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nav-tile-title {
+  font-family: var(--font-item);
+  font-size: 17px;
+  line-height: 1.15;
+  color: var(--heading);
+}
+
+.nav-tile-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.nav-tile-meta {
+  font-size: 11.5px;
+  color: var(--subtle);
+}
+
+.nav-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.nav-count {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.nav-tools .nav-count {
+  margin: 0 0 0 auto;
+}
+
+.nav-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 8px;
   margin: 0;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  padding: 0;
+  list-style: none;
 }
 
-.base-list-list .base-source,
-.base-list-list .base-implicit {
-  grid-column: 1;
+.nav-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  padding: 8px 12px 8px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--sunken);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
 }
 
-.base-list-list .base-card-pick {
-  align-self: center;
+.nav-row:hover,
+.nav-row:focus-visible {
+  border-color: var(--line);
+  background: #13161a;
+}
+
+.nav-row-current {
+  border-color: rgba(214, 170, 76, 0.5);
+}
+
+.nav-row-art {
+  display: grid;
+  place-items: center;
+  min-height: 84px;
+  border-radius: 6px;
+  background: radial-gradient(70% 60% at 50% 45%, rgba(255, 255, 255, 0.05), transparent 75%), #0b0c0f;
+}
+
+.nav-row-body {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  min-width: 0;
+}
+
+.nav-row-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.nav-row-name {
+  font-family: var(--font-item);
+  font-size: 17px;
+  line-height: 1.15;
+  color: var(--heading);
+}
+
+.nav-row-level {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.nav-row-context {
+  font-size: 12px;
+  color: var(--gold-text);
+}
+
+.nav-row-props {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 14px;
+  font-size: 12.5px;
 }
 
 @media (max-width: 640px) {
   .base-dialog {
     width: calc(100vw - 16px);
-    max-height: calc(100dvh - 16px);
+    height: calc(100dvh - 16px);
   }
   .base-sheet-head,
-  .base-controls {
+  .nav-bar {
     padding-inline: 14px;
   }
-  .base-list {
+  .nav-body {
     padding: 12px 14px 16px;
   }
-  .search-field {
+  .search-field,
+  .nav-search {
     max-width: none;
     flex-basis: 100%;
-  }
-  .base-controls-end {
     margin-left: 0;
   }
-  .base-list-list .base-card-body {
+  .nav-tiles,
+  .nav-rows {
     grid-template-columns: minmax(0, 1fr);
   }
-  .base-list-list .base-props {
-    grid-column: 1;
-    grid-row: auto;
+  .nav-tools .nav-count {
+    margin-left: 0;
   }
 }
 

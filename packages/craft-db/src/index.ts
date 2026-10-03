@@ -11,3 +11,4 @@ export { OFFICIAL_TRADE_LISTINGS_SOURCE_ID } from './fixtures/sources';
 export { productionDataset, PRODUCTION_DATA } from './production';
 export { PRODUCTION_WEIGHTS, assignWeightTables, tableEvidence, weightTables, type WeightsFile, type WeightsFileTable } from './production/weights';
 export { WEIGHTS_SOURCE_ID } from './production/rules';
+export * from './catalog';

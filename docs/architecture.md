@@ -32,6 +32,19 @@ PNG и кэши не коммитятся; манифест с URL, размер
 
 Итоги и ограничения: [отчёт](handoff/real-data-final-report.md).
 
+## v0.8 — каталог баз и community-веса
+
+```
+production data (1841 баз, все записи) ──craft-db/catalog.ts──► видимость (player-facing / test / internal / unknown)
+                                                                 + архетип защиты (свойства × атрибутный тег)
+                                         ──web/lib/base-navigation.ts──► тип → вид → база (BaseSelector)
+PoE2DB ──data:weights──► WeightTable на группу баз ──ItemBase.weightTableId──► CraftDbView.weightFor
+                                                       ──► PoolEntry.weight ──► вероятность | обозреватель | pickWeighted
+```
+
+Каталог и навигация — слой представления над данными: ItemClass и набор не меняются, импорт
+Ctrl+V распознаёт и скрытые записи. Веса — ADR 012.
+
 ## Цепочка расчёта (v0.1)
 
 ```
@@ -157,14 +170,14 @@ Ctrl+V на странице / «Импорт предмета» ─► recogniz
 | `src/lib/session-ui.ts` | seed (crypto), бейджи модов, текст уведомлений — без игровых правил |
 | `src/lib/texts.ts` | формулировки для кодов статусов, причин и отказов, подписи источников |
 | `src/lib/icons.ts`, `src/lib/art-manifest.ts` | id игрового арта → локальный файл; манифест с источником каждой картинки |
-| `src/lib/base-catalog.ts` | поиск / фильтр по классу / сортировка в селекторе баз (без игровых правил) |
+| `src/lib/base-navigation.ts` | дерево выбора базы: тип → вид (архетип защиты / класс оружия) → база, поиск только по видимым базам; классификация — `craft-db/src/catalog.ts` |
 | `src/lib/held-tool.ts` | что «держит» курсор: иконки и ready / blocked с причиной |
 | `src/i18n/core.ts`, `en.ts`, `ru.ts`, `I18nProvider.tsx` | язык интерфейса: типизированные ключи, `t()` с подстановкой и множественным числом, форматирование, провайдер с localStorage |
 | `src/components/StartScreen.tsx`, `ImportDialog.tsx`, `ImportPreview.tsx`, `StartStrip.tsx`, `SourceSetupSurface.tsx` | входные сценарии: старт, импорт и превью, строка исходного, поверхность настройки исходного |
 | `src/test-utils.tsx` | рендер `Workspace` в тестах (язык, демо-сессия, вставка, клики) |
 | `src/lib/mod-menu.ts` | пункты контекстного меню мода (current / source / target) как данные и намерения |
 | `src/components/ContextMenu.tsx`, `ModMoreButton.tsx`, `ManualEditDialog.tsx` | меню у курсора (портал, в пределах экрана, клавиатура), кнопка «…», одноразовое предупреждение о ручной правке |
-| `src/components/BaseSelector.tsx` | модальное окно выбора базы (`<dialog>`) |
+| `src/components/BaseSelector.tsx` | модальное окно выбора базы (`<dialog>`) по шагам: крошки, «Назад», Escape, поиск по всем базам и внутри группы |
 | `src/components/HeldToolCursor.tsx` | оверлей валюты у курсора над предметом (портал, `pointer-events: none`), Omen — кольцевой значок |
 | `src/components/Masthead.tsx`, `ToolPalette.tsx`, `HistoryPanel.tsx`, `SpendingPanel.tsx`, `ItemBits.tsx` | шапка, полоса инструментов с активным крафтом, история, затраты, рамка арта и свойства базы |
 | `src/app/planner.css` | стили макета: позолоченные рамки, ряды, адаптивность (container queries для узких колонок) |

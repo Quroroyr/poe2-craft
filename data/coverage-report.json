@@ -23,6 +23,16 @@
     "groups": 599,
     "consumables": 499
   },
+  "catalog": {
+    "datasetBases": 1841,
+    "playerFacing": 1343,
+    "offeredInCreateFlow": 1304,
+    "playerFacingButClassUnsupported": 39,
+    "hiddenDnt": 51,
+    "hiddenTest": 51,
+    "hiddenInternalUniqueOnly": 262,
+    "unknownNotInOfficialTrade": 185
+  },
   "baseStatuses": {
     "crafting-supported": 1559,
     "imported": 243,

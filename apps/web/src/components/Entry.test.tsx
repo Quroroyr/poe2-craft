@@ -100,13 +100,20 @@ describe('import', () => {
   });
 });
 
+/** Base selector steps: item type tile → class tile → base row (lib/base-navigation.ts). */
+async function chooseBase(...steps: string[]) {
+  const dialog = $('.base-dialog');
+  for (const step of steps.slice(0, -1)) await click([...dialog.querySelectorAll('.nav-tile')].find((t) => t.querySelector('.nav-tile-title')?.textContent === step)!);
+  await click($(`[aria-label="Select ${steps[steps.length - 1]}"]`));
+}
+
 describe('create new item', () => {
   it('builds the starting item on the setup surface, then starts the craft', async () => {
     await mount();
     await click(button($('.start-screen'), 'Create new item'));
     expect(has('.setup-surface')).toBe(true);
     expect($('.setup-surface').textContent).toContain('Create new item');
-    await click($('[aria-label="Select Hardwood Spear"]'));
+    await chooseBase('One-handed weapons', 'Spears', 'Hardwood Spear');
     expect($('.setup-surface .panel-source').textContent).toContain('Hardwood Spear');
     await click(button($('.setup-surface .setup-actions'), 'Create item'));
     expect(has('.setup-surface')).toBe(false);
@@ -117,7 +124,7 @@ describe('create new item', () => {
   it('cancel leaves no session behind', async () => {
     await mount();
     await click(button($('.start-screen'), 'Create new item'));
-    await click($('[aria-label="Select Hardwood Spear"]'));
+    await chooseBase('One-handed weapons', 'Spears', 'Hardwood Spear');
     await click(button($('.setup-surface .setup-actions'), 'Cancel'));
     expect(has('.start-screen')).toBe(true);
     expect(has('.panel-current')).toBe(false);

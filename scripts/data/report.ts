@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { AFFIX_RULE_CATEGORIES } from '../../packages/craft-db/src/production/rules.ts';
+import { baseVisibility, catalogCounts } from '../../packages/craft-db/src/catalog.ts';
 
 const root = new URL('../../', import.meta.url);
 const data = JSON.parse(readFileSync(new URL('packages/craft-db/src/production/poe2-data.json', root), 'utf8'));
@@ -66,11 +67,24 @@ const weights = {
   unresolvedRows: weightsFile.unresolved.map((u: any) => `${u.page}: ${u.name} (${u.reason})`),
 };
 
+// ---------------------------------------------------------------- user-facing catalog
+const counts0 = catalogCounts(bases);
+const catalog = {
+  datasetBases: counts0.total,
+  playerFacing: counts0.byVisibility['player-facing'],
+  offeredInCreateFlow: bases.filter((b: any) => baseVisibility(b).visibility === 'player-facing' && b.dataStatus === 'crafting-supported').length,
+  playerFacingButClassUnsupported: bases.filter((b: any) => baseVisibility(b).visibility === 'player-facing' && b.dataStatus === 'unsupported').length,
+  hiddenDnt: bases.filter((b: any) => b.name.startsWith('[DNT]')).length,
+  hiddenTest: counts0.byVisibility.test,
+  hiddenInternalUniqueOnly: counts0.byVisibility.internal,
+  unknownNotInOfficialTrade: counts0.byVisibility.unknown,
+};
+
 const report = {
   gameVersion: data.gameVersion, gameClientVersion: data.gameClientVersion, upstream: data.upstream,
   counts: { itemClasses: data.itemClasses.length, bases: data.bases.length, modifiers: data.modifiers.length,
     specialModifiers: data.specialModifiers.length, groups: data.groups.length, consumables: data.consumables.length },
-  baseStatuses: counts(bases, 'dataStatus'), modifierLayers: counts([...data.modifiers, ...data.specialModifiers], 'layer'),
+  catalog, baseStatuses: counts(bases, 'dataStatus'), modifierLayers: counts([...data.modifiers, ...data.specialModifiers], 'layer'),
   consumableCategories: counts(consumables, 'category'), consumableStatuses: counts(consumables, 'craftStatus', 'catalogued'),
   actions: mechanics.actions.map((a: any) => a.id), modelledConsumables: consumables.filter((c: any) => c.craftStatus === 'modelled').map((c: any) => c.id),
   weights, hiddenSpecialModifiers: data.specialModifiers.filter((m: any) => !m.lines.length).map((m: any) => m.id),
