@@ -6,7 +6,8 @@ Production-набор: `packages/craft-db/src/production`. Факты — RePoE 
 ревизия `b818b843337cae43b090b272fd98bbc0fd3a34f3`; `trade2/data/items` и `static`
 подтверждают базы и каталог расходников. Хеши, даты и ревизии — `data/raw/manifest.json`.
 RePoE tooling — MIT, PyPoE — GPL-3.0; игровые данные и изображения принадлежат GGG.
-PoE2DB и Craft of Exile — только ручная сверка, их данные и веса не импортируются.
+Craft of Exile — только ручная сверка, его данные и веса не импортируются. PoE2DB — источник
+community-весов с v0.8 (см. ниже); остальное с PoE2DB по-прежнему только сверка.
 
 Клиент содержит разрешения спавна 0/1, не вероятностные веса: в production это
 `spawns: boolean`, `weight: null`. Числовой вес принимается только с `WeightEvidence`.
@@ -17,6 +18,32 @@ PoE2DB и Craft of Exile — только ручная сверка, их дан
 `pnpm data:fetch:pinned`, затем normalize/validate/report. Отчёт — `data/coverage-report.json`.
 Сырые файлы не коммитятся, JSON и manifest коммитятся. Нужен Node ≥23.
 Подробности источников и лицензий — `docs/research/real-data-landscape.md`.
+
+## Community spawn weights — PoE2DB (v0.8, 2026-10-03)
+
+Веса модов — с PoE2DB ([weightings](https://poe2db.tw/us/weightings)): данные Krakenbul
+(Prohibited Library), полученные рекомбинаторами; для баз без рекомбинации — по трейду. Это
+**community**-данные, `method: recombinator-observation`, а не данные клиента GGG. Числа
+импортируются как есть (сырое значение сохраняется), шансы считает наш движок по текущему пулу;
+проценты с сайтов не импортируются.
+
+Одна страница PoE2DB (класс или класс + атрибут, например `Body_Armours_str`) = одна таблица весов
+(ADR 012). База берёт веса только из своей таблицы. `1`/`0` на PoE2DB = «не измерено» → вес
+неизвестен. Сопоставление строк с модами — по стороне, уровню и имени аффикса (затем числа, теги
+спавна, группы), не по тексту; неоднозначное не угадывается. Подробности —
+`docs/research/poe2db-weightings.md`. Снимок: патч 0.5.5, 2026-10-03; 53 таблицы, 6 434 веса.
+
+```
+pnpm data:weights            # fetch → normalize → validate → report
+pnpm data:weights:fetch      # страницы PoE2DB → data/raw/poe2db (кэш; --refresh для повторной загрузки)
+pnpm data:weights:normalize  # → packages/craft-db/src/production/poe2db-weights.json
+pnpm data:weights:validate   # тесты конвейера, валидация набора, эталоны весов
+pnpm data:weights:report     # покрытие по группам в data/coverage-report.json
+```
+
+Сайт PoE2DB приложение не вызывает никогда: веса нормализуются при обновлении данных. Сырые
+страницы не коммитятся; JSON весов и манифест (URL, sha256, время, патч) — коммитятся. Лицензия
+вики PoE2DB — CC BY-NC-SA 3.0; источник указан в данных и в интерфейсе.
 
 ## Production mechanics, art and economy (2026-10-03)
 
@@ -94,7 +121,7 @@ CDN) — сайт показывает их в этом размере или м
 | Источник | Что даст | Confidence по умолчанию |
 |---|---|---|
 | Файлы игры (Mods.datc64 и др.) | моды, уровни, разрешения спавна, группы; вероятностных весов нет | verified (извлечённые факты) |
-| PoE2DB (poe2db.tw) | ручная сверка; ingestion не используется | community |
+| PoE2DB (poe2db.tw) | community-веса модов (с v0.8), ручная сверка остального | community |
 | Патчноуты GGG | изменения правил между версиями | official |
 | Тесты сообщества / свои наблюдения | веса там, где данных нет; поведение Omen | community / experimental |
 | poe.ninja / PoE2Scout | цены | — (ценам confidence не нужен; нужен `capturedAt`) |

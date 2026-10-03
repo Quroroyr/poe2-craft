@@ -1,4 +1,25 @@
-import type { ModifierDefinition, SpawnWeight } from './modifier';
+import type { ItemBase } from './item';
+import type { ModifierDefinition, ResolvedWeight, SpawnWeight, WeightTable } from './modifier';
+
+/**
+ * The weight of a modifier on a base. A base with a weight table reads only that table (absent or
+ * unmeasured there = unknown); a base without one reads the deciding spawn entry. Whether the
+ * modifier can spawn at all is a separate question (`isSpawnable`), answered by the spawn tags.
+ * This is the only place a weight is looked up, so the probability preview and the sampler agree.
+ */
+export function resolveModifierWeight(
+  definition: Pick<ModifierDefinition, 'id' | 'spawnWeights'>,
+  base: Pick<ItemBase, 'tags' | 'weightTableId'>,
+  table: Pick<WeightTable, 'id' | 'evidence'> & { readonly weightOf: (modifierId: string) => { weight: number; rawValue?: string } | undefined } | undefined,
+): ResolvedWeight {
+  if (base.weightTableId !== undefined) {
+    const entry = table?.id === base.weightTableId ? table.weightOf(definition.id) : undefined;
+    if (!entry || !table) return { weight: null, tableId: base.weightTableId };
+    return { weight: entry.weight, evidence: { ...table.evidence, ...(entry.rawValue ? { rawValue: entry.rawValue } : {}) }, tableId: table.id };
+  }
+  const spawn = resolveSpawnWeight(definition, base.tags);
+  return { weight: spawn?.weight ?? null, ...(spawn?.evidence ? { evidence: spawn.evidence } : {}) };
+}
 
 /**
  * Resolves the spawn weight of a modifier for a base with the given tags.

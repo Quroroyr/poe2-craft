@@ -118,6 +118,11 @@ export interface ItemBase {
   readonly artAssetId?: ArtAssetId;
   readonly details?: ItemBaseDetails;
   readonly setup?: ItemSetupRules;
+  /**
+   * Group of published spawn weights this base belongs to (`WeightTable.id`). Absent = the weights
+   * come from `ModifierDefinition.spawnWeights` (hand-written data) and are unknown when null there.
+   */
+  readonly weightTableId?: string;
   readonly versions: VersionRange;
   readonly provenance: Provenance;
 }

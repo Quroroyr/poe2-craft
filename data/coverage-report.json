@@ -79,10 +79,515 @@
     "omen-of-dextral-annulment"
   ],
   "weights": {
-    "known": 0,
-    "community": 0,
-    "unknown": 4570,
-    "forbidden": 4711
+    "source": "https://poe2db.tw/us/weightings",
+    "gamePatch": "0.5.5",
+    "capturedAt": "2026-10-03T13:22:19.433Z",
+    "tables": 53,
+    "knownTotal": 6434,
+    "poe2dbCommunity": 6434,
+    "unmeasuredBySource": 1321,
+    "mappingFailed": 5,
+    "conflicting": 0,
+    "basesWithTable": 1819,
+    "basesWithoutFittingTable": 14,
+    "craftableBases": {
+      "total": 1559,
+      "partial": 274,
+      "full": 1180,
+      "none": 105
+    },
+    "groups": {
+      "Amulets": {
+        "status": "partially-weighted",
+        "bases": 25,
+        "full": 0,
+        "partial": 25,
+        "none": 0,
+        "unknownModifiers": 6
+      },
+      "Belts": {
+        "status": "fully-weighted",
+        "bases": 19,
+        "full": 19,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Body_Armours_dex": {
+        "status": "fully-weighted",
+        "bases": 52,
+        "full": 52,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Body_Armours_dex_int": {
+        "status": "partially-weighted",
+        "bases": 43,
+        "full": 0,
+        "partial": 43,
+        "none": 0,
+        "unknownModifiers": 3
+      },
+      "Body_Armours_int": {
+        "status": "partially-weighted",
+        "bases": 52,
+        "full": 0,
+        "partial": 52,
+        "none": 0,
+        "unknownModifiers": 3
+      },
+      "Body_Armours_str": {
+        "status": "fully-weighted",
+        "bases": 48,
+        "full": 48,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Body_Armours_str_dex": {
+        "status": "fully-weighted",
+        "bases": 48,
+        "full": 48,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Body_Armours_str_dex_int": {
+        "status": "unweighted",
+        "bases": 20,
+        "full": 0,
+        "partial": 0,
+        "none": 20,
+        "unknownModifiers": 203
+      },
+      "Body_Armours_str_int": {
+        "status": "partially-weighted",
+        "bases": 52,
+        "full": 0,
+        "partial": 52,
+        "none": 0,
+        "unknownModifiers": 3
+      },
+      "Boots (no PoE2DB table)": {
+        "status": "unweighted",
+        "bases": 2,
+        "full": 0,
+        "partial": 0,
+        "none": 2,
+        "unknownModifiers": 172
+      },
+      "Boots_dex": {
+        "status": "fully-weighted",
+        "bases": 30,
+        "full": 30,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Boots_dex_int": {
+        "status": "fully-weighted",
+        "bases": 24,
+        "full": 24,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Boots_int": {
+        "status": "fully-weighted",
+        "bases": 31,
+        "full": 31,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Boots_str": {
+        "status": "fully-weighted",
+        "bases": 31,
+        "full": 31,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Boots_str_dex": {
+        "status": "fully-weighted",
+        "bases": 24,
+        "full": 24,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Boots_str_int": {
+        "status": "fully-weighted",
+        "bases": 23,
+        "full": 23,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Bows": {
+        "status": "partially-weighted",
+        "bases": 33,
+        "full": 0,
+        "partial": 33,
+        "none": 0,
+        "unknownModifiers": 2
+      },
+      "Bucklers": {
+        "status": "partially-weighted",
+        "bases": 49,
+        "full": 48,
+        "partial": 1,
+        "none": 0,
+        "unknownModifiers": 40
+      },
+      "Crossbows": {
+        "status": "partially-weighted",
+        "bases": 29,
+        "full": 0,
+        "partial": 29,
+        "none": 0,
+        "unknownModifiers": 12
+      },
+      "Daggers": {
+        "status": "unweighted",
+        "bases": 13,
+        "full": 0,
+        "partial": 0,
+        "none": 13,
+        "unknownModifiers": 158
+      },
+      "Flails": {
+        "status": "unweighted",
+        "bases": 13,
+        "full": 0,
+        "partial": 0,
+        "none": 13,
+        "unknownModifiers": 158
+      },
+      "Foci": {
+        "status": "fully-weighted",
+        "bases": 45,
+        "full": 45,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Gloves (no PoE2DB table)": {
+        "status": "unweighted",
+        "bases": 2,
+        "full": 0,
+        "partial": 0,
+        "none": 2,
+        "unknownModifiers": 217
+      },
+      "Gloves_dex": {
+        "status": "fully-weighted",
+        "bases": 32,
+        "full": 32,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Gloves_dex_int": {
+        "status": "fully-weighted",
+        "bases": 27,
+        "full": 27,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Gloves_int": {
+        "status": "fully-weighted",
+        "bases": 34,
+        "full": 34,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Gloves_str": {
+        "status": "fully-weighted",
+        "bases": 33,
+        "full": 33,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Gloves_str_dex": {
+        "status": "fully-weighted",
+        "bases": 27,
+        "full": 27,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Gloves_str_int": {
+        "status": "fully-weighted",
+        "bases": 25,
+        "full": 25,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Helmet (no PoE2DB table)": {
+        "status": "unweighted",
+        "bases": 3,
+        "full": 0,
+        "partial": 0,
+        "none": 3,
+        "unknownModifiers": 171
+      },
+      "Helmets_dex": {
+        "status": "fully-weighted",
+        "bases": 44,
+        "full": 44,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Helmets_dex_int": {
+        "status": "fully-weighted",
+        "bases": 35,
+        "full": 35,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Helmets_int": {
+        "status": "fully-weighted",
+        "bases": 41,
+        "full": 41,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Helmets_str": {
+        "status": "fully-weighted",
+        "bases": 38,
+        "full": 38,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Helmets_str_dex": {
+        "status": "fully-weighted",
+        "bases": 36,
+        "full": 36,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Helmets_str_int": {
+        "status": "fully-weighted",
+        "bases": 37,
+        "full": 37,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "One_Hand_Axes": {
+        "status": "unweighted",
+        "bases": 13,
+        "full": 0,
+        "partial": 0,
+        "none": 13,
+        "unknownModifiers": 150
+      },
+      "One_Hand_Maces": {
+        "status": "fully-weighted",
+        "bases": 43,
+        "full": 43,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "One_Hand_Swords": {
+        "status": "unweighted",
+        "bases": 13,
+        "full": 0,
+        "partial": 0,
+        "none": 13,
+        "unknownModifiers": 158
+      },
+      "Quarterstaves": {
+        "status": "fully-weighted",
+        "bases": 36,
+        "full": 36,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Quivers": {
+        "status": "partially-weighted",
+        "bases": 11,
+        "full": 0,
+        "partial": 11,
+        "none": 0,
+        "unknownModifiers": 2
+      },
+      "Rings": {
+        "status": "partially-weighted",
+        "bases": 28,
+        "full": 0,
+        "partial": 28,
+        "none": 0,
+        "unknownModifiers": 5
+      },
+      "Sceptres": {
+        "status": "fully-weighted",
+        "bases": 8,
+        "full": 8,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Shields_str": {
+        "status": "fully-weighted",
+        "bases": 52,
+        "full": 52,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Shields_str_dex": {
+        "status": "fully-weighted",
+        "bases": 39,
+        "full": 39,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Shields_str_int": {
+        "status": "fully-weighted",
+        "bases": 39,
+        "full": 39,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Spears": {
+        "status": "fully-weighted",
+        "bases": 36,
+        "full": 36,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Staves": {
+        "status": "fully-weighted",
+        "bases": 13,
+        "full": 13,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Talismans": {
+        "status": "fully-weighted",
+        "bases": 28,
+        "full": 28,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Two_Hand_Axes": {
+        "status": "unweighted",
+        "bases": 13,
+        "full": 0,
+        "partial": 0,
+        "none": 13,
+        "unknownModifiers": 150
+      },
+      "Two_Hand_Maces": {
+        "status": "fully-weighted",
+        "bases": 41,
+        "full": 41,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      },
+      "Two_Hand_Swords": {
+        "status": "unweighted",
+        "bases": 13,
+        "full": 0,
+        "partial": 0,
+        "none": 13,
+        "unknownModifiers": 158
+      },
+      "Wands": {
+        "status": "fully-weighted",
+        "bases": 13,
+        "full": 13,
+        "partial": 0,
+        "none": 0,
+        "unknownModifiers": 0
+      }
+    },
+    "fullyWeightedGroups": [
+      "Belts",
+      "Body_Armours_dex",
+      "Body_Armours_str",
+      "Body_Armours_str_dex",
+      "Boots_dex",
+      "Boots_dex_int",
+      "Boots_int",
+      "Boots_str",
+      "Boots_str_dex",
+      "Boots_str_int",
+      "Foci",
+      "Gloves_dex",
+      "Gloves_dex_int",
+      "Gloves_int",
+      "Gloves_str",
+      "Gloves_str_dex",
+      "Gloves_str_int",
+      "Helmets_dex",
+      "Helmets_dex_int",
+      "Helmets_int",
+      "Helmets_str",
+      "Helmets_str_dex",
+      "Helmets_str_int",
+      "One_Hand_Maces",
+      "Quarterstaves",
+      "Sceptres",
+      "Shields_str",
+      "Shields_str_dex",
+      "Shields_str_int",
+      "Spears",
+      "Staves",
+      "Talismans",
+      "Two_Hand_Maces",
+      "Wands"
+    ],
+    "partiallyWeightedGroups": [
+      "Amulets",
+      "Body_Armours_dex_int",
+      "Body_Armours_int",
+      "Body_Armours_str_int",
+      "Bows",
+      "Bucklers",
+      "Crossbows",
+      "Quivers",
+      "Rings"
+    ],
+    "unweightedGroups": [
+      "Body_Armours_str_dex_int",
+      "Boots (no PoE2DB table)",
+      "Daggers",
+      "Flails",
+      "Gloves (no PoE2DB table)",
+      "Helmet (no PoE2DB table)",
+      "One_Hand_Axes",
+      "One_Hand_Swords",
+      "Two_Hand_Axes",
+      "Two_Hand_Swords"
+    ],
+    "unresolvedRows": [
+      "Mana_Flasks: Novice's (no-candidate)",
+      "Mana_Flasks: Acolyte's (no-candidate)",
+      "Mana_Flasks: Summoner's (no-candidate)",
+      "Mana_Flasks: Conjurer's (no-candidate)",
+      "Mana_Flasks: Necromancer's (no-candidate)"
+    ]
   },
   "hiddenSpecialModifiers": [
     "AxeImplicitFireDamage1",

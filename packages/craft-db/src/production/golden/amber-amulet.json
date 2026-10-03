@@ -19,6 +19,24 @@
   "implicitModifierIds": [
     "AmuletImplicitStrength1"
   ],
+  "weights": {
+    "source": "poe2db-weightings",
+    "page": "Amulets",
+    "patch": "0.5.5",
+    "capturedAt": "2026-10-03",
+    "fullyWeighted": false,
+    "unknown": [
+      "CastSpeedJewellery1",
+      "CastSpeedJewellery2",
+      "CastSpeedJewellery3",
+      "CastSpeedJewellery4",
+      "CastSpeedJewellery5",
+      "CastSpeedJewellery6"
+    ],
+    "total": 168850,
+    "prefixTotal": 72200,
+    "suffixTotal": 96650
+  },
   "eligible": [
     {
       "id": "AllAttributes1",
@@ -29,7 +47,7 @@
       "groups": [
         "AllAttributes"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllAttributes2",
@@ -40,7 +58,7 @@
       "groups": [
         "AllAttributes"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllAttributes3",
@@ -51,7 +69,7 @@
       "groups": [
         "AllAttributes"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllAttributes4",
@@ -62,7 +80,7 @@
       "groups": [
         "AllAttributes"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllAttributes5",
@@ -73,7 +91,7 @@
       "groups": [
         "AllAttributes"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllAttributes6",
@@ -84,7 +102,7 @@
       "groups": [
         "AllAttributes"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllAttributes7",
@@ -95,7 +113,7 @@
       "groups": [
         "AllAttributes"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllAttributes8",
@@ -106,7 +124,7 @@
       "groups": [
         "AllAttributes"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllAttributes9_",
@@ -117,7 +135,7 @@
       "groups": [
         "AllAttributes"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllResistances1",
@@ -128,7 +146,7 @@
       "groups": [
         "AllResistances"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllResistances2",
@@ -139,7 +157,7 @@
       "groups": [
         "AllResistances"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllResistances3",
@@ -150,7 +168,7 @@
       "groups": [
         "AllResistances"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllResistances4",
@@ -161,7 +179,7 @@
       "groups": [
         "AllResistances"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllResistances5",
@@ -172,7 +190,7 @@
       "groups": [
         "AllResistances"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "AllResistances6",
@@ -183,7 +201,7 @@
       "groups": [
         "AllResistances"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "CastSpeedJewellery1",
@@ -260,7 +278,7 @@
       "groups": [
         "ChaosResistance"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "ChaosResist2",
@@ -271,7 +289,7 @@
       "groups": [
         "ChaosResistance"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "ChaosResist3",
@@ -282,7 +300,7 @@
       "groups": [
         "ChaosResistance"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "ChaosResist4",
@@ -293,7 +311,7 @@
       "groups": [
         "ChaosResistance"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "ChaosResist5",
@@ -304,7 +322,7 @@
       "groups": [
         "ChaosResistance"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "ChaosResist6",
@@ -315,7 +333,7 @@
       "groups": [
         "ChaosResistance"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "ColdResist1",
@@ -326,7 +344,7 @@
       "groups": [
         "ColdResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ColdResist2",
@@ -337,7 +355,7 @@
       "groups": [
         "ColdResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ColdResist3",
@@ -348,7 +366,7 @@
       "groups": [
         "ColdResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ColdResist4",
@@ -359,7 +377,7 @@
       "groups": [
         "ColdResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ColdResist5",
@@ -370,7 +388,7 @@
       "groups": [
         "ColdResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ColdResist6",
@@ -381,7 +399,7 @@
       "groups": [
         "ColdResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ColdResist7",
@@ -392,7 +410,7 @@
       "groups": [
         "ColdResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ColdResist8",
@@ -403,7 +421,7 @@
       "groups": [
         "ColdResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "CriticalMultiplier1",
@@ -414,7 +432,7 @@
       "groups": [
         "CriticalStrikeMultiplier"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "CriticalMultiplier2",
@@ -425,7 +443,7 @@
       "groups": [
         "CriticalStrikeMultiplier"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "CriticalMultiplier3",
@@ -436,7 +454,7 @@
       "groups": [
         "CriticalStrikeMultiplier"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "CriticalMultiplier4",
@@ -447,7 +465,7 @@
       "groups": [
         "CriticalStrikeMultiplier"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "CriticalMultiplier5",
@@ -458,7 +476,7 @@
       "groups": [
         "CriticalStrikeMultiplier"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "CriticalMultiplier6",
@@ -469,7 +487,7 @@
       "groups": [
         "CriticalStrikeMultiplier"
       ],
-      "weight": null
+      "weight": 125
     },
     {
       "id": "CriticalStrikeChance1",
@@ -480,7 +498,7 @@
       "groups": [
         "CriticalStrikeChanceIncrease"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "CriticalStrikeChance2",
@@ -491,7 +509,7 @@
       "groups": [
         "CriticalStrikeChanceIncrease"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "CriticalStrikeChance3",
@@ -502,7 +520,7 @@
       "groups": [
         "CriticalStrikeChanceIncrease"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "CriticalStrikeChance4",
@@ -513,7 +531,7 @@
       "groups": [
         "CriticalStrikeChanceIncrease"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "CriticalStrikeChance5",
@@ -524,7 +542,7 @@
       "groups": [
         "CriticalStrikeChanceIncrease"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "CriticalStrikeChance6",
@@ -535,7 +553,7 @@
       "groups": [
         "CriticalStrikeChanceIncrease"
       ],
-      "weight": null
+      "weight": 125
     },
     {
       "id": "DamageTakenGainedAsLife1___",
@@ -546,7 +564,7 @@
       "groups": [
         "DamageTakenGainedAsLife"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "DamageTakenGainedAsLife2",
@@ -557,7 +575,7 @@
       "groups": [
         "DamageTakenGainedAsLife"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "DamageTakenGainedAsLife3",
@@ -568,7 +586,7 @@
       "groups": [
         "DamageTakenGainedAsLife"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "DamageTakenGainedAsLife4_",
@@ -579,7 +597,7 @@
       "groups": [
         "DamageTakenGainedAsLife"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "DamageTakenGainedAsLife5",
@@ -590,7 +608,7 @@
       "groups": [
         "DamageTakenGainedAsLife"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "DamageTakenGainedAsMana1",
@@ -601,7 +619,7 @@
       "groups": [
         "PercentDamageGoesToMana"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "DamageTakenGainedAsMana2",
@@ -612,7 +630,7 @@
       "groups": [
         "PercentDamageGoesToMana"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "DamageTakenGainedAsMana3",
@@ -623,7 +641,7 @@
       "groups": [
         "PercentDamageGoesToMana"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "DamageTakenGainedAsMana4",
@@ -634,7 +652,7 @@
       "groups": [
         "PercentDamageGoesToMana"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "DamageTakenGainedAsMana5",
@@ -645,7 +663,7 @@
       "groups": [
         "PercentDamageGoesToMana"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "Dexterity1",
@@ -656,7 +674,7 @@
       "groups": [
         "Dexterity"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Dexterity2",
@@ -667,7 +685,7 @@
       "groups": [
         "Dexterity"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Dexterity3",
@@ -678,7 +696,7 @@
       "groups": [
         "Dexterity"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Dexterity4",
@@ -689,7 +707,7 @@
       "groups": [
         "Dexterity"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Dexterity5",
@@ -700,7 +718,7 @@
       "groups": [
         "Dexterity"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Dexterity6",
@@ -711,7 +729,7 @@
       "groups": [
         "Dexterity"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Dexterity7",
@@ -722,7 +740,7 @@
       "groups": [
         "Dexterity"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Dexterity8",
@@ -733,7 +751,7 @@
       "groups": [
         "Dexterity"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "FireResist1",
@@ -744,7 +762,7 @@
       "groups": [
         "FireResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "FireResist2",
@@ -755,7 +773,7 @@
       "groups": [
         "FireResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "FireResist3",
@@ -766,7 +784,7 @@
       "groups": [
         "FireResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "FireResist4",
@@ -777,7 +795,7 @@
       "groups": [
         "FireResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "FireResist5",
@@ -788,7 +806,7 @@
       "groups": [
         "FireResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "FireResist6",
@@ -799,7 +817,7 @@
       "groups": [
         "FireResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "FireResist7",
@@ -810,7 +828,7 @@
       "groups": [
         "FireResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "FireResist8",
@@ -821,7 +839,7 @@
       "groups": [
         "FireResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "GlobalMeleeSkillGemLevel1",
@@ -832,7 +850,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "GlobalMeleeSkillGemLevel2",
@@ -843,7 +861,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "GlobalMeleeSkillGemLevel3",
@@ -854,7 +872,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 100
     },
     {
       "id": "GlobalMinionSpellSkillGemLevel1",
@@ -865,7 +883,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "GlobalMinionSpellSkillGemLevel2",
@@ -876,7 +894,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "GlobalMinionSpellSkillGemLevel3",
@@ -887,7 +905,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 100
     },
     {
       "id": "GlobalProjectileSkillGemLevel1",
@@ -898,7 +916,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "GlobalProjectileSkillGemLevel2",
@@ -909,7 +927,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "GlobalProjectileSkillGemLevel3",
@@ -920,7 +938,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 100
     },
     {
       "id": "GlobalSpellGemsLevel1",
@@ -931,7 +949,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "GlobalSpellGemsLevel2",
@@ -942,7 +960,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 250
     },
     {
       "id": "GlobalSpellGemsLevel3",
@@ -953,7 +971,7 @@
       "groups": [
         "IncreaseSocketedGemLevel"
       ],
-      "weight": null
+      "weight": 100
     },
     {
       "id": "IncreasedAccuracy1",
@@ -964,7 +982,7 @@
       "groups": [
         "IncreasedAccuracy"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "IncreasedAccuracy2",
@@ -975,7 +993,7 @@
       "groups": [
         "IncreasedAccuracy"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "IncreasedAccuracy3",
@@ -986,7 +1004,7 @@
       "groups": [
         "IncreasedAccuracy"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "IncreasedAccuracy4",
@@ -997,7 +1015,7 @@
       "groups": [
         "IncreasedAccuracy"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "IncreasedAccuracy5",
@@ -1008,7 +1026,7 @@
       "groups": [
         "IncreasedAccuracy"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "IncreasedAccuracy6",
@@ -1019,7 +1037,7 @@
       "groups": [
         "IncreasedAccuracy"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "IncreasedAccuracy7",
@@ -1030,7 +1048,7 @@
       "groups": [
         "IncreasedAccuracy"
       ],
-      "weight": null
+      "weight": 800
     },
     {
       "id": "IncreasedAccuracy8",
@@ -1041,7 +1059,7 @@
       "groups": [
         "IncreasedAccuracy"
       ],
-      "weight": null
+      "weight": 400
     },
     {
       "id": "IncreasedEnergyShield1",
@@ -1052,7 +1070,7 @@
       "groups": [
         "IncreasedEnergyShield"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShield10",
@@ -1063,7 +1081,7 @@
       "groups": [
         "IncreasedEnergyShield"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShield2",
@@ -1074,7 +1092,7 @@
       "groups": [
         "IncreasedEnergyShield"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShield3",
@@ -1085,7 +1103,7 @@
       "groups": [
         "IncreasedEnergyShield"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShield4",
@@ -1096,7 +1114,7 @@
       "groups": [
         "IncreasedEnergyShield"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShield5",
@@ -1107,7 +1125,7 @@
       "groups": [
         "IncreasedEnergyShield"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShield6",
@@ -1118,7 +1136,7 @@
       "groups": [
         "IncreasedEnergyShield"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShield7",
@@ -1129,7 +1147,7 @@
       "groups": [
         "IncreasedEnergyShield"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShield8",
@@ -1140,7 +1158,7 @@
       "groups": [
         "IncreasedEnergyShield"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShield9",
@@ -1151,7 +1169,7 @@
       "groups": [
         "IncreasedEnergyShield"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShieldPercent1",
@@ -1162,7 +1180,7 @@
       "groups": [
         "EnergyShieldPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShieldPercent2",
@@ -1173,7 +1191,7 @@
       "groups": [
         "EnergyShieldPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShieldPercent3",
@@ -1184,7 +1202,7 @@
       "groups": [
         "EnergyShieldPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShieldPercent4",
@@ -1195,7 +1213,7 @@
       "groups": [
         "EnergyShieldPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShieldPercent5",
@@ -1206,7 +1224,7 @@
       "groups": [
         "EnergyShieldPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShieldPercent6",
@@ -1217,7 +1235,7 @@
       "groups": [
         "EnergyShieldPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEnergyShieldPercent7",
@@ -1228,7 +1246,7 @@
       "groups": [
         "EnergyShieldPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEvasionRatingPercent1",
@@ -1239,7 +1257,7 @@
       "groups": [
         "EvasionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEvasionRatingPercent2",
@@ -1250,7 +1268,7 @@
       "groups": [
         "EvasionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEvasionRatingPercent3",
@@ -1261,7 +1279,7 @@
       "groups": [
         "EvasionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEvasionRatingPercent4",
@@ -1272,7 +1290,7 @@
       "groups": [
         "EvasionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEvasionRatingPercent5",
@@ -1283,7 +1301,7 @@
       "groups": [
         "EvasionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEvasionRatingPercent6",
@@ -1294,7 +1312,7 @@
       "groups": [
         "EvasionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedEvasionRatingPercent7",
@@ -1305,7 +1323,7 @@
       "groups": [
         "EvasionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedLife1",
@@ -1316,7 +1334,7 @@
       "groups": [
         "IncreasedLife"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedLife2",
@@ -1327,7 +1345,7 @@
       "groups": [
         "IncreasedLife"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedLife3",
@@ -1338,7 +1356,7 @@
       "groups": [
         "IncreasedLife"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedLife4",
@@ -1349,7 +1367,7 @@
       "groups": [
         "IncreasedLife"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedLife5",
@@ -1360,7 +1378,7 @@
       "groups": [
         "IncreasedLife"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedLife6",
@@ -1371,7 +1389,7 @@
       "groups": [
         "IncreasedLife"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedLife7",
@@ -1382,7 +1400,7 @@
       "groups": [
         "IncreasedLife"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedLife8",
@@ -1393,7 +1411,7 @@
       "groups": [
         "IncreasedLife"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedLife9",
@@ -1404,7 +1422,7 @@
       "groups": [
         "IncreasedLife"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana1",
@@ -1415,7 +1433,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana10",
@@ -1426,7 +1444,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana11",
@@ -1437,7 +1455,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana12",
@@ -1448,7 +1466,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana13",
@@ -1459,7 +1477,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana2",
@@ -1470,7 +1488,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana3",
@@ -1481,7 +1499,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana4",
@@ -1492,7 +1510,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana5",
@@ -1503,7 +1521,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana6",
@@ -1514,7 +1532,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana7",
@@ -1525,7 +1543,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana8",
@@ -1536,7 +1554,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedMana9",
@@ -1547,7 +1565,7 @@
       "groups": [
         "IncreasedMana"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedPhysicalDamageReductionRatingPercent1",
@@ -1558,7 +1576,7 @@
       "groups": [
         "IncreasedPhysicalDamageReductionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedPhysicalDamageReductionRatingPercent2",
@@ -1569,7 +1587,7 @@
       "groups": [
         "IncreasedPhysicalDamageReductionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedPhysicalDamageReductionRatingPercent3",
@@ -1580,7 +1598,7 @@
       "groups": [
         "IncreasedPhysicalDamageReductionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedPhysicalDamageReductionRatingPercent4",
@@ -1591,7 +1609,7 @@
       "groups": [
         "IncreasedPhysicalDamageReductionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedPhysicalDamageReductionRatingPercent5",
@@ -1602,7 +1620,7 @@
       "groups": [
         "IncreasedPhysicalDamageReductionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedPhysicalDamageReductionRatingPercent6",
@@ -1613,7 +1631,7 @@
       "groups": [
         "IncreasedPhysicalDamageReductionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedPhysicalDamageReductionRatingPercent7",
@@ -1624,7 +1642,7 @@
       "groups": [
         "IncreasedPhysicalDamageReductionRatingPercent"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "IncreasedSpirit1",
@@ -1635,7 +1653,7 @@
       "groups": [
         "BaseSpirit"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "IncreasedSpirit2",
@@ -1646,7 +1664,7 @@
       "groups": [
         "BaseSpirit"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "IncreasedSpirit3",
@@ -1657,7 +1675,7 @@
       "groups": [
         "BaseSpirit"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "IncreasedSpirit4",
@@ -1668,7 +1686,7 @@
       "groups": [
         "BaseSpirit"
       ],
-      "weight": null
+      "weight": 500
     },
     {
       "id": "IncreasedSpirit5",
@@ -1679,7 +1697,7 @@
       "groups": [
         "BaseSpirit"
       ],
-      "weight": null
+      "weight": 400
     },
     {
       "id": "Intelligence1",
@@ -1690,7 +1708,7 @@
       "groups": [
         "Intelligence"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Intelligence2",
@@ -1701,7 +1719,7 @@
       "groups": [
         "Intelligence"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Intelligence3",
@@ -1712,7 +1730,7 @@
       "groups": [
         "Intelligence"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Intelligence4",
@@ -1723,7 +1741,7 @@
       "groups": [
         "Intelligence"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Intelligence5",
@@ -1734,7 +1752,7 @@
       "groups": [
         "Intelligence"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Intelligence6",
@@ -1745,7 +1763,7 @@
       "groups": [
         "Intelligence"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Intelligence7",
@@ -1756,7 +1774,7 @@
       "groups": [
         "Intelligence"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Intelligence8",
@@ -1767,7 +1785,7 @@
       "groups": [
         "Intelligence"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ItemFoundRarityIncrease1",
@@ -1778,7 +1796,7 @@
       "groups": [
         "ItemFoundRarityIncrease"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ItemFoundRarityIncrease2",
@@ -1789,7 +1807,7 @@
       "groups": [
         "ItemFoundRarityIncrease"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ItemFoundRarityIncrease3",
@@ -1800,7 +1818,7 @@
       "groups": [
         "ItemFoundRarityIncrease"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ItemFoundRarityIncreasePrefix1",
@@ -1811,7 +1829,7 @@
       "groups": [
         "ItemFoundRarityIncreasePrefix"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ItemFoundRarityIncreasePrefix2",
@@ -1822,7 +1840,7 @@
       "groups": [
         "ItemFoundRarityIncreasePrefix"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ItemFoundRarityIncreasePrefix3",
@@ -1833,7 +1851,7 @@
       "groups": [
         "ItemFoundRarityIncreasePrefix"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LifeRegeneration1",
@@ -1844,7 +1862,7 @@
       "groups": [
         "LifeRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LifeRegeneration10__",
@@ -1855,7 +1873,7 @@
       "groups": [
         "LifeRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LifeRegeneration2",
@@ -1866,7 +1884,7 @@
       "groups": [
         "LifeRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LifeRegeneration3",
@@ -1877,7 +1895,7 @@
       "groups": [
         "LifeRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LifeRegeneration4",
@@ -1888,7 +1906,7 @@
       "groups": [
         "LifeRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LifeRegeneration5",
@@ -1899,7 +1917,7 @@
       "groups": [
         "LifeRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LifeRegeneration6",
@@ -1910,7 +1928,7 @@
       "groups": [
         "LifeRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LifeRegeneration7",
@@ -1921,7 +1939,7 @@
       "groups": [
         "LifeRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LifeRegeneration8_",
@@ -1932,7 +1950,7 @@
       "groups": [
         "LifeRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LifeRegeneration9",
@@ -1943,7 +1961,7 @@
       "groups": [
         "LifeRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LightningResist1",
@@ -1954,7 +1972,7 @@
       "groups": [
         "LightningResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LightningResist2",
@@ -1965,7 +1983,7 @@
       "groups": [
         "LightningResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LightningResist3",
@@ -1976,7 +1994,7 @@
       "groups": [
         "LightningResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LightningResist4",
@@ -1987,7 +2005,7 @@
       "groups": [
         "LightningResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LightningResist5",
@@ -1998,7 +2016,7 @@
       "groups": [
         "LightningResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LightningResist6",
@@ -2009,7 +2027,7 @@
       "groups": [
         "LightningResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LightningResist7",
@@ -2020,7 +2038,7 @@
       "groups": [
         "LightningResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "LightningResist8",
@@ -2031,7 +2049,7 @@
       "groups": [
         "LightningResistance"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ManaRegeneration1",
@@ -2042,7 +2060,7 @@
       "groups": [
         "ManaRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ManaRegeneration2",
@@ -2053,7 +2071,7 @@
       "groups": [
         "ManaRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ManaRegeneration3",
@@ -2064,7 +2082,7 @@
       "groups": [
         "ManaRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ManaRegeneration4",
@@ -2075,7 +2093,7 @@
       "groups": [
         "ManaRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ManaRegeneration5",
@@ -2086,7 +2104,7 @@
       "groups": [
         "ManaRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "ManaRegeneration6",
@@ -2097,7 +2115,7 @@
       "groups": [
         "ManaRegeneration"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "MaximumLifeIncrease1",
@@ -2108,7 +2126,7 @@
       "groups": [
         "MaximumLifeIncreasePercent"
       ],
-      "weight": null
+      "weight": 300
     },
     {
       "id": "MaximumLifeIncrease2",
@@ -2119,7 +2137,7 @@
       "groups": [
         "MaximumLifeIncreasePercent"
       ],
-      "weight": null
+      "weight": 300
     },
     {
       "id": "MaximumLifeIncrease3",
@@ -2130,7 +2148,7 @@
       "groups": [
         "MaximumLifeIncreasePercent"
       ],
-      "weight": null
+      "weight": 300
     },
     {
       "id": "MaximumManaIncrease1",
@@ -2141,7 +2159,7 @@
       "groups": [
         "MaximumManaIncreasePercent"
       ],
-      "weight": null
+      "weight": 300
     },
     {
       "id": "MaximumManaIncrease2",
@@ -2152,7 +2170,7 @@
       "groups": [
         "MaximumManaIncreasePercent"
       ],
-      "weight": null
+      "weight": 300
     },
     {
       "id": "MaximumManaIncrease3",
@@ -2163,7 +2181,7 @@
       "groups": [
         "MaximumManaIncreasePercent"
       ],
-      "weight": null
+      "weight": 300
     },
     {
       "id": "SpellDamage1",
@@ -2174,7 +2192,7 @@
       "groups": [
         "SpellDamage"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "SpellDamage2",
@@ -2185,7 +2203,7 @@
       "groups": [
         "SpellDamage"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "SpellDamage3",
@@ -2196,7 +2214,7 @@
       "groups": [
         "SpellDamage"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "SpellDamage4",
@@ -2207,7 +2225,7 @@
       "groups": [
         "SpellDamage"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "SpellDamage5",
@@ -2218,7 +2236,7 @@
       "groups": [
         "SpellDamage"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "SpellDamage6",
@@ -2229,7 +2247,7 @@
       "groups": [
         "SpellDamage"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Strength1",
@@ -2240,7 +2258,7 @@
       "groups": [
         "Strength"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Strength2",
@@ -2251,7 +2269,7 @@
       "groups": [
         "Strength"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Strength3",
@@ -2262,7 +2280,7 @@
       "groups": [
         "Strength"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Strength4",
@@ -2273,7 +2291,7 @@
       "groups": [
         "Strength"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Strength5",
@@ -2284,7 +2302,7 @@
       "groups": [
         "Strength"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Strength6",
@@ -2295,7 +2313,7 @@
       "groups": [
         "Strength"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Strength7",
@@ -2306,7 +2324,7 @@
       "groups": [
         "Strength"
       ],
-      "weight": null
+      "weight": 1000
     },
     {
       "id": "Strength8",
@@ -2317,7 +2335,7 @@
       "groups": [
         "Strength"
       ],
-      "weight": null
+      "weight": 1000
     }
   ]
 }

@@ -2,6 +2,7 @@ import {
   compareGameVersions,
   isAvailableIn,
   isSpawnable,
+  resolveModifierWeight,
   resolveSpawnWeight,
   sameDomain,
   modifyAction,
@@ -25,6 +26,8 @@ import {
   type ModifierGroupId,
   type ModifierId,
   type Rarity,
+  type ResolvedWeight,
+  type WeightTable,
   type SpecialModifierDefinition,
   type VersionRange,
 } from '@poe2-craft/craft-domain';
@@ -66,6 +69,13 @@ export interface CraftDbView {
    * or the modifier cannot spawn on it.
    */
   tierOf(modifierId: ModifierId, baseId: ItemBaseId | null | undefined): number;
+  /**
+   * Spawn weight of a modifier on a base: from the base's weight table when it has one, otherwise
+   * from the deciding spawn entry. The single lookup used by the pool, the preview and the sampler.
+   */
+  weightFor(modifierId: ModifierId, baseId: ItemBaseId): ResolvedWeight;
+  getWeightTable(id: string): WeightTable | undefined;
+  listWeightTables(): readonly WeightTable[];
   getSpecialModifier(id: ModifierId): SpecialModifierDefinition | undefined;
   listSpecialModifiers(): readonly SpecialModifierDefinition[];
   getAction(id: CraftActionId): CraftAction | undefined;
@@ -134,6 +144,7 @@ function createView(dataset: CraftDataset, version: GameVersion): CraftDbView {
   const actions = live(dataset.actions);
   const consumables = live(dataset.consumables);
   const affixLimits = live(dataset.affixLimits);
+  const weightTables = live(dataset.weightTables ?? []);
   // Groups and targets are not versioned on their own: they only matter through the live
   // modifiers that reference them.
   const groups = dataset.groups;
@@ -151,6 +162,13 @@ function createView(dataset: CraftDataset, version: GameVersion): CraftDbView {
   const targetById = byId(targets);
   const consumableById = byId(consumables);
   const sourceById = byId(dataset.info.sources);
+  const tableById = byId(weightTables);
+  const tableWeights = new Map(weightTables.map((t) => [t.id, new Map(t.entries.map((e) => [e.modifierId, e] as const))] as const));
+  const tableLookup = (id: string | undefined) => {
+    const table = id === undefined ? undefined : tableById.get(id);
+    const weights = id === undefined ? undefined : tableWeights.get(id);
+    return table && weights ? { id: table.id, evidence: table.evidence, weightOf: (modifierId: string) => weights.get(modifierId) } : undefined;
+  };
 
   const normalise = (s: string) => s.trim().toLowerCase();
   const basesByName = new Map<string, ItemBase[]>();
@@ -218,6 +236,14 @@ function createView(dataset: CraftDataset, version: GameVersion): CraftDbView {
       if (!definition) return 0;
       return (base ? tiersFor(base).get(modifierId) : undefined) ?? definition.tier;
     },
+    weightFor(modifierId, baseId) {
+      const definition = modifierById.get(modifierId);
+      const base = baseById.get(baseId);
+      if (!definition || !base) return { weight: null };
+      return resolveModifierWeight(definition, base, tableLookup(base.weightTableId));
+    },
+    getWeightTable: (id) => tableById.get(id),
+    listWeightTables: () => weightTables,
     getSpecialModifier: (id) => specialById.get(id),
     listSpecialModifiers: () => specialModifiers,
     getAction: (id) => {

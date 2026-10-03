@@ -60,6 +60,7 @@ export type ExplanationStep =
     }
   | { readonly code: 'already-satisfied'; readonly modifierIds: readonly ModifierId[] }
   | { readonly code: 'target-weight-unknown'; readonly modifierIds: readonly ModifierId[] }
+  | { readonly code: 'partial-weights'; readonly modifierIds: readonly ModifierId[] }
   | { readonly code: 'compound-action' }
   | { readonly code: 'caveat'; readonly caveat: PoolCaveat };
 
@@ -136,7 +137,7 @@ export function explainCalculation(
   } else if (result.status === 'already-satisfied') {
     steps.push({ code: 'already-satisfied', modifierIds: result.modifierIds });
   } else if (result.status === 'indeterminate') {
-    steps.push(result.reason === 'compound-action' ? { code: 'compound-action' } : { code: 'target-weight-unknown', modifierIds: result.modifierIds });
+    steps.push(result.reason === 'compound-action' ? { code: 'compound-action' } : { code: result.reason, modifierIds: result.modifierIds });
   }
 
   for (const caveat of pool.caveats) steps.push({ code: 'caveat', caveat });

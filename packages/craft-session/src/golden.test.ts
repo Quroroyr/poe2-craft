@@ -8,7 +8,7 @@ import { MANUAL_EDIT_ACTION } from './editing';
 
 const db = createCraftDb(productionDataset);
 const directory = new URL('../../craft-db/src/production/golden/', import.meta.url);
-describe('golden applicability from independent RePoE mods_by_base', () => {
+describe('golden applicability (RePoE mods_by_base) and weights (raw PoE2DB page)', () => {
   for (const file of readdirSync(directory).filter((f) => f.endsWith('.json'))) {
     const golden = JSON.parse(readFileSync(new URL(file, directory), 'utf8'));
     it(golden.name, () => {
@@ -22,6 +22,14 @@ describe('golden applicability from independent RePoE mods_by_base', () => {
       if (pool.status !== 'ready') return;
       expect(pool.eligible.map((e) => ({ id: e.definition.id, side: e.definition.side, family: e.definition.family,
         tier: e.tier, level: e.definition.requiredItemLevel, groups: e.definition.groupIds, weight: e.weight })).sort((a,b) => a.id.localeCompare(b.id))).toEqual(golden.eligible);
+      // Totals over the pool our engine builds = totals the golden script read from the raw page.
+      const total = (side?: string) => pool.eligible.filter((e) => !side || e.definition.side === side).reduce((sum, e) => sum + (e.weight ?? 0), 0);
+      expect({ total: total(), prefixTotal: total('prefix'), suffixTotal: total('suffix'), unknown: [...pool.unknownWeightModifierIds].sort() })
+        .toEqual({ total: golden.weights.total, prefixTotal: golden.weights.prefixTotal, suffixTotal: golden.weights.suffixTotal, unknown: golden.weights.unknown });
+      expect(base.weightTableId).toBe(`poe2db:${golden.weights.page}`);
+      expect(pool.eligible.filter((e) => e.weight !== null).every((e) => e.weightEvidence?.sourceId === 'poe2db-weightings' &&
+        e.weightEvidence.confidence === 'community' && e.weightEvidence.method === 'recombinator-observation' && e.weightEvidence.rawValue === String(e.weight))).toBe(true);
+      expect(pool.eligible.filter((e) => e.weight === null).every((e) => e.weightEvidence === undefined)).toBe(true);
       const first = pool.eligible.find((e) => pool.eligible.some((other) => other.definition.id !== e.definition.id && other.definition.groupIds.some((g) => e.definition.groupIds.includes(g))))!;
       const occupied = { ...item, explicits: [{ kind: 'resolved' as const, modifierId: first.definition.id, values: [], fractured: true, sourceText: '' }] };
       const blocked = buildEligiblePool({ db, context: { gameVersion: golden.gameVersion }, item: occupied, action: MANUAL_EDIT_ACTION });

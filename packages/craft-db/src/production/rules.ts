@@ -10,6 +10,7 @@ import type { AffixLimitRule, DataSource, Provenance, QualityRule } from '@poe2-
 export const REPOE_SOURCE_ID = 'repoe-poe2';
 export const TRADE_SOURCE_ID = 'official-trade2';
 export const RULES_SOURCE_ID = 'poe2-rules-community';
+export const WEIGHTS_SOURCE_ID = 'poe2db-weightings';
 
 export const PRODUCTION_SOURCES: readonly DataSource[] = [
   {
@@ -29,6 +30,12 @@ export const PRODUCTION_SOURCES: readonly DataSource[] = [
     kind: 'community-testing',
     title: 'PoE 2 crafting rules as documented by GGG item texts, patch notes and the community wiki',
     url: 'https://www.poe2wiki.net/wiki/Modifier',
+  },
+  {
+    id: WEIGHTS_SOURCE_ID,
+    kind: 'poe2db',
+    title: 'PoE2DB modifier weightings (Krakenbul, Prohibited Library; recombinator data) — community, not from the game client',
+    url: 'https://poe2db.tw/us/weightings',
   },
 ];
 

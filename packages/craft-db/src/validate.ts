@@ -1,5 +1,47 @@
-import { modifyAction, rangesOverlap, type Provenance, type VersionRange } from '@poe2-craft/craft-domain';
+import { isSpawnable, modifyAction, rangesOverlap, resolveSpawnWeight, sameDomain, type Provenance, type VersionRange } from '@poe2-craft/craft-domain';
 import type { CraftDataset } from './dataset';
+
+/**
+ * Weight tables: every weight positive, with evidence that is not a fixture in production; one value
+ * per modifier per table; unmeasured modifiers carry no number; each weighted modifier can spawn on
+ * at least one base of the table; a base belongs to a table of its class whose tags it carries.
+ */
+function checkWeightTables(dataset: CraftDataset, problems: string[], checkProvenance: (where: string, p: Provenance) => void): void {
+  const tables = new Map((dataset.weightTables ?? []).map((t) => [t.id, t] as const));
+  const modifiers = new Map(dataset.modifiers.map((m) => [m.id, m] as const));
+  const classIds = new Set(dataset.itemClasses.map((c) => c.id));
+  const basesOf = new Map<string, typeof dataset.bases>();
+  for (const base of dataset.bases) {
+    if (base.weightTableId === undefined) continue;
+    const table = tables.get(base.weightTableId);
+    const where = `base ${base.id}`;
+    if (!table) { problems.push(`${where}: unknown weight table "${base.weightTableId}"`); continue; }
+    if (table.itemClassId !== base.itemClassId) problems.push(`${where}: weight table ${table.id} is for class ${table.itemClassId}`);
+    if (!table.requiredTags.every((t) => base.tags.includes(t))) problems.push(`${where}: lacks the tags of weight table ${table.id}`);
+    basesOf.set(table.id, [...(basesOf.get(table.id) ?? []), base]);
+  }
+  for (const table of tables.values()) {
+    const where = `weight table ${table.id}`;
+    if (!classIds.has(table.itemClassId)) problems.push(`${where}: unknown item class "${table.itemClassId}"`);
+    checkProvenance(`${where} evidence`, table.evidence);
+    if (dataset.info.kind === 'production' && ['fixture', 'unknown'].includes(table.evidence.method)) problems.push(`${where}: invalid production weight evidence method`);
+    const seen = new Set<string>();
+    const unmeasured = new Set(table.unmeasured);
+    const bases = basesOf.get(table.id) ?? [];
+    for (const entry of table.entries) {
+      const mod = modifiers.get(entry.modifierId);
+      if (seen.has(entry.modifierId)) problems.push(`${where}: duplicate weight for ${entry.modifierId}`);
+      seen.add(entry.modifierId);
+      if (!mod) { problems.push(`${where}: unknown modifier ${entry.modifierId}`); continue; }
+      if (!Number.isFinite(entry.weight) || entry.weight <= 0) problems.push(`${where}: invalid weight ${entry.weight} for ${entry.modifierId}`);
+      if (unmeasured.has(entry.modifierId)) problems.push(`${where}: ${entry.modifierId} is both weighted and unmeasured`);
+      if (bases.length > 0 && !bases.some((b) => sameDomain(mod.domain, b.domain) && isSpawnable(resolveSpawnWeight(mod, b.tags)))) {
+        problems.push(`${where}: weight for ${entry.modifierId}, which cannot spawn on any base of the table`);
+      }
+    }
+    for (const id of unmeasured) if (!modifiers.has(id)) problems.push(`${where}: unknown unmeasured modifier ${id}`);
+  }
+}
 
 interface Versioned {
   readonly id: string;
@@ -35,6 +77,7 @@ export function validateDataset(dataset: CraftDataset): string[] {
   checkRevisions('action', dataset.actions, problems);
   checkRevisions('consumable', dataset.consumables, problems);
   checkRevisions('special modifier', dataset.specialModifiers ?? [], problems);
+  checkRevisions('weight table', dataset.weightTables ?? [], problems);
   for (const [kind, records] of [['source', dataset.info.sources], ['group', dataset.groups], ['target', dataset.targets]] as const) {
     const ids = new Set<string>();
     for (const record of records) {
@@ -113,6 +156,8 @@ export function validateDataset(dataset: CraftDataset): string[] {
       }
     }
   }
+
+  checkWeightTables(dataset, problems, checkProvenance);
 
   for (const action of dataset.actions) {
     checkProvenance(`action ${action.id}`, action.provenance);

@@ -50,6 +50,13 @@ export interface WeightEvidence {
   readonly confidence: Confidence;
   readonly sampleSize?: number;
   readonly normalized?: boolean;
+  /**
+   * What the value was published for, e.g. "spawn tag str_armour · PoE2DB Body_Armours_str" — a
+   * weight is measured for a group of bases, not for one base.
+   */
+  readonly context?: string;
+  /** The value exactly as the source wrote it, before any parsing. */
+  readonly rawValue?: string;
   readonly notes?: string;
 }
 
@@ -64,6 +71,43 @@ export interface SpawnWeight {
   readonly weight: number | null;
   readonly spawns?: boolean;
   readonly evidence?: WeightEvidence;
+}
+
+export type WeightTableId = string;
+
+export interface WeightTableEntry {
+  readonly modifierId: ModifierId;
+  readonly weight: number;
+  /** The value exactly as the source wrote it. */
+  readonly rawValue?: string;
+}
+
+/**
+ * Spawn weights published for a group of bases — e.g. PoE2DB's "Body Armours (STR)" page.
+ * A base that names a table (`ItemBase.weightTableId`) takes its weights from that table only:
+ * a modifier missing from it, or listed as `unmeasured`, has an unknown weight on that base, even
+ * when another table measured it. Weights are kept per modifier id, so each tier has its own value.
+ */
+export interface WeightTable {
+  readonly id: WeightTableId;
+  readonly title: string;
+  readonly itemClassId: string;
+  /** Tags a base of the class carries to belong to this group (empty = the whole class). */
+  readonly requiredTags: readonly string[];
+  readonly entries: readonly WeightTableEntry[];
+  /** Listed by the source without a measurement: weight unknown, never 0 or a guess. */
+  readonly unmeasured: readonly ModifierId[];
+  /** Shared by every entry: source, method, capture date, patch, group. */
+  readonly evidence: WeightEvidence;
+  readonly versions: VersionRange;
+}
+
+/** The weight a modifier has on one base, with where it came from. `weight: null` = unknown. */
+export interface ResolvedWeight {
+  readonly weight: number | null;
+  readonly evidence?: WeightEvidence;
+  /** Table the weight was looked up in, when the base has one. */
+  readonly tableId?: WeightTableId;
 }
 
 /**

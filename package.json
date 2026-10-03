@@ -1,7 +1,7 @@
 {
   "name": "poe2-craft-planner",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "description": "PoE 2 Craft Planner — web service for Path of Exile 2 crafting analysis",
   "packageManager": "pnpm@10.34.6",
@@ -24,7 +24,12 @@
     "data:prices": "node scripts/data/prices.ts",
     "data:art": "node scripts/data/art.ts",
     "data:report": "node scripts/data/report.ts",
-    "data:refresh": "pnpm data:fetch && pnpm data:normalize && pnpm data:validate && pnpm data:report"
+    "data:weights:fetch": "node scripts/data/weights-fetch.ts",
+    "data:weights:normalize": "node scripts/data/weights-normalize.ts",
+    "data:weights:validate": "vitest run tests/weights-pipeline.test.ts packages/craft-db/src/production/production.test.ts packages/craft-session/src/golden.test.ts",
+    "data:weights:report": "node scripts/data/report.ts --weights",
+    "data:weights": "pnpm data:weights:fetch && pnpm data:weights:normalize && pnpm data:weights:validate && pnpm data:weights:report",
+    "data:refresh": "pnpm data:fetch && pnpm data:normalize && pnpm data:weights:fetch && pnpm data:weights:normalize && pnpm data:validate && pnpm data:weights:validate && pnpm data:report"
   },
   "devDependencies": {
     "@poe2-craft/craft-db": "workspace:*",

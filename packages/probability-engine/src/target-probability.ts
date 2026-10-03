@@ -36,12 +36,6 @@ export interface AttemptQuantile {
   readonly attempts: number;
 }
 
-/**
- * - exact: every eligible weight is known;
- * - upper-bound: some eligible weights are unknown, so the real total is larger and the
- *   real chance is lower than shown.
- */
-export type ProbabilityBound = 'exact' | 'upper-bound';
 
 export interface ProbabilityOk {
   readonly status: 'ok';
@@ -49,7 +43,6 @@ export interface ProbabilityOk {
   readonly totalWeight: number;
   readonly probability: number;
   readonly expectedAttempts: number;
-  readonly bound: ProbabilityBound;
   readonly cumulative: readonly CumulativeChance[];
   readonly quantiles: readonly AttemptQuantile[];
   readonly outcomes: readonly OutcomeShare[];
@@ -71,7 +64,13 @@ export type ProbabilityResult =
     }
   | {
       readonly status: 'indeterminate';
-      readonly reason: 'target-weight-unknown' | 'compound-action';
+      /**
+       * - target-weight-unknown: a target modifier has no known weight;
+       * - partial-weights: a competing eligible modifier has no known weight, so the denominator is
+       *   unknown (never filled with 0, 1, an average or a neighbouring tier);
+       * - compound-action: the action is not a single add.
+       */
+      readonly reason: 'target-weight-unknown' | 'partial-weights' | 'compound-action';
       readonly modifierIds: readonly ModifierId[];
     };
 
@@ -110,6 +109,10 @@ export function calculateTargetProbability(
     };
   }
 
+  if (pool.unknownWeightModifierIds.length > 0) {
+    return { status: 'indeterminate', reason: 'partial-weights', modifierIds: pool.unknownWeightModifierIds };
+  }
+
   const targetWeight = eligibleTargets.reduce((sum, e) => sum + (e.weight ?? 0), 0);
   const totalWeight = pool.totalKnownWeight;
   const probability = targetWeight / totalWeight;
@@ -120,7 +123,6 @@ export function calculateTargetProbability(
     totalWeight,
     probability,
     expectedAttempts: expectedAttempts(probability),
-    bound: pool.unknownWeightModifierIds.length > 0 ? 'upper-bound' : 'exact',
     cumulative: (options.attemptCounts ?? DEFAULT_ATTEMPT_COUNTS).map((attempts) => ({
       attempts,
       probability: chanceWithin(probability, attempts),

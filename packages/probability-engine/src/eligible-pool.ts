@@ -13,6 +13,7 @@ import {
   type ModifierGroupId,
   type ModifierId,
   type Rarity,
+  type WeightEvidence,
 } from '@poe2-craft/craft-domain';
 import type { CraftDb, DatasetInfo } from '@poe2-craft/craft-db';
 import { collectAffixFacts, type GroupOccupant, type SlotSummary } from './affix-slots';
@@ -50,6 +51,8 @@ export interface PoolEntry {
   readonly tier: number;
   /** Weight for this base; null when the data does not know it. */
   readonly weight: number | null;
+  /** Where the weight comes from (source, method, date, group); absent when unknown or hand-written. */
+  readonly weightEvidence?: WeightEvidence;
   /** Spawn tag that decided the weight, null when none matched. */
   readonly spawnTag: string | null;
   readonly eligible: boolean;
@@ -152,6 +155,11 @@ export function buildEligiblePool(input: PoolInput): EligiblePool {
     if (!occupantsByGroup.has(occupant.groupId)) occupantsByGroup.set(occupant.groupId, occupant);
   }
 
+  // One lookup for every consumer: preview, explorer and sampler all read these entries.
+  const weightOf = (id: ModifierId) => {
+    const resolved = view.weightFor(id, base.id);
+    return { weight: resolved.weight, ...(resolved.weight !== null && resolved.evidence ? { weightEvidence: resolved.evidence } : {}) };
+  };
   const entries: PoolEntry[] = view.listModifiers().map((definition) => {
     const reasons: ExclusionReason[] = [];
     const spawn = resolveSpawnWeight(definition, base.tags);
@@ -190,7 +198,7 @@ export function buildEligiblePool(input: PoolInput): EligiblePool {
     return {
       definition,
       tier: view.tierOf(definition.id, base.id),
-      weight: spawn?.weight ?? null,
+      ...weightOf(definition.id),
       spawnTag: spawn?.tag ?? null,
       eligible: reasons.length === 0,
       reasons,

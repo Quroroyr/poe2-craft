@@ -17,6 +17,7 @@ import data from './poe2-data.json';
 import mechanics from './mechanics.json';
 import { RULES_SOURCE_ID } from './rules';
 import { AFFIX_RULE_CATEGORIES, PRODUCTION_SOURCES, QUALITY_CATEGORIES, QUALITY_RULE, affixLimitRules } from './rules';
+import { PRODUCTION_WEIGHTS, assignWeightTables, weightTables, type WeightsFile } from './weights';
 
 interface GeneratedData {
   readonly gameVersion: string;
@@ -34,7 +35,19 @@ interface GeneratedData {
 /** The generated JSON, typed. Its shape is checked by `validateDataset` when the CraftDB is built. */
 export const PRODUCTION_DATA = data as unknown as GeneratedData;
 
-function buildProductionDataset(generated: GeneratedData): CraftDataset {
+/**
+ * Weights are tied to the game version they were captured for: a weights file of another version
+ * (or a PoE2DB patch of another version) is refused instead of being mixed in silently.
+ */
+function checkWeightsVersion(generated: GeneratedData, weights: WeightsFile): void {
+  const patch = weights.gamePatch?.match(/^d+.d+.d+/)?.[0] ?? null;
+  if (weights.gameVersion !== generated.gameVersion || (patch !== null && patch !== generated.gameVersion)) {
+    throw new Error(`weights were captured for ${weights.gamePatch ?? weights.gameVersion}, the dataset is ${generated.gameVersion}: run pnpm data:weights`);
+  }
+}
+
+function buildProductionDataset(generated: GeneratedData, weights: WeightsFile): CraftDataset {
+  checkWeightsVersion(generated, weights);
   const ruledClasses = generated.itemClasses.filter((c) => AFFIX_RULE_CATEGORIES.includes(c.category ?? '')).map((c) => c.id);
   const categoryOf = new Map(generated.itemClasses.map((c) => [c.id, c.category ?? '']));
   const repoe = generated.upstream.find((u) => u.id === 'repoe-poe2');
@@ -61,14 +74,15 @@ function buildProductionDataset(generated: GeneratedData): CraftDataset {
       kind: 'production',
       description:
         `Extracted from the game client (RePoE export ${repoe?.revision?.slice(0, 10) ?? '?'}, fetched ${repoe?.fetchedAt.slice(0, 10) ?? '?'}). ` +
-        'Modifier spawn weights are not in the client: they are unknown here, so chances that need them are not calculated.',
+        `Spawn weights are not in the client: community weights from PoE2DB (patch ${weights.gamePatch ?? '?'}, captured ${weights.capturedAt.slice(0, 10)}) where published; elsewhere unknown, and chances that need them are not calculated.`,
       gameVersions: [generated.gameVersion],
       sources: PRODUCTION_SOURCES,
     },
     itemClasses: generated.itemClasses,
-    bases,
+    bases: assignWeightTables(bases, weights),
     groups: generated.groups,
     modifiers: generated.modifiers,
+    weightTables: weightTables(weights, generated.gameVersion),
     specialModifiers: generated.specialModifiers,
     actions,
     targets: [],
@@ -77,4 +91,4 @@ function buildProductionDataset(generated: GeneratedData): CraftDataset {
   };
 }
 
-export const productionDataset: CraftDataset = buildProductionDataset(PRODUCTION_DATA);
+export const productionDataset: CraftDataset = buildProductionDataset(PRODUCTION_DATA, PRODUCTION_WEIGHTS);

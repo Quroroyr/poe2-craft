@@ -30,7 +30,7 @@ describe('production operations', () => {
     const result = applyAction({ db, context, item, actionId:'annul', rng:()=>{ throw new Error('sampled'); } });
     expect(result.status).toBe('rejected'); expect(result.item).toBe(item);
   });
-  it.each(['exalted','transmute','aug','regal','alch','chaos'])('%s refuses unknown weights before sampling and preserves all state', (id) => {
+  it.each(['exalted','transmute','aug','regal','alch','chaos'])('%s refuses a partially weighted pool (Topaz Ring: Cast Speed unmeasured) before sampling and preserves all state', (id) => {
     const rarity = id === 'transmute' || id === 'alch' ? 'normal' : id === 'aug' || id === 'regal' ? 'magic' : 'rare';
     const item = createItemState({ ...(id === 'chaos' ? itemWithMods() : blank), rarity });
     const result = applyAction({ db, context, actionId:id, item, rng: () => { throw new Error('Rejected action sampled RNG'); } });

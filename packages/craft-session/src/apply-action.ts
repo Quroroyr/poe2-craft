@@ -66,10 +66,11 @@ export interface RejectedOutcome {
 export type ApplyOutcome = AppliedOutcome | OperationsOutcome | RejectedOutcome;
 
 /**
- * DEMO SIMULATION of one craft attempt: current item + action → new item.
- * Uses the same eligible pool as the probability engine and picks one modifier by weight,
- * then rolls its values uniformly within the tier ranges. This is the simplified v0.1
- * action model, not a verified reproduction of PoE 2 currency behaviour.
+ * SIMULATION of one craft attempt: current item + action → new item.
+ * Uses the same eligible pool as the probability engine and picks one modifier by its weight
+ * (fixture weights in Demo, PoE2DB community weights in Real data — refused when any candidate's
+ * weight is unknown), then rolls values uniformly within the tier ranges. The action model is the
+ * community model of ADR 011, not a verified reproduction of PoE 2 currency behaviour.
  */
 export function applyAction(input: ApplyInput): ApplyOutcome {
   const { item, rng } = input;

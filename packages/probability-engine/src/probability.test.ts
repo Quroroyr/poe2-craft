@@ -211,7 +211,6 @@ describe('target probability', () => {
     expect(result.totalWeight).toBe(31700);
     expect(result.probability).toBeCloseTo(100 / 31700, 15);
     expect(result.expectedAttempts).toBeCloseTo(317, 9);
-    expect(result.bound).toBe('exact');
   });
 
   it('reports cumulative chances and attempt quantiles', () => {
@@ -271,10 +270,10 @@ describe('unknown weights', () => {
       ),
     });
 
-  it('marks the result as an upper bound when a competing weight is unknown', () => {
+  it('gives no number when a competing weight is unknown: the denominator is unknown', () => {
+    // Before v0.8 this returned an "upper bound" over the known weights; partial data must not look exact.
     const pool = ready(FRACTURED_CRIT, 'action.add-random-modifier', withWeight('mod.dexterity.t1', null));
-    const result = calculateTargetProbability(pool, PROJECTILE_4);
-    expect(result).toMatchObject({ status: 'ok', bound: 'upper-bound', totalWeight: 31700 - 1000 });
+    expect(calculateTargetProbability(pool, PROJECTILE_4)).toEqual({ status: 'indeterminate', reason: 'partial-weights', modifierIds: ['mod.dexterity.t1'] });
     expect(pool.unknownWeightModifierIds).toEqual(['mod.dexterity.t1']);
   });
 

@@ -10,6 +10,7 @@ import type {
   ModifierDefinition,
   ModifierGroup,
   SpecialModifierDefinition,
+  WeightTable,
 } from '@poe2-craft/craft-domain';
 
 /**
@@ -38,6 +39,8 @@ export interface CraftDataset {
   readonly modifiers: readonly ModifierDefinition[];
   /** Implicits and corruption enchantments: shown and parsed, never in the prefix / suffix pool. */
   readonly specialModifiers?: readonly SpecialModifierDefinition[];
+  /** Published spawn weights per group of bases (see `ItemBase.weightTableId`). */
+  readonly weightTables?: readonly WeightTable[];
   readonly actions: readonly CraftAction[];
   readonly targets: readonly CraftTarget[];
   readonly affixLimits: readonly AffixLimitRule[];
