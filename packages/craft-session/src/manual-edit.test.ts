@@ -12,6 +12,7 @@ import {
   applyStep,
   betterTierOption,
   createSession,
+  currentAddOptions,
   currentModifierMarks,
   currentTierOptions,
   hasManualEdits,
@@ -282,6 +283,21 @@ describe('manual add to a free slot of the current item', () => {
     expect(pool.eligible.length).toBeGreaterThan(0);
     expect(pool.eligible.every((e) => e.definition.side === 'prefix')).toBe(true);
     expect(pool.item.explicits).toHaveLength(2);
+  });
+
+  it('without a side (the "+" of the inspect pool) both sides are offered, whatever tool is held', () => {
+    const current = start().current!;
+    const options = currentAddOptions(db, VERSION, current);
+    expect(options.get('mod.local-physical-percent.t1')).toMatchObject({ allowed: true, action: { kind: 'add' } });
+    expect(options.get('mod.dexterity.t1')).toMatchObject({ allowed: true, action: { kind: 'add' } });
+    expect(options.get('mod.local-attack-speed.t1')).toMatchObject({ allowed: false, reasons: [expect.objectContaining({ code: 'group-already-on-item' })] });
+    expect(options.get('mod.local-attack-speed.t3')?.action.kind).toBe('selected');
+    // The held tool's craft pool (Exalted + Sinistral omen: prefixes only) blocks the suffix…
+    const { pool } = poolForMode(start(), db, { kind: 'inspect', actionId: 'action.add-random-prefix' });
+    if (pool?.status !== 'ready') throw new Error('pool blocked');
+    expect(pool.entries.find((e) => e.definition.id === 'mod.dexterity.t1')).toMatchObject({ eligible: false, reasons: [expect.objectContaining({ code: 'side-not-allowed-by-action' })] });
+    // …while the manual add of the same suffix stays legal and applies.
+    expect(add(start(), 'mod.dexterity.t1').status).toBe('applied');
   });
 
   it('replace from the pool still works next to add (regression)', () => {

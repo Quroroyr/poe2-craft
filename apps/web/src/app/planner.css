@@ -2510,6 +2510,61 @@ select:hover,
   min-width: 0;
 }
 
+/* "+ Add" on an inspect row: a manual add, quiet until the row is hovered or focused. */
+.pool-add-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.pool-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.45;
+}
+
+.tier-row:hover .pool-add,
+.tier-row:focus-within .pool-add {
+  opacity: 1;
+}
+
+.pool-add:hover:not(.pool-add-off),
+.pool-add:focus-visible:not(.pool-add-off) {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.pool-add-off {
+  cursor: not-allowed;
+}
+
+.tier-row:hover .pool-add-off {
+  opacity: 0.35;
+}
+
+@media (hover: none) {
+  .pool-add {
+    opacity: 1;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .fam-detail {
   color: var(--subtle);
   font-weight: 400;
@@ -2550,8 +2605,15 @@ select:hover,
   padding: 4px 8px;
 }
 
-.pool-table td:first-child {
+/* The modifier text column: first, or right after the "+" column. */
+.pool-table td:first-child:not(.pool-add-cell),
+.pool-table td.pool-add-cell + td {
   min-width: 230px;
+}
+
+.pool-table .pool-add-cell {
+  width: 1%;
+  padding-right: 0;
 }
 
 .pool-mod {

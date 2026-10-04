@@ -91,12 +91,14 @@ export function sourcePickOptions(
 }
 
 /**
- * Pick options for adding a modifier of `side` to the current item by hand (manual edit, ADR 009).
+ * Pick options for adding a modifier to the current item by hand (manual edit, ADR 009).
  * Every pick is an `add`: a family already on the item is blocked by its group, never swapped —
- * swapping is the separate "replace" path. Same pool rules as the source setup, restricted to `side`.
+ * swapping is the separate "replace" path. Same pool rules as the source setup; with `side` only
+ * that side may be added ("+ Add prefix"), without it both (the "+" on a row of the inspect pool).
+ * The held currency and omens never enter here: a manual add is not a craft.
  */
-export function currentAddOptions(db: CraftDb, gameVersion: GameVersion, current: ItemState, side: AffixSide): PickOptions {
-  const entries = poolEntries(db, gameVersion, current, manualAddAction(side));
+export function currentAddOptions(db: CraftDb, gameVersion: GameVersion, current: ItemState, side?: AffixSide): PickOptions {
+  const entries = poolEntries(db, gameVersion, current, side ? manualAddAction(side) : MANUAL_EDIT_ACTION);
   if (!entries) return new Map();
   const present = new Set(current.explicits.flatMap((m) => (m.kind === 'resolved' ? [m.modifierId] : [])));
   const options = new Map<ModifierId, PickOption>();

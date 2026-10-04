@@ -19,7 +19,9 @@ import type { CraftDb, CraftDbView } from '@poe2-craft/craft-db';
 import {
   addModifierToTarget,
   betterTierOption,
+  currentAddOptions,
   currentTierOptions,
+  isPickSelected,
   familyTiers,
   removeSourceModifier,
   replaceSourceModifier,
@@ -39,7 +41,9 @@ import { exclusionsText } from './texts';
 export type ModMenuTarget =
   | { readonly scope: 'current'; readonly index: number }
   | { readonly scope: 'source'; readonly index: number }
-  | { readonly scope: 'target'; readonly requirementId: string };
+  | { readonly scope: 'target'; readonly requirementId: string }
+  /** A tier row of the inspect pool: add it to the current item (manual edit) or to the target. */
+  | { readonly scope: 'pool'; readonly modifierId: ModifierId };
 
 /** What choosing an item does. Item states are prepared by craft-session functions, never here. */
 export type MenuIntent =
@@ -94,7 +98,32 @@ export function buildModMenu(target: ModMenuTarget, ctx: MenuContext): MenuModel
       return sourceMenu(target.index, ctx);
     case 'target':
       return targetMenu(target.requirementId, ctx);
+    case 'pool':
+      return poolMenu(target.modifierId, ctx);
   }
+}
+
+/** A pool tier: the same manual add as the row's "+" (currentAddOptions), and "add to target". */
+function poolMenu(modifierId: ModifierId, ctx: MenuContext): MenuModel | null {
+  const { session, view, t } = ctx;
+  const definition = view.getModifier(modifierId);
+  const current = session.current;
+  if (!definition || !current) return null;
+  const option = currentAddOptions(ctx.db, session.gameVersion, current).get(modifierId);
+  const addToCurrent: MenuItem = {
+    id: 'add-to-current',
+    label: t('menu.addToCurrent'),
+    icon: 'plus',
+    disabled: !option?.allowed,
+    reason: option?.allowed ? undefined : isPickSelected(option) ? t('pool.addAlready') : exclusionsText(t, option?.reasons ?? [], view) || t('menu.unavailable'),
+    intent: { kind: 'manual-edit', edit: { operation: 'add', modifierId } },
+  };
+  return {
+    title: familyName(definition, view, current.baseId),
+    subtitle: `T${view.tierOf(definition.id, current.baseId)} · ${modifierText(definition)}`,
+    note: t('menu.notePool'),
+    items: [addToCurrent, ...addToTargetItems(false, definition, ctx)],
+  };
 }
 
 function currentMenu(index: number, ctx: MenuContext): MenuModel | null {
@@ -167,7 +196,7 @@ function currentMenu(index: number, ctx: MenuContext): MenuModel | null {
       fractureItem,
       removeItem,
       { ...showInPool(definition, ctx), separatorBefore: true },
-      ...addToTargetItems(mod, definition, ctx),
+      ...addToTargetItems(mod.fractured, definition, ctx),
     ],
   };
 }
@@ -300,7 +329,8 @@ function showInPool(definition: ModifierDefinition, ctx: MenuContext): MenuItem 
   };
 }
 
-function addToTargetItems(mod: ExplicitModifier, definition: ModifierDefinition, ctx: MenuContext): MenuItem[] {
+/** `fractured`: the modifier is fractured where it was seen, so a fractured requirement is offered too. */
+function addToTargetItems(fractured: boolean, definition: ModifierDefinition, ctx: MenuContext): MenuItem[] {
   const { session, t } = ctx;
   const target = session.target ?? targetForSource(session.source ?? session.current);
   const fallback = session.source ?? session.current;
@@ -324,7 +354,7 @@ function addToTargetItems(mod: ExplicitModifier, definition: ModifierDefinition,
       intent: { kind: 'add-to-target', modifierId: definition.id, fractured },
     };
   };
-  return mod.fractured ? [item(false), item(true)] : [item(false)];
+  return fractured ? [item(false), item(true)] : [item(false)];
 }
 
 function definitionOf(mod: ExplicitModifier, view: CraftDbView): ModifierDefinition | undefined {

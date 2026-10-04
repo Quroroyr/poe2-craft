@@ -412,6 +412,9 @@ export function Workspace(props: WorkspaceProps) {
         toolLabel={held ? held.icons.map((i) => i.name).join(' + ') : null}
         onPick={pick}
         onExit={() => setExplorerMode(INSPECT)}
+        currentAdds={analysis.currentAdds}
+        onAddToCurrent={(definition) => runManualEdit({ operation: 'add', modifierId: definition.id })}
+        onRowMenu={(definition, x, y) => openMenu({ scope: 'pool', modifierId: definition.id }, x, y)}
       />
     </div>
   );

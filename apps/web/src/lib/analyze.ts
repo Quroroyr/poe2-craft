@@ -120,6 +120,11 @@ export interface WorkspaceAnalysis {
   readonly explorer: PoolExplorer | null;
   /** What a click on each tier does while editing the source or the target; null in inspect mode. */
   readonly picks: PickOptions | null;
+  /**
+   * Inspect mode with a current item: what the "+" of each pool row would add by hand (manual edit,
+   * `currentAddOptions` — never the held tool's pool). null in edit modes and without a current item.
+   */
+  readonly currentAdds: PickOptions | null;
   /** Free slots of the current item for "Add prefix / suffix" (manual edit); null when nothing can be added. */
   readonly currentAddSlots: ReturnType<typeof manualAddSlots>;
   readonly comparison: ItemComparison | null;
@@ -167,6 +172,7 @@ export function analyzeWorkspace(input: WorkspaceInput, craftDb: CraftDb = demoC
     blockedBy,
     explorer,
     picks,
+    currentAdds: input.explorerMode.kind === 'inspect' && session.current ? currentAddOptions(craftDb, session.gameVersion, session.current) : null,
     currentAddSlots: session.current ? manualAddSlots(craftDb, session.gameVersion, session.current) : null,
     comparison,
     outlook,

@@ -43,6 +43,14 @@ interface ModifierPoolPanelProps {
   readonly toolLabel: string | null;
   readonly onPick: (definition: ModifierDefinition) => void;
   readonly onExit: () => void;
+  /**
+   * Inspect mode: what the "+" of each row adds to the current item by hand (manual edit rules from
+   * craft-session, independent of the held tool). null = no "+" column (no current item, edit modes).
+   */
+  readonly currentAdds?: PickOptions | null;
+  readonly onAddToCurrent?: (definition: ModifierDefinition) => void;
+  /** Right click (or the menu key) on an inspect row: its menu (add to current / target). */
+  readonly onRowMenu?: (definition: ModifierDefinition, x: number, y: number) => void;
 }
 
 /**
@@ -231,6 +239,7 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
                   <table className="table pool-table">
                     <thead>
                       <tr>
+                        {props.currentAdds && <th className="pool-add-cell"><span className="visually-hidden">{t('pool.col.add')}</span></th>}
                         <th>{t('pool.col.mod')}</th>
                         <th className="right">{t('pool.col.tier')}</th>
                         <th className="right">ilvl</th>
@@ -252,6 +261,9 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
                             view={view}
                             isTarget={props.highlightIds.has(row.entry.definition.id)}
                             isFocus={focus?.modifierId === row.entry.definition.id}
+                            add={props.currentAdds ? (props.currentAdds.get(row.entry.definition.id) ?? null) : undefined}
+                            onAdd={props.onAddToCurrent}
+                            onMenu={props.onRowMenu}
                           />
                         )),
                       )}
@@ -296,19 +308,62 @@ function ModeChip({ mode, toolLabel, onExit }: { mode: ExplorerMode; toolLabel: 
   );
 }
 
-/** Inspect mode: the technical row with every column. */
-function TierRow(props: { row: ExplorerRow; group: ExplorerGroup; view: CraftDbView; isTarget: boolean; isFocus: boolean }) {
-  const { row } = props;
+/**
+ * Inspect mode: the technical row with every column. Statuses describe the held tool's pool; the
+ * optional "+" is a manual add to the current item, judged by its own rules (`add`), not by the tool.
+ */
+function TierRow(props: {
+  row: ExplorerRow;
+  group: ExplorerGroup;
+  view: CraftDbView;
+  isTarget: boolean;
+  isFocus: boolean;
+  /** undefined = no "+" column; null = the modifier is not in the manual pool at all. */
+  add?: PickOption | null;
+  onAdd?: (definition: ModifierDefinition) => void;
+  onMenu?: (definition: ModifierDefinition, x: number, y: number) => void;
+}) {
+  const { row, add } = props;
   const { t, locale } = useI18n();
   const d = row.entry.definition;
   const reasons = row.status !== 'eligible' ? exclusionsText(t, row.entry.reasons, props.view) : undefined;
+  const addAllowed = add?.allowed ?? false;
+  const addReason = addAllowed
+    ? t('pool.addTitle')
+    : isPickSelected(add ?? undefined)
+      ? t('pool.addAlready')
+      : t('pool.addBlocked', { reason: exclusionsText(t, add?.reasons ?? [], props.view) || t('menu.unavailable') });
   return (
     <tr
       className={`tier-row row-${row.status}${props.isTarget ? ' is-target' : ''}${props.isFocus ? ' is-focus' : ''}`}
       title={reasons}
       data-modifier-id={d.id}
       aria-current={props.isFocus || undefined}
+      onContextMenu={
+        props.onMenu
+          ? (e) => {
+              e.preventDefault();
+              props.onMenu!(d, e.clientX, e.clientY);
+            }
+          : undefined
+      }
     >
+      {add !== undefined && (
+        <td className="pool-add-cell">
+          <button
+            type="button"
+            className={`pool-add${addAllowed ? '' : ' pool-add-off'}`}
+            aria-label={t('pool.addLabel', { text: modifierText(d) })}
+            aria-disabled={!addAllowed}
+            title={addReason}
+            onClick={() => {
+              if (addAllowed) props.onAdd?.(d);
+            }}
+          >
+            <Icon name="plus" size={13} />
+          </button>
+        </td>
+      )}
       <td>
         <span className="pool-mod">{modifierText(d)}</span>
         <span className="pool-name">
