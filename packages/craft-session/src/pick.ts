@@ -3,6 +3,8 @@ import {
   createItemState,
   setRequirementFractured,
   setRequirementTier,
+  type AffixSide,
+  type CraftAction,
   type GameVersion,
   type ItemState,
   type ModifierDefinition,
@@ -13,7 +15,7 @@ import {
 import type { CraftDb } from '@poe2-craft/craft-db';
 import { buildEligiblePool, type ExclusionReason, type PoolEntry } from '@poe2-craft/probability-engine';
 import { sameFamily } from './compare';
-import { MANUAL_EDIT_ACTION, addSourceModifier, replaceSourceModifier, targetAsItem } from './editing';
+import { MANUAL_EDIT_ACTION, addSourceModifier, manualAddAction, replaceSourceModifier, targetAsItem } from './editing';
 
 /**
  * PICKING a modifier in the pool while editing the source or the target. One click on a tier
@@ -84,6 +86,23 @@ export function sourcePickOptions(
         ? option(definition, { kind: 'replace', index: family.index }, entries(family.index)?.get(definition.id))
         : option(definition, { kind: 'add' }, entry),
     );
+  }
+  return options;
+}
+
+/**
+ * Pick options for adding a modifier of `side` to the current item by hand (manual edit, ADR 009).
+ * Every pick is an `add`: a family already on the item is blocked by its group, never swapped —
+ * swapping is the separate "replace" path. Same pool rules as the source setup, restricted to `side`.
+ */
+export function currentAddOptions(db: CraftDb, gameVersion: GameVersion, current: ItemState, side: AffixSide): PickOptions {
+  const entries = poolEntries(db, gameVersion, current, manualAddAction(side));
+  if (!entries) return new Map();
+  const present = new Set(current.explicits.flatMap((m) => (m.kind === 'resolved' ? [m.modifierId] : [])));
+  const options = new Map<ModifierId, PickOption>();
+  for (const entry of entries.values()) {
+    const definition = entry.definition;
+    options.set(definition.id, present.has(definition.id) ? selected(definition) : option(definition, { kind: 'add' }, entry));
   }
   return options;
 }
@@ -213,8 +232,8 @@ function withoutIndex(source: ItemState, index: number): ItemState {
   return createItemState({ ...source, explicits: source.explicits.filter((_, i) => i !== index) });
 }
 
-function poolEntries(db: CraftDb, gameVersion: GameVersion, item: ItemState): Map<ModifierId, PoolEntry> | null {
-  const pool = buildEligiblePool({ item, context: { gameVersion }, db, action: MANUAL_EDIT_ACTION });
+function poolEntries(db: CraftDb, gameVersion: GameVersion, item: ItemState, action: CraftAction = MANUAL_EDIT_ACTION): Map<ModifierId, PoolEntry> | null {
+  const pool = buildEligiblePool({ item, context: { gameVersion }, db, action });
   return pool.status === 'ready' ? new Map(pool.entries.map((e) => [e.definition.id, e])) : null;
 }
 

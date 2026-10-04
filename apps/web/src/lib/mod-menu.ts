@@ -4,6 +4,7 @@
  * this file only arranges them per item card. The page dispatches the intents.
  */
 import {
+  familyTemplate,
   modifierText,
   removeRequirement,
   setRequirementFractured,
@@ -140,7 +141,7 @@ function currentMenu(index: number, ctx: MenuContext): MenuModel | null {
     : { id: 'upgrade', label: t('menu.upgrade'), icon: 'up', disabled: true, reason: t('menu.bestTier') };
 
   return {
-    title: familyName(definition, view),
+    title: familyName(definition, view, current.baseId),
     subtitle: `T${view.tierOf(definition.id, current.baseId)} · ${clean(mod.sourceText)}`,
     note,
     items: [
@@ -180,7 +181,7 @@ function sourceMenu(index: number, ctx: MenuContext): MenuModel | null {
   if (!definition) return null;
   const tiers = sourceTierOptions(ctx.db, session.gameVersion, source, index);
   return {
-    title: familyName(definition, view),
+    title: familyName(definition, view, source.baseId),
     subtitle: `T${view.tierOf(definition.id, source.baseId)} · ${clean(mod.sourceText)}`,
     note: t('menu.noteSource'),
     items: [
@@ -238,7 +239,7 @@ function targetMenu(requirementId: string, ctx: MenuContext): MenuModel | null {
     return { title: requirement.modifierId, subtitle: t('menu.notInVersion'), items: [fractured, remove] };
   }
   return {
-    title: familyName(definition, view),
+    title: familyName(definition, view, target.baseId),
     subtitle: `${tierLabel(view.tierOf(definition.id, target.baseId))} · ${modifierText(definition)}`,
     note: t('menu.noteTarget'),
     items: [
@@ -330,8 +331,10 @@ function definitionOf(mod: ExplicitModifier, view: CraftDbView): ModifierDefinit
   return mod.kind === 'resolved' ? view.getModifier(mod.modifierId) : undefined;
 }
 
-function familyName(definition: ModifierDefinition, view: CraftDbView): string {
-  return definition.groupIds.map((g) => view.getGroup(g)?.name ?? g).join(' + ');
+/** The family's own wording on this base (never a collision group's name). */
+function familyName(definition: ModifierDefinition, view: CraftDbView, baseId: string | null): string {
+  const tiers = familyTiers(view, definition, baseId);
+  return familyTemplate(tiers.length > 0 ? tiers : [definition]);
 }
 
 function reasonText(t: Translator, option: TierOption, view: CraftDbView): string {

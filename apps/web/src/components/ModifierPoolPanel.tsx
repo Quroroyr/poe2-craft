@@ -182,7 +182,10 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
                     onClick={() => setFamilyKey(familyKey === g.key ? null : g.key)}
                   >
                     <span className="fam-dot" aria-hidden />
-                    <span className="fam-label">{g.label}</span>
+                    <span className="fam-label" title={g.detail ? `${g.label} · ${g.detail}` : undefined}>
+                      {g.label}
+                      {g.detail && <span className="fam-detail"> · {g.detail}</span>}
+                    </span>
                     <span className="num muted">{g.rows.length}</span>
                   </button>
                 </li>
@@ -200,7 +203,10 @@ export function ModifierPoolPanel(props: ModifierPoolPanelProps) {
                 ) : (
                   shown.map((g) => (
                     <section key={g.key} className="pick-group" aria-label={g.label}>
-                      <h4 className="pick-family">{g.label}</h4>
+                      <h4 className="pick-family">
+                        {g.label}
+                        {g.detail && <span className="fam-detail"> · {g.detail}</span>}
+                      </h4>
                       <ul className="pick-list">
                         {byTier(g.rows).map((row) => (
                           <PickRow
@@ -273,7 +279,9 @@ function ModeChip({ mode, toolLabel, onExit }: { mode: ExplorerMode; toolLabel: 
     mode.kind === 'edit-target'
       ? 'pool.mode.target'
       : mode.kind === 'edit-current'
-        ? 'pool.mode.current'
+        ? mode.replaceIndex === undefined
+          ? 'pool.mode.currentAdd'
+          : 'pool.mode.current'
         : mode.replaceIndex !== undefined
           ? 'pool.mode.sourceReplace'
           : 'pool.mode.sourceAdd',
@@ -314,7 +322,7 @@ function TierRow(props: { row: ExplorerRow; group: ExplorerGroup; view: CraftDbV
       <td className="num right">{row.entry.weight === null ? <span className="bad" title={t('data.unknownWeight')}>?</span> : <span title={d.spawnWeights.some((w) => w.evidence && ['community-estimate', 'trade-observation', 'recombinator-observation'].includes(w.evidence.method)) ? t('data.communityWeight') : undefined}>{formatInt(row.entry.weight, INTL_LOCALE[locale])}</span>}</td>
       <td className="num right">{row.share === null ? '—' : formatPercent(row.share)}</td>
       <td className="hide-md">
-        <span className="cell-chip">{props.group.label}</span>
+        <span className="cell-chip" title={t('pool.groupTitle')}>{d.groupIds.map((g) => props.view.getGroup(g)?.name ?? g).join(' + ')}</span>
       </td>
       <td className="hide-md">
         {d.tags.map((t) => (

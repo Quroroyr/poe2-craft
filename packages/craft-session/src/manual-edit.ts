@@ -1,16 +1,17 @@
 import {
   withExplicitFractured,
+  type AffixSide,
   type ExplicitModifier,
   type GameVersion,
   type ItemState,
   type ModifierId,
 } from '@poe2-craft/craft-domain';
 import type { CraftDb, CraftDbView } from '@poe2-craft/craft-db';
-import type { ExclusionReason } from '@poe2-craft/probability-engine';
+import { buildEligiblePool, type ExclusionReason } from '@poe2-craft/probability-engine';
 import { sameFamily } from './compare';
-import { removeSourceModifier, replaceSourceModifier } from './editing';
+import { MANUAL_EDIT_ACTION, addSourceModifier, removeSourceModifier, replaceSourceModifier } from './editing';
 import { sourceTierOptions, type TierOption } from './item-setup';
-import { isPickSelected, sourcePickOptions } from './pick';
+import { currentAddOptions, isPickSelected, sourcePickOptions } from './pick';
 import type { CraftSession, ManualEditModifier, ManualEditOperation, ManualEditStepRecord } from './session';
 
 /**
@@ -22,6 +23,8 @@ import type { CraftSession, ManualEditModifier, ManualEditOperation, ManualEditS
  * without the one it replaces (same rules as the source setup).
  */
 export type ManualEdit =
+  /** A new modifier in a free slot of its side, appended to the explicits. */
+  | { readonly operation: 'add'; readonly modifierId: ModifierId }
   | { readonly operation: 'retier' | 'replace'; readonly index: number; readonly modifierId: ModifierId }
   | { readonly operation: 'remove' | 'fracture' | 'unfracture'; readonly index: number };
 
@@ -61,9 +64,20 @@ export function applyManualEdit(session: CraftSession, db: CraftDb, edit: Manual
   });
   const current = session.current;
   if (!current) return reject('no-item');
+  const view = db.forVersion(session.gameVersion);
+  if (edit.operation === 'add') {
+    const definition = view.getModifier(edit.modifierId);
+    if (!definition) return reject('unknown-modifier');
+    const option = currentAddOptions(db, session.gameVersion, current, definition.side).get(edit.modifierId);
+    if (!option) return reject('not-allowed', []);
+    if (isPickSelected(option)) return reject('no-change');
+    if (!option.allowed) return reject('not-allowed', option.reasons);
+    const after = addSourceModifier(current, definition);
+    const index = after.explicits.length - 1;
+    return applied(session, { operation: 'add', modifierIndex: index, from: null, to: describe(after.explicits[index], view, current.baseId), before: current, after });
+  }
   const mod = current.explicits[edit.index];
   if (!mod) return reject('no-modifier');
-  const view = db.forVersion(session.gameVersion);
 
   let after: ItemState;
   switch (edit.operation) {
@@ -97,23 +111,50 @@ export function applyManualEdit(session: CraftSession, db: CraftDb, edit: Manual
 
   const from = describe(mod, view, current.baseId);
   const to = edit.operation === 'remove' ? null : describe(after.explicits[edit.index], view, current.baseId);
+  return applied(session, { operation: edit.operation, modifierIndex: edit.index, from, to, before: current, after });
+}
+
+function applied(
+  session: CraftSession,
+  edit: Pick<ManualEditStepRecord, 'operation' | 'modifierIndex' | 'from' | 'to' | 'before' | 'after'>,
+): ManualEditResult {
   const step: ManualEditStepRecord = {
     kind: 'manual-edit',
     index: session.steps.length + 1,
-    operation: edit.operation,
-    modifierIndex: edit.index,
-    label: manualEditLabel(edit.operation, from, to),
-    from,
-    to,
-    before: current,
-    after,
+    ...edit,
+    label: manualEditLabel(edit.operation, edit.from, edit.to),
   };
   return {
     status: 'applied',
     step,
     // Like any new action, an edit makes the undone branch unreachable. No roll is used.
-    session: { ...session, current: after, steps: [...session.steps, step], redoStack: [] },
+    session: { ...session, current: edit.after, steps: [...session.steps, step], redoStack: [] },
   };
+}
+
+/** Free slots of one side of the current item for a manual add, from the real affix limits. */
+export interface ManualAddSlot {
+  readonly side: AffixSide;
+  readonly used: number;
+  readonly max: number;
+  /** A free slot exists and at least one modifier of this side may go into it. */
+  readonly canAdd: boolean;
+}
+
+/**
+ * Whether "Add prefix" / "Add suffix" can do anything on the current item: the slot count comes
+ * from the affix limits of its rarity and class, and a free slot only counts when the pool rules
+ * (base, item level, groups, domain) leave at least one modifier for it. null when the item has no
+ * pool at all (unknown base, unsupported class, unknown limits) — there is nothing to add from.
+ */
+export function manualAddSlots(db: CraftDb, gameVersion: GameVersion, current: ItemState): Readonly<Record<AffixSide, ManualAddSlot>> | null {
+  const pool = buildEligiblePool({ item: current, context: { gameVersion }, db, action: MANUAL_EDIT_ACTION });
+  if (pool.status !== 'ready') return null;
+  const slot = (side: AffixSide): ManualAddSlot => {
+    const s = pool.slots[side];
+    return { side, used: s.used, max: s.max, canAdd: s.free > 0 && pool.eligible.some((e) => e.definition.side === side) };
+  };
+  return { prefix: slot('prefix'), suffix: slot('suffix') };
 }
 
 /**
@@ -148,18 +189,21 @@ function describe(mod: ExplicitModifier | undefined, view: CraftDbView, baseId: 
   };
 }
 
-function manualEditLabel(operation: ManualEditOperation, from: ManualEditModifier, to: ManualEditModifier | null): string {
+function manualEditLabel(operation: ManualEditOperation, from: ManualEditModifier | null, to: ManualEditModifier | null): string {
   const tier = (m: ManualEditModifier | null) => (m?.tier ? `T${m.tier}` : '?');
+  const was = from?.text ?? '';
   switch (operation) {
+    case 'add':
+      return `Manual edit: add ${tier(to)} "${to?.text ?? ''}"`;
     case 'retier':
-      return `Manual edit: retier ${tier(from)} → ${tier(to)} (${from.text})`;
+      return `Manual edit: retier ${tier(from)} → ${tier(to)} (${was})`;
     case 'replace':
-      return `Manual edit: replace "${from.text}" with "${to?.text ?? ''}"`;
+      return `Manual edit: replace "${was}" with "${to?.text ?? ''}"`;
     case 'remove':
-      return `Manual edit: remove "${from.text}"`;
+      return `Manual edit: remove "${was}"`;
     case 'fracture':
-      return `Manual edit: mark fractured "${from.text}"`;
+      return `Manual edit: mark fractured "${was}"`;
     case 'unfracture':
-      return `Manual edit: unmark fractured "${from.text}"`;
+      return `Manual edit: unmark fractured "${was}"`;
   }
 }

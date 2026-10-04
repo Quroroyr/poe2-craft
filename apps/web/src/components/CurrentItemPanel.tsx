@@ -1,6 +1,7 @@
 import { useRef, useState, type PointerEvent } from 'react';
 import type { AffixSide, ExplicitModifier, ItemState } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
+import type { ManualAddSlot } from '@poe2-craft/craft-session';
 import type { HeldTool } from '@/lib/held-tool';
 import type { ModBadge, WorkspaceNotice } from '@/lib/session-ui';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -39,6 +40,11 @@ interface CurrentItemPanelProps {
   readonly onModMenu: (index: number, x: number, y: number) => void;
   /** Index of the modifier whose menu is open, to keep it highlighted. */
   readonly menuIndex: number | null;
+  /** Free slots for a manual add, decided by craft-session; null = nothing can be added. */
+  readonly addSlots: Readonly<Record<AffixSide, ManualAddSlot>> | null;
+  /** Side the pool is adding to right now, to mark its button. */
+  readonly addingSide: AffixSide | null;
+  readonly onAdd: (side: AffixSide) => void;
 }
 
 /** The crafting object: hold a tool from the strip below, click the item to use it. */
@@ -79,11 +85,15 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
     m.kind === 'resolved' ? (view.getModifier(m.modifierId)?.side ?? null) : null;
   const count = (side: AffixSide) => item?.explicits.filter((m) => sideOf(m) === side).length ?? 0;
   // Prefixes first, then suffixes, then lines we could not place — the order the game shows.
-  const ordered = item
-    ? (['prefix', 'suffix', null] as const).flatMap((side) =>
-        item.explicits.map((mod, index) => ({ mod, index })).filter(({ mod }) => sideOf(mod) === side),
-      )
+  // After each side, its "+ Add" row when craft-session says a modifier can still go there.
+  type Row = { kind: 'mod'; mod: ExplicitModifier; index: number } | { kind: 'add'; side: AffixSide };
+  const ordered: Row[] = item
+    ? (['prefix', 'suffix', null] as const).flatMap((side): Row[] => [
+        ...item.explicits.map((mod, index) => ({ kind: 'mod' as const, mod, index })).filter(({ mod }) => sideOf(mod) === side),
+        ...(side && props.addSlots?.[side].canAdd ? [{ kind: 'add' as const, side }] : []),
+      ])
     : [];
+  const modCount = item?.explicits.length ?? 0;
 
   return (
     <Panel
@@ -190,19 +200,38 @@ export function CurrentItemPanel(props: CurrentItemPanelProps) {
             </div>
 
             <ul className="current-mods">
-              {ordered.length === 0 && <li className="current-mods-empty">{t('current.noMods')}</li>}
-              {ordered.map(({ mod, index }) => (
-                <CurrentMod
-                      baseId={item.baseId}
-                  key={index}
-                  mod={mod}
-                  view={view}
-                  badge={props.badges.get(index)}
-                  fresh={props.freshIndex === index}
-                  menuOpen={props.menuIndex === index}
-                  onMenu={(x, y) => props.onModMenu(index, x, y)}
-                />
-              ))}
+              {modCount === 0 && <li className="current-mods-empty">{t('current.noMods')}</li>}
+              {ordered.map((row) =>
+                row.kind === 'add' ? (
+                  <li key={`add-${row.side}`} className="current-add">
+                    <button
+                      type="button"
+                      className={`add-btn${props.addingSide === row.side ? ' add-btn-active' : ''}`}
+                      title={t('current.addTitle')}
+                      aria-pressed={props.addingSide === row.side}
+                      onClick={(e) => {
+                        // Inside the craft zone: this button edits by hand, it never applies the held tool.
+                        e.stopPropagation();
+                        props.onAdd(row.side);
+                      }}
+                    >
+                      <Icon name="plus" size={14} />
+                      {t(row.side === 'prefix' ? 'current.addPrefix' : 'current.addSuffix')}
+                    </button>
+                  </li>
+                ) : (
+                  <CurrentMod
+                    baseId={item.baseId}
+                    key={row.index}
+                    mod={row.mod}
+                    view={view}
+                    badge={props.badges.get(row.index)}
+                    fresh={props.freshIndex === row.index}
+                    menuOpen={props.menuIndex === row.index}
+                    onMenu={(x, y) => props.onModMenu(row.index, x, y)}
+                  />
+                ),
+              )}
             </ul>
 
             <footer className="current-foot num">

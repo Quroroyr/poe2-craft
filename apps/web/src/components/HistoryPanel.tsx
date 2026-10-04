@@ -144,6 +144,8 @@ function StepRow(props: {
     </>
   );
   if (step.kind === 'manual-edit') {
+    // An added modifier has no "before": its side is the new one's.
+    const side = (step.from ?? step.to)?.side ?? null;
     return (
       <tr className={`history-row history-${props.state} history-manual`}>
         <td className="num right">{step.index}</td>
@@ -159,7 +161,7 @@ function StepRow(props: {
         </td>
         <td>
           <span className="history-result" title={step.label}>
-            {step.from.side && <span className="side-mark-sm">{SIDE_SHORT[step.from.side]}</span>}
+            {side && <span className="side-mark-sm">{SIDE_SHORT[side]}</span>}
             <span className="mod-text">{manualEditText(step)}</span>
           </span>
         </td>

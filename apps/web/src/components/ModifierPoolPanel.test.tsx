@@ -32,7 +32,7 @@ const openSourceSetup = () => click(button($('.start-strip'), 'Изменить 
 const openSourceSuffixes = async () => {
   await openSourceSetup();
   await click(button($('.setup-surface .panel-source'), 'Добавить суффикс'));
-  await click(family('Attack Speed'));
+  await click(family('#% increased Attack Speed'));
 };
 
 /** An empty target on the current base ("Собрать цель" opens its picker), then the suffix picker on Attack Speed. */
@@ -40,7 +40,7 @@ const openTargetSuffixes = async () => {
   await click(button($('.panel-target'), 'Сброс'));
   await click(button($('.panel-target'), 'Собрать цель'));
   await click(button($('.panel-target .target-add'), 'Суффикс'));
-  await click(family('Attack Speed'));
+  await click(family('#% increased Attack Speed'));
 };
 
 describe('editing pool: whole-row picking', () => {
@@ -82,7 +82,7 @@ describe('editing pool: whole-row picking', () => {
     expect(pool().querySelector<HTMLInputElement>('input[name="pool-search"]')!.value).toBe('attack');
     expect(pool().querySelector<HTMLSelectElement>('select[name="pool-tag"]')!.value).toBe('speed');
     expect(pool().querySelector<HTMLSelectElement>('select[name="pool-status"]')!.value).toBe(status.value);
-    expect(family('Attack Speed').getAttribute('aria-pressed')).toBe('true');
+    expect(family('#% increased Attack Speed').getAttribute('aria-pressed')).toBe('true');
     expect(tab('Суффиксы').getAttribute('aria-selected')).toBe('true');
     expect(pool().querySelector('.mode-line-edit')).not.toBeNull();
     // Same DOM node: no remount, so the scroll position cannot jump.
@@ -93,12 +93,12 @@ describe('editing pool: whole-row picking', () => {
     await openSourceSetup();
     await click(button($('.setup-surface .panel-source'), 'Добавить суффикс'));
     await click(tab('Префиксы'));
-    await click(family('Increased Physical'));
+    await click(family('#% increased Physical Damage'));
     await click(row('mod.local-physical-percent.t1')!);
     expect(tab('Префиксы').getAttribute('aria-selected')).toBe('true');
     expect(row('mod.local-physical-percent.t1')!.getAttribute('aria-pressed')).toBe('true');
 
-    await click(family('Adds Fire'));
+    await click(family('Adds # to # Fire Damage'));
     await click(row('mod.local-flat-fire.t1')!);
     const prefixes = $('[aria-label="Префиксы исходного"]').textContent ?? '';
     expect(prefixes).toContain('Physical Damage');
@@ -129,7 +129,7 @@ describe('editing pool: whole-row picking', () => {
     expect(rows()[0]!.querySelector('select')!.value).toBe('mod.local-attack-speed.t1');
     expect(row('mod.local-attack-speed.t1')!.getAttribute('aria-pressed')).toBe('true');
     expect(row('mod.local-attack-speed.t2')!.getAttribute('aria-pressed')).toBe('false');
-    expect(family('Attack Speed').getAttribute('aria-pressed')).toBe('true');
+    expect(family('#% increased Attack Speed').getAttribute('aria-pressed')).toBe('true');
   });
 
   it('an unavailable row cannot be picked by click or keyboard', async () => {

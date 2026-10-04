@@ -17,6 +17,8 @@ import {
 } from '@poe2-craft/probability-engine';
 import {
   checkApplicable,
+  currentAddOptions,
+  manualAddSlots,
   compareToTarget,
   itemSetupFields,
   outstandingTargetModifiers,
@@ -84,8 +86,11 @@ export type ExplorerMode =
   | { readonly kind: 'inspect' }
   | { readonly kind: 'edit-source'; readonly side: 'prefix' | 'suffix'; readonly replaceIndex?: number }
   | { readonly kind: 'edit-target'; readonly side: 'prefix' | 'suffix' }
-  /** Manual edit of the current item: replace the modifier at `replaceIndex` (sandbox, ADR 009). */
-  | { readonly kind: 'edit-current'; readonly side: 'prefix' | 'suffix'; readonly replaceIndex: number };
+  /**
+   * Manual edit of the current item (sandbox, ADR 009): replace the modifier at `replaceIndex`, or —
+   * without it — add a new modifier of `side` to a free slot.
+   */
+  | { readonly kind: 'edit-current'; readonly side: 'prefix' | 'suffix'; readonly replaceIndex?: number };
 
 export interface WorkspaceInput {
   readonly session: CraftSession;
@@ -115,6 +120,8 @@ export interface WorkspaceAnalysis {
   readonly explorer: PoolExplorer | null;
   /** What a click on each tier does while editing the source or the target; null in inspect mode. */
   readonly picks: PickOptions | null;
+  /** Free slots of the current item for "Add prefix / suffix" (manual edit); null when nothing can be added. */
+  readonly currentAddSlots: ReturnType<typeof manualAddSlots>;
   readonly comparison: ItemComparison | null;
   /** Per-requirement state against the current item and target progress. */
   readonly outlook: TargetOutlook | null;
@@ -160,6 +167,7 @@ export function analyzeWorkspace(input: WorkspaceInput, craftDb: CraftDb = demoC
     blockedBy,
     explorer,
     picks,
+    currentAddSlots: session.current ? manualAddSlots(craftDb, session.gameVersion, session.current) : null,
     comparison,
     outlook,
     palette: toolPalette(view),
@@ -191,7 +199,9 @@ function pickOptions(session: CraftSession, mode: ExplorerMode, craftDb: CraftDb
   }
   if (mode.kind === 'edit-current' && session.current) {
     // The same item rules as the source setup, applied to the current item.
-    return sourcePickOptions(craftDb, gameVersion, session.current, mode.replaceIndex);
+    return mode.replaceIndex === undefined
+      ? currentAddOptions(craftDb, gameVersion, session.current, mode.side)
+      : sourcePickOptions(craftDb, gameVersion, session.current, mode.replaceIndex);
   }
   return null;
 }
@@ -207,7 +217,9 @@ function toPoolMode(mode: ExplorerMode, actionId: string | null): PoolMode {
     case 'edit-target':
       return { kind: 'edit-target' };
     case 'edit-current':
-      return { kind: 'edit-current', replaceIndex: mode.replaceIndex };
+      return mode.replaceIndex === undefined
+        ? { kind: 'edit-current', side: mode.side }
+        : { kind: 'edit-current', replaceIndex: mode.replaceIndex };
   }
 }
 

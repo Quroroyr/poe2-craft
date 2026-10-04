@@ -5,6 +5,7 @@ import {
   replaceExplicitAt,
   withExplicitModifier,
   withoutExplicitAt,
+  type AffixSide,
   type CraftAction,
   type ItemState,
   type ModifierDefinition,
@@ -64,6 +65,14 @@ export const MANUAL_EDIT_ACTION: CraftAction = {
   versions: { introducedIn: '0.0.0' },
   provenance: { sourceId: 'app', confidence: 'experimental', notes: 'Application rule set, not game data' },
 };
+
+/**
+ * Pool rules for adding one modifier of `side` to the current item by hand: the manual-edit rules
+ * restricted to that side, so the other side reads "side not allowed" instead of offering a pick.
+ */
+export function manualAddAction(side: AffixSide): CraftAction {
+  return { ...MANUAL_EDIT_ACTION, effect: { kind: 'add-random-modifier', allowedSides: [side] } };
+}
 
 /**
  * The target as an item, so the same pool rules (slots, groups, item level) tell which

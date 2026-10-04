@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import type { MenuIntent, MenuItem, MenuModel } from '@/lib/mod-menu';
 import { Icon } from './Icon';
@@ -43,32 +43,7 @@ export function ContextMenu(props: ContextMenuProps) {
     if (placed) focusItem(ref.current, 0);
   }, [submenu, placed]);
 
-  useEffect(() => {
-    const inside = (target: EventTarget | null) => target instanceof Node && !!ref.current?.contains(target);
-    const onPointerDown = (e: PointerEvent) => {
-      if (!inside(e.target)) onClose();
-    };
-    const onKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      // The page also uses Escape (leave the pool editing mode): closing the menu comes first.
-      e.stopPropagation();
-      e.preventDefault();
-      onClose();
-    };
-    const onScroll = (e: Event) => {
-      if (!inside(e.target)) onClose();
-    };
-    document.addEventListener('pointerdown', onPointerDown, true);
-    document.addEventListener('keydown', onKey, true);
-    window.addEventListener('scroll', onScroll, true);
-    window.addEventListener('resize', onClose);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown, true);
-      document.removeEventListener('keydown', onKey, true);
-      window.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('resize', onClose);
-    };
-  }, [onClose]);
+  useDismiss(ref, onClose);
 
   const choose = (item: MenuItem) => {
     if (item.disabled) return;
@@ -178,6 +153,41 @@ export function ContextMenu(props: ContextMenuProps) {
     </div>,
     document.body,
   );
+}
+
+/**
+ * Closing rules shared by the floating surfaces (modifier menu, tool info): Escape, a pointer down
+ * outside, scrolling outside, resizing. `owner` is the element that opened the surface: a pointer
+ * down on it is left to its own handler (a second right click toggles instead of close + reopen).
+ */
+export function useDismiss(ref: RefObject<HTMLElement | null>, onClose: () => void, owner?: Element | null) {
+  useEffect(() => {
+    const inside = (target: EventTarget | null) => target instanceof Node && !!ref.current?.contains(target);
+    const onPointerDown = (e: PointerEvent) => {
+      if (inside(e.target) || (owner && e.target instanceof Node && owner.contains(e.target))) return;
+      onClose();
+    };
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      // The page also uses Escape (leave the pool editing mode): closing the surface comes first.
+      e.stopPropagation();
+      e.preventDefault();
+      onClose();
+    };
+    const onScroll = (e: Event) => {
+      if (!inside(e.target)) onClose();
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('keydown', onKey, true);
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onClose);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onClose);
+    };
+  }, [ref, onClose, owner]);
 }
 
 /**

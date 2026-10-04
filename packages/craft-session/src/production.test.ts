@@ -40,3 +40,38 @@ describe('production applicability', () => {
     if (pool.status === 'blocked') expect(pool.issues.map((i) => i.code)).toContain('base-not-supported');
   });
 });
+
+describe('production family labels', () => {
+  const explore = (name: string) => {
+    const base = view.listBases().find((b) => b.name === name)!;
+    const pool = buildEligiblePool({ db, context: { gameVersion: version }, item: createItemFromBase(view, base.id, 82)!, action: MANUAL_EDIT_ACTION });
+    if (pool.status !== 'ready') throw new Error(`${name} pool blocked`);
+    return explorePool(pool, view);
+  };
+  const groups = (name: string) => explore(name).tabs.flatMap((t) => t.groups.map((g) => ({ ...g, tab: t.id })));
+
+  // Regression: labels came from collision groups ("#% increased Trap Damage" over Spell Damage
+  // tiers, "#% increased Fire Damage" over Lightning Damage tiers on a Wand).
+  it('label every Wand family with its own tiers wording', () => {
+    const wand = groups('Attuned Wand');
+    const label = (family: string) => wand.find((g) => g.key === family)?.label;
+    expect(label('WeaponSpellDamage')).toBe('#% increased Spell Damage');
+    expect(label('LightningDamageWeaponPrefix')).toBe('#% increased Lightning Damage');
+    expect(label('GlobalIncreaseFireSpellSkillGemLevelWeapon')).toBe('+# to Level of all Fire Spell Skills');
+    expect(label('GlobalIncreaseColdSpellSkillGemLevelWeapon')).toBe('+# to Level of all Cold Spell Skills');
+    expect(wand.map((g) => g.label)).not.toContain('#% increased Trap Damage');
+  });
+
+  it('every family label matches the wording of its tiers on Wand, Spear, Body Armour and Ring', () => {
+    for (const name of ['Attuned Wand', 'Akoyan Spear', 'Garment', 'Gold Ring']) {
+      const all = groups(name);
+      for (const g of all) {
+        const skeleton = (s: string) => s.replace(/#|-?\d+(?:\.\d+)?/g, '#');
+        for (const r of g.rows) expect(skeleton(r.entry.definition.lines.map((l) => l.template).join(' / ')), `${name}: ${g.key}`).toBe(skeleton(g.label));
+      }
+      // Families that read the same would need a disambiguator; on these bases there are none.
+      const labels = all.map((g) => `${g.tab}:${g.label}`);
+      expect(new Set(labels).size, name).toBe(labels.length);
+    }
+  });
+});

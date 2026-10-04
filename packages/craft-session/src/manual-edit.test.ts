@@ -15,6 +15,8 @@ import {
   currentModifierMarks,
   currentTierOptions,
   hasManualEdits,
+  manualAddSlots,
+  poolForMode,
   redoStep,
   sessionSpent,
   undoLastStep,
@@ -209,6 +211,82 @@ describe('manual edits in the session history', () => {
       { crafted: false, edited: false },
       { crafted: true, edited: true },
     ]);
+  });
+});
+
+describe('manual add to a free slot of the current item', () => {
+  const add = (session: CraftSession, modifierId: string) => applyManualEdit(session, db, { operation: 'add', modifierId });
+  // SOURCE: two suffixes (crit chance T1 fractured, attack speed T3), no prefix; rare spear = 3 / 3.
+
+  it('adds a prefix: a manual step at zero cost, current only, no roll', () => {
+    const session = craft(start());
+    const result = add(session, 'mod.local-physical-percent.t1');
+    if (result.status !== 'applied') throw new Error(`expected applied, got ${result.reason}`);
+    const next = result.session;
+    expect(ids(next.current)).toEqual([...ids(session.current)!, 'mod.local-physical-percent.t1']);
+    expect(next.source).toBe(session.source);
+    expect(next.rollCount).toBe(session.rollCount);
+    expect(sessionSpent(next)).toEqual(sessionSpent(session));
+    expect(result.step).toMatchObject({ kind: 'manual-edit', operation: 'add', modifierIndex: 3, from: null, to: { modifierId: 'mod.local-physical-percent.t1', side: 'prefix', tier: 1 } });
+    expect('cost' in result.step).toBe(false);
+    expect(hasManualEdits(next)).toBe(true);
+    expect(currentModifierMarks(next).at(-1)).toEqual({ crafted: false, edited: true });
+  });
+
+  it('adds a suffix the same way', () => {
+    const next = edit(start(), { operation: 'add', modifierId: 'mod.dexterity.t1' });
+    expect(ids(next.current)).toEqual(['mod.local-critical-chance.t1', 'mod.local-attack-speed.t3', 'mod.dexterity.t1']);
+  });
+
+  it('cannot add when the side is full; the slot summary says so from the real limits', () => {
+    const full = edit(start(), { operation: 'add', modifierId: 'mod.dexterity.t1' });
+    expect(manualAddSlots(db, VERSION, full.current!)).toMatchObject({ prefix: { used: 0, max: 3, canAdd: true }, suffix: { used: 3, max: 3, canAdd: false } });
+    expect(add(full, 'mod.strength.t1')).toMatchObject({ status: 'rejected', reason: 'not-allowed', reasons: [expect.objectContaining({ code: 'no-free-affix-slot' })] });
+    expect(full.current!.explicits).toHaveLength(3);
+  });
+
+  it('a magic item has one slot per side: the limits come from rarity, not a fixed 3', () => {
+    const magic = start(createItemState({ ...SOURCE, rarity: 'magic', explicits: [resolved('mod.local-attack-speed.t3')] }));
+    expect(manualAddSlots(db, VERSION, magic.current!)).toMatchObject({ prefix: { max: 1, canAdd: true }, suffix: { used: 1, max: 1, canAdd: false } });
+  });
+
+  it('cannot add a family already on the item (its group is taken) — it is never swapped in', () => {
+    const result = add(start(), 'mod.local-attack-speed.t1');
+    expect(result).toMatchObject({ status: 'rejected', reason: 'not-allowed', reasons: [expect.objectContaining({ code: 'group-already-on-item' })] });
+    expect(add(start(), 'mod.local-attack-speed.t3')).toMatchObject({ status: 'rejected', reason: 'no-change' });
+  });
+
+  it('respects item level and base applicability', () => {
+    const low = start(spear([], 40));
+    expect(add(low, 'mod.local-physical-percent.t1')).toMatchObject({ reason: 'not-allowed', reasons: [expect.objectContaining({ code: 'item-level-too-low' })] });
+    expect(add(low, 'mod.local-physical-percent.t3').status).toBe('applied'); // T3 needs ilvl 16, T1 needs 75
+    // Arrow speed rolls on bows only.
+    expect(add(start(), 'mod.arrow-speed.t1')).toMatchObject({ reason: 'not-allowed', reasons: [expect.objectContaining({ code: 'not-spawnable-on-base' })] });
+    expect(add(start(), 'mod.nothing')).toMatchObject({ reason: 'unknown-modifier' });
+  });
+
+  it('undo removes the added modifier, redo restores it', () => {
+    const s0 = craft(start());
+    const s1 = edit(s0, { operation: 'add', modifierId: 'mod.local-physical-percent.t1' });
+    const undone = undoLastStep(s1);
+    expect(ids(undone.current)).toEqual(ids(s0.current));
+    const redone = redoStep(undone);
+    expect(ids(redone.current)).toEqual(ids(s1.current));
+    expect(redone.steps.at(-1)).toMatchObject({ kind: 'manual-edit', operation: 'add' });
+    expect(sessionSpent(redone)).toEqual(sessionSpent(s0));
+  });
+
+  it('the add pool offers only the chosen side and judges the item as it is', () => {
+    const { pool } = poolForMode(start(), db, { kind: 'edit-current', side: 'prefix' });
+    if (pool?.status !== 'ready') throw new Error('pool blocked');
+    expect(pool.eligible.length).toBeGreaterThan(0);
+    expect(pool.eligible.every((e) => e.definition.side === 'prefix')).toBe(true);
+    expect(pool.item.explicits).toHaveLength(2);
+  });
+
+  it('replace from the pool still works next to add (regression)', () => {
+    const next = edit(start(), { operation: 'replace', index: 1, modifierId: 'mod.dexterity.t1' });
+    expect(ids(next.current)).toEqual(['mod.local-critical-chance.t1', 'mod.dexterity.t1']);
   });
 });
 

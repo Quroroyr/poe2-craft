@@ -6,6 +6,7 @@ export * from './editing';
 export * from './item-setup';
 export * from './target-outlook';
 export * from './tools';
+export * from './tool-info';
 export * from './pool-modes';
 export * from './pick';
 export * from './manual-edit';

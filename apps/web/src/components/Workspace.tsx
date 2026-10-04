@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { targetSpecFromItem, type ItemState, type ModifierDefinition, type TargetSpec } from '@poe2-craft/craft-domain';
+import { familyKeyOf, targetSpecFromItem, type ItemState, type ModifierDefinition, type TargetSpec } from '@poe2-craft/craft-domain';
 import type { ItemParseResult } from '@poe2-craft/item-parser';
 import {
   EMPTY_TOOL,
@@ -37,6 +37,7 @@ import { heldTool } from '@/lib/held-tool';
 import { fetchLeagues, fetchPriceSnapshot } from '@/lib/price-source';
 import { buildModMenu, type MenuIntent, type ModMenuTarget } from '@/lib/mod-menu';
 import { INITIAL_PRICE_INPUTS, snapshotFromInputs, type PriceInputs } from '@/lib/prices';
+import { historyShortcut } from '@/lib/shortcuts';
 import { applyNotice, currentItemBadges, randomSeed, type WorkspaceNotice } from '@/lib/session-ui';
 import { applyRejectionText, exclusionsText, manualEditRejectionText, manualEditText, manualOperationLabel } from '@/lib/texts';
 import { ContextMenu } from './ContextMenu';
@@ -171,16 +172,13 @@ export function Workspace(props: WorkspaceProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (isTyping(e.target) || live.current.busy) return;
-      const key = e.key.toLowerCase();
-      if ((e.ctrlKey || e.metaKey) && key === 'z' && !e.shiftKey) {
+      // Letters by physical key (layout-independent), see lib/shortcuts.ts.
+      const shortcut = historyShortcut(e);
+      if (shortcut) {
         e.preventDefault();
-        setSession(undoLastStep);
+        setSession(shortcut === 'undo' ? undoLastStep : redoStep);
         clearMoment();
-      } else if ((e.ctrlKey || e.metaKey) && ((key === 'z' && e.shiftKey) || key === 'y')) {
-        e.preventDefault();
-        setSession(redoStep);
-        clearMoment();
-      } else if (key === 'escape') {
+      } else if (e.key === 'Escape') {
         setExplorerMode(INSPECT);
       }
     };
@@ -279,13 +277,20 @@ export function Workspace(props: WorkspaceProps) {
     } else if (explorerMode.kind === 'edit-target') {
       editTarget(applyTargetPick(session.target ?? targetForSource(session.source), option));
     } else if (explorerMode.kind === 'edit-current') {
-      runManualEdit({ operation: 'replace', index: explorerMode.replaceIndex, modifierId: definition.id });
+      runManualEdit(
+        explorerMode.replaceIndex === undefined
+          ? { operation: 'add', modifierId: definition.id }
+          : { operation: 'replace', index: explorerMode.replaceIndex, modifierId: definition.id },
+      );
     }
   };
 
   // Undo / redo / reset can take away the modifier a "replace from pool" was aimed at.
   useEffect(() => {
-    if (explorerMode.kind === 'edit-current' && !session.current?.explicits[explorerMode.replaceIndex]) {
+    if (
+      explorerMode.kind === 'edit-current' &&
+      (explorerMode.replaceIndex === undefined ? !session.current : !session.current?.explicits[explorerMode.replaceIndex])
+    ) {
       setExplorerMode(INSPECT);
     }
   }, [explorerMode, session.current]);
@@ -309,7 +314,7 @@ export function Workspace(props: WorkspaceProps) {
       }),
     });
     // A removal shifts positions: a "replace from pool" aimed at one of them no longer applies.
-    if (edit.operation === 'remove' && explorerMode.kind === 'edit-current') setExplorerMode(INSPECT);
+    if (edit.operation === 'remove' && explorerMode.kind === 'edit-current' && explorerMode.replaceIndex !== undefined) setExplorerMode(INSPECT);
   };
   const runManualEdit = (edit: ManualEdit) => {
     if (manualEditAcknowledged) applyManual(edit);
@@ -323,7 +328,7 @@ export function Workspace(props: WorkspaceProps) {
     setPoolFocus((prev) => ({
       modifierId,
       tab: definition.side,
-      familyKey: definition.family ?? definition.groupIds.join('+'),
+      familyKey: familyKeyOf(definition),
       nonce: (prev?.nonce ?? 0) + 1,
     }));
     scrollToPool();
@@ -467,6 +472,9 @@ export function Workspace(props: WorkspaceProps) {
                       onReset={resetCraft}
                       onModMenu={(index, x, y) => openMenu({ scope: 'current', index }, x, y)}
                       menuIndex={menu?.target.scope === 'current' ? menu.target.index : null}
+                      addSlots={analysis.currentAddSlots}
+                      addingSide={explorerMode.kind === 'edit-current' && explorerMode.replaceIndex === undefined ? explorerMode.side : null}
+                      onAdd={(side) => explore({ kind: 'edit-current', side })}
                     />
                   </>
                 ) : (

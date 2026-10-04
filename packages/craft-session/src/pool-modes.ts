@@ -1,7 +1,7 @@
-import type { CraftActionId, ItemState, TargetSpec } from '@poe2-craft/craft-domain';
+import type { AffixSide, CraftActionId, ItemState, TargetSpec } from '@poe2-craft/craft-domain';
 import type { CraftDb } from '@poe2-craft/craft-db';
 import { buildEligiblePool, type EligiblePool } from '@poe2-craft/probability-engine';
-import { MANUAL_EDIT_ACTION, targetAsItem } from './editing';
+import { MANUAL_EDIT_ACTION, manualAddAction, targetAsItem } from './editing';
 import type { CraftSession } from './session';
 
 /**
@@ -9,14 +9,16 @@ import type { CraftSession } from './session';
  * - inspect:      what the active tool could add to the current item;
  * - edit-source:  what could legally be added to the source by hand (any side);
  * - edit-target:  what could still be added to the target requirements;
- * - edit-current: what could replace one modifier of the current item in a manual edit (ADR 009).
+ * - edit-current: what could replace one modifier of the current item (`replaceIndex`), or be added
+ *                 to a free slot of `side` (no `replaceIndex`), in a manual edit (ADR 009).
  * `replaceIndex` evaluates the item as if that modifier were already removed.
  */
 export type PoolMode =
   | { readonly kind: 'inspect'; readonly actionId: CraftActionId | null }
   | { readonly kind: 'edit-source'; readonly replaceIndex?: number }
   | { readonly kind: 'edit-target' }
-  | { readonly kind: 'edit-current'; readonly replaceIndex: number };
+  | { readonly kind: 'edit-current'; readonly replaceIndex: number }
+  | { readonly kind: 'edit-current'; readonly replaceIndex?: undefined; readonly side: AffixSide };
 
 export interface ModePool {
   readonly mode: PoolMode;
@@ -34,7 +36,8 @@ export function poolForMode(session: CraftSession, db: CraftDb, mode: PoolMode):
     const pool = mode.actionId ? buildEligiblePool({ item, context, db, actionId: mode.actionId }) : null;
     return { mode, item, pool };
   }
-  return { mode, item, pool: buildEligiblePool({ item, context, db, action: MANUAL_EDIT_ACTION }) };
+  const action = mode.kind === 'edit-current' && mode.replaceIndex === undefined ? manualAddAction(mode.side) : MANUAL_EDIT_ACTION;
+  return { mode, item, pool: buildEligiblePool({ item, context, db, action }) };
 }
 
 function itemForMode(session: CraftSession, mode: PoolMode): ItemState | null {
@@ -50,7 +53,8 @@ function itemForMode(session: CraftSession, mode: PoolMode): ItemState | null {
       return session.target ? targetAsItem(session.target, session.source) : null;
     case 'edit-current': {
       const current = session.current;
-      return current ? { ...current, explicits: current.explicits.filter((_, i) => i !== mode.replaceIndex) } : null;
+      if (!current || mode.replaceIndex === undefined) return current;
+      return { ...current, explicits: current.explicits.filter((_, i) => i !== mode.replaceIndex) };
     }
   }
 }

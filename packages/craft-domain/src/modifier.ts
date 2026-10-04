@@ -209,3 +209,43 @@ export function modifierText(definition: Pick<ModifierDefinition, 'lines'>): str
     })
     .join(' / ');
 }
+
+/** Key that groups the tiers of one modifier family: the game's family id, else side + collision groups. */
+export function familyKeyOf(definition: Pick<ModifierDefinition, 'family' | 'groupIds'>): string {
+  return definition.family ?? definition.groupIds.join('+');
+}
+
+const VALUE_TOKEN = /#|-?\d+(?:\.\d+)?/g;
+
+/**
+ * Display name of a modifier family, built from its own tiers' templates — never from a collision
+ * group, whose name comes from whichever modifier was first seen in it. Numbers that differ between
+ * tiers (or are rolled anywhere) become "#": "+1 … / +2 …" → "+# to Level of all Fire Spell Skills".
+ * A number shared by every tier ("per 100 Maximum Life") stays. Lines are joined with " / ".
+ */
+export function familyTemplate(definitions: readonly Pick<ModifierDefinition, 'lines'>[]): string {
+  const lineCount = mostCommon(definitions.map((d) => d.lines.length)) ?? 0;
+  const lines: string[] = [];
+  for (let i = 0; i < lineCount; i++) {
+    const split = definitions
+      .map((d) => d.lines[i]?.template)
+      .filter((t): t is string => t !== undefined)
+      .map((t) => ({ parts: t.split(VALUE_TOKEN), values: t.match(VALUE_TOKEN) ?? [] }));
+    const skeleton = mostCommon(split.map((s) => s.parts.join('\u0000')));
+    const same = split.filter((s) => s.parts.join('\u0000') === skeleton);
+    const first = same[0];
+    if (!first) continue;
+    const values = first.values.map((v, j) => (same.some((s) => s.values[j] === '#' || s.values[j] !== v) ? '#' : v));
+    lines.push(first.parts.map((part, j) => part + (values[j] ?? '')).join(''));
+  }
+  return lines.join(' / ');
+}
+
+function mostCommon<T>(items: readonly T[]): T | undefined {
+  const counts = new Map<T, number>();
+  for (const item of items) counts.set(item, (counts.get(item) ?? 0) + 1);
+  let best: T | undefined;
+  let bestCount = 0;
+  for (const [item, count] of counts) if (count > bestCount) [best, bestCount] = [item, count];
+  return best;
+}

@@ -63,7 +63,7 @@ export interface CraftStepRecord {
 }
 
 /** What a manual edit of the current item did. Sandbox only: not a game mechanic (ADR 009). */
-export type ManualEditOperation = 'retier' | 'remove' | 'replace' | 'fracture' | 'unfracture';
+export type ManualEditOperation = 'add' | 'retier' | 'remove' | 'replace' | 'fracture' | 'unfracture';
 
 /** A modifier as it was or became in a manual edit, for the history line. */
 export interface ManualEditModifier {
@@ -83,11 +83,12 @@ export interface ManualEditStepRecord {
   /** 1-based position in the history, shared with craft steps. */
   readonly index: number;
   readonly operation: ManualEditOperation;
-  /** Position of the edited explicit in `before.explicits`. */
+  /** Position of the edited explicit in `before.explicits`; for `add`, its new position in `after.explicits`. */
   readonly modifierIndex: number;
   /** Plain description for logs and exports, e.g. "Manual edit: retier T3 → T2". The page renders its own text. */
   readonly label: string;
-  readonly from: ManualEditModifier;
+  /** null when the modifier was added. */
+  readonly from: ManualEditModifier | null;
   /** null when the modifier was removed. */
   readonly to: ManualEditModifier | null;
   readonly before: ItemState;
@@ -361,7 +362,7 @@ export function simulatedModifierIds(session: CraftSession): ReadonlySet<Modifie
 export interface CurrentModifierMark {
   /** Added by a craft step of the active branch. */
   readonly crafted: boolean;
-  /** Changed by a manual edit (retier, replace, fracture, unfracture) after it appeared. */
+  /** Added by a manual edit, or changed by one (retier, replace, fracture, unfracture) after it appeared. */
   readonly edited: boolean;
 }
 
@@ -383,6 +384,8 @@ export function currentModifierMarks(session: CraftSession): readonly CurrentMod
           return marks[previous] ?? { crafted: true, edited: false };
         });
       } else marks = [...marks, ...step.after.explicits.slice(marks.length).map(() => ({ crafted: true, edited: false }))];
+    } else if (step.operation === 'add') {
+      marks = [...marks, { crafted: false, edited: true }];
     } else if (step.operation === 'remove') {
       marks = marks.filter((_, i) => i !== step.modifierIndex);
     } else {

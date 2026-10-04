@@ -169,16 +169,19 @@ export function applyRejectionText(t: Translator, rejection: ApplyRejection | nu
 export function manualEditText(step: ManualEditStepRecord): string {
   const tier = (n: number | null) => (n === null ? '?' : `T${n}`);
   const text = (s: string) => s.replace(/\s*\(fractured\)$/i, '').replace(/\n/g, ' / ');
+  const was = step.from?.text ?? '';
   switch (step.operation) {
+    case 'add':
+      return `+ ${tier(step.to?.tier ?? null)} · ${text(step.to?.text ?? '')}`;
     case 'retier':
-      return `${tier(step.from.tier)} → ${tier(step.to?.tier ?? null)} · ${text(step.to?.text ?? step.from.text)}`;
+      return `${tier(step.from?.tier ?? null)} → ${tier(step.to?.tier ?? null)} · ${text(step.to?.text ?? was)}`;
     case 'replace':
-      return `${text(step.from.text)} → ${text(step.to?.text ?? '')}`;
+      return `${text(was)} → ${text(step.to?.text ?? '')}`;
     case 'remove':
-      return `− ${text(step.from.text)}`;
+      return `− ${text(was)}`;
     case 'fracture':
     case 'unfracture':
-      return text(step.from.text);
+      return text(was);
   }
 }
 

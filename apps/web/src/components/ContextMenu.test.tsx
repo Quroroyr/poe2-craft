@@ -192,7 +192,7 @@ describe('manual edits of the current item from the menu', () => {
     await rightClick(currentMod('Critical Hit Chance'));
     await choose('replace');
     expect($('.panel-pool .mode-line-edit').textContent).toContain('ручная правка');
-    await click([...container.querySelectorAll('.panel-pool .family-item')].find((b) => b.textContent?.startsWith('Dexterity'))!);
+    await click([...container.querySelectorAll('.panel-pool .family-item')].find((b) => b.textContent?.startsWith('+# to Dexterity'))!);
     await click($('.panel-pool .pick-row[data-modifier-id="mod.dexterity.t1"]'));
     await confirmNotice();
 
@@ -204,6 +204,53 @@ describe('manual edits of the current item from the menu', () => {
     expect($('.panel-pool .pick-row[data-modifier-id="mod.dexterity.t1"]').getAttribute('aria-pressed')).toBe('true');
     expect(historyRows()[0]!.textContent).toContain('замена мода');
   });
+
+  it('"+ Add prefix" adds to a free slot by hand: manual step, no spending, undo / redo', async () => {
+    await craft(1);
+    const spentBefore = spentNote();
+    const prefixesBefore = currentTexts().length;
+    const addPrefix = button($('.panel-current'), 'Добавить префикс');
+    await click(addPrefix);
+    // Clicking the button inside the item is not a craft click.
+    expect(historyRows()).toHaveLength(1);
+    expect($('.panel-pool .mode-line-edit').textContent).toContain('Добавление мода в текущий предмет');
+    expect($('.panel-pool [role="tab"][aria-selected="true"]').textContent).toContain('Префиксы');
+    // Only what may go into a prefix slot of this item is offered.
+    const offered = [...container.querySelectorAll<HTMLElement>('.panel-pool .pick-row.pick-allowed')];
+    expect(offered.length).toBeGreaterThan(0);
+    // The suffix tab offers nothing to pick: this add goes into a prefix slot.
+    const suffixTab = [...container.querySelectorAll('.panel-pool [role="tab"]')].find((tb) => tb.textContent?.includes('Суффиксы'))!;
+    expect(suffixTab.querySelector('.seg-meta')?.textContent).toBe('0');
+    const pick = offered.find((r) => r.dataset.modifierId === 'mod.local-physical-percent.t1') ?? offered[0]!;
+    const picked = pick.dataset.modifierId!;
+    await click(pick);
+    await confirmNotice();
+
+    expect(currentTexts()).toHaveLength(prefixesBefore + 1);
+    expect(historyRows()).toHaveLength(2);
+    expect(historyRows()[0]!.className).toContain('history-manual');
+    expect(historyRows()[0]!.textContent).toContain('добавление мода');
+    expect(spentNote()).toBe(spentBefore);
+    expect($(`.panel-pool .pick-row[data-modifier-id="${picked}"]`).getAttribute('aria-pressed')).toBe('true');
+
+    await keyOn(window, 'z', { ctrlKey: true, code: 'KeyZ' });
+    expect(currentTexts()).toHaveLength(prefixesBefore);
+    await keyOn(window, 'y', { ctrlKey: true, code: 'KeyY' });
+    expect(currentTexts()).toHaveLength(prefixesBefore + 1);
+    expect(spentNote()).toBe(spentBefore);
+  });
+
+  it('the add button disappears when the side is full', async () => {
+    const panel = $('.panel-current');
+    for (let i = 0; i < 3; i++) {
+      await click(button(panel, 'Добавить префикс'));
+      await click($('.panel-pool .pick-row.pick-allowed'));
+      await confirmNotice();
+    }
+    expect([...panel.querySelectorAll('button')].some((b) => b.textContent?.includes('Добавить префикс'))).toBe(false);
+    expect([...panel.querySelectorAll('button')].some((b) => b.textContent?.includes('Добавить суффикс'))).toBe(true);
+    expect($('.current-foot', panel).textContent).toContain('3 / 3');
+  });
 });
 
 describe('navigation and target from the menu', () => {
@@ -213,7 +260,8 @@ describe('navigation and target from the menu', () => {
     const pool = $('.panel-pool');
     const selectedTab = [...pool.querySelectorAll('[role="tab"]')].find((t) => t.getAttribute('aria-selected') === 'true');
     expect(selectedTab?.textContent).toContain('Суффиксы');
-    expect($('.family-item[aria-pressed="true"]', pool).textContent).toContain('Critical Hit Chance (local)');
+    // The family is named by its own wording, not by its collision group ("Critical Hit Chance (local)").
+    expect($('.family-item[aria-pressed="true"]', pool).textContent).toContain('+#% to Critical Hit Chance');
     expect($('tr.is-focus', pool).getAttribute('data-modifier-id')).toBe('mod.local-critical-chance.t1');
     expect(historyRows()).toHaveLength(0);
   });

@@ -1,4 +1,4 @@
-import { isSpawnable, resolveSpawnWeight, sameDomain, type AffixSide, type ModifierDefinition, type ModifierGroupId, type SpecialModifierDefinition } from '@poe2-craft/craft-domain';
+import { familyKeyOf, familyTemplate, isSpawnable, resolveSpawnWeight, sameDomain, type AffixSide, type ModifierDefinition, type ModifierGroupId, type SpecialModifierDefinition } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import type { ExclusionCode, PoolEntry, ReadyPool } from './eligible-pool';
 
@@ -29,7 +29,15 @@ export interface ExplorerGroup {
   /** Stable key of the group set (hybrids belong to several groups). */
   readonly key: string;
   readonly groupIds: readonly ModifierGroupId[];
+  /** The family's own wording (`familyTemplate` of its tiers), never a collision group's name. */
   readonly label: string;
+  /**
+   * Set only when another family on the same tab reads exactly the same: the tags that tell this
+   * one apart, else its game family id. Different families are never merged by text.
+   */
+  readonly detail?: string;
+  /** Collision groups of the family's tiers (technical: which modifiers exclude each other). */
+  readonly groupLabel: string;
   readonly rows: readonly ExplorerRow[];
   readonly eligibleWeight: number;
   readonly share: number | null;
@@ -94,27 +102,28 @@ export function explorePool(pool: ReadyPool, view: CraftDbView): PoolExplorer {
     };
     const tab = tabOf(entry.definition);
     const groups = byTab.get(tab) ?? new Map<string, ExplorerRow[]>();
-    const key = entry.definition.family ?? entry.definition.groupIds.join('+');
+    const key = familyKeyOf(entry.definition);
     groups.set(key, [...(groups.get(key) ?? []), row]);
     byTab.set(tab, groups);
   }
 
   const tabs = TAB_ORDER.filter((id) => byTab.has(id)).map((id): ExplorerTab => {
-    const groups = [...(byTab.get(id) ?? new Map<string, ExplorerRow[]>()).entries()].map(
+    const groups = disambiguate([...(byTab.get(id) ?? new Map<string, ExplorerRow[]>()).entries()].map(
       ([key, rows]): ExplorerGroup => {
-        const groupIds = rows[0]?.entry.definition.groupIds ?? [];
+        const groupIds = [...new Set(rows.flatMap((r) => r.entry.definition.groupIds))];
         const eligibleWeight = sumEligible(rows);
         return {
           key,
           groupIds,
-          label: groupIds.map((g) => view.getGroup(g)?.name ?? g).join(' + '),
+          label: familyTemplate(rows.map((r) => r.entry.definition)) || key,
+          groupLabel: groupIds.map((g) => view.getGroup(g)?.name ?? g).join(' + '),
           rows,
           eligibleWeight,
           share: eligibleWeight > 0 ? share(eligibleWeight) : null,
           status: STATUS_RANK.find((s) => rows.some((r) => r.status === s)) ?? 'excluded',
         };
       },
-    );
+    ));
     const rows = groups.flatMap((g) => g.rows);
     const eligibleWeight = sumEligible(rows);
     return {
@@ -135,6 +144,20 @@ export function explorePool(pool: ReadyPool, view: CraftDbView): PoolExplorer {
   }
 
   return { tabs, totalWeight: total, hiddenNotSpawnable };
+}
+
+/** Families that read the same get a `detail`: their distinguishing tags, else the family id. */
+function disambiguate(groups: readonly ExplorerGroup[]): ExplorerGroup[] {
+  const byLabel = new Map<string, ExplorerGroup[]>();
+  for (const g of groups) byLabel.set(g.label, [...(byLabel.get(g.label) ?? []), g]);
+  return groups.map((g) => {
+    const twins = (byLabel.get(g.label) ?? []).filter((o) => o !== g);
+    if (twins.length === 0) return g;
+    const tags = (x: ExplorerGroup) => new Set(x.rows.flatMap((r) => r.entry.definition.tags));
+    const others = new Set(twins.flatMap((o) => [...tags(o)]));
+    const own = [...tags(g)].filter((t) => !others.has(t));
+    return { ...g, detail: own.length > 0 ? own.join(', ') : g.key };
+  });
 }
 
 function sumEligible(rows: readonly ExplorerRow[]): number {

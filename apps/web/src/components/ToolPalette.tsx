@@ -1,10 +1,11 @@
-import { Fragment, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { Consumable, ConsumableCategory, ItemState } from '@poe2-craft/craft-domain';
 import type { CraftDbView } from '@poe2-craft/craft-db';
 import {
   EMPTY_TOOL,
   clearOmens,
   pickTool,
+  toolInfo,
   usableTools,
   type ResolvedTool,
   type ToolBlock,
@@ -23,6 +24,7 @@ import { GameIcon } from './GameIcon';
 import { Icon } from './Icon';
 import { Panel } from './Panel';
 import { WeightSource } from './ProbabilityPanel';
+import { ToolInfoPopover } from './ToolInfoPopover';
 
 const CATEGORIES: readonly ConsumableCategory[] = ['currency', 'omen', 'essence', 'catalyst', 'rune', 'soul-core', 'liquid-emotion', 'abyssal-bone'];
 
@@ -66,6 +68,20 @@ export function ToolPalette(props: ToolPaletteProps) {
   }, [palette, category, query, scope, usable]);
 
   const isSelected = (c: Consumable) => selection.currencyId === c.id || selection.omenIds.includes(c.id);
+
+  // Tool info: a right click (or Shift+F10 / the menu key) shows what the tool does; it never picks it.
+  const [info, setInfo] = useState<{ consumable: Consumable; x: number; y: number; owner: Element } | null>(null);
+  const keyboardOpen = useRef(0);
+  const closeInfo = useCallback(() => setInfo(null), []);
+  const openInfo = (c: Consumable, owner: Element, x: number, y: number) =>
+    setInfo((prev) => (prev?.consumable.id === c.id ? null : { consumable: c, x, y, owner }));
+  const onTileKey = (c: Consumable, e: KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key !== 'ContextMenu' && !(e.shiftKey && e.key === 'F10')) return;
+    e.preventDefault();
+    keyboardOpen.current = Date.now();
+    const box = e.currentTarget.getBoundingClientRect();
+    setInfo({ consumable: c, x: box.left, y: box.bottom, owner: e.currentTarget });
+  };
   const scroll = (dir: number) => stripRef.current?.scrollBy({ left: dir * 360, behavior: 'smooth' });
 
   return (
@@ -150,8 +166,17 @@ export function ToolPalette(props: ToolPaletteProps) {
                   role="option"
                   aria-selected={isSelected(c)}
                   className={`tool-tile${modelled && !block ? '' : ' tool-tile-dim'}${c.category === 'omen' ? ' tool-tile-omen' : ''}`}
-                  title={`${modelled ? c.name : t('tools.notModelledTitle', { name: c.name })}${block ? ` — ${blockText(t, block)}` : ''}${price === null ? '' : ` · ${formatCost(price, props.priceUnit ?? 'div')}`}`}
+                  title={`${modelled ? c.name : t('tools.notModelledTitle', { name: c.name })}${block ? ` — ${blockText(t, block)}` : ''}${price === null ? '' : ` · ${formatCost(price, props.priceUnit ?? 'div')}`}\n${t('tools.infoHint')}`}
                   onClick={() => props.onSelect(pickTool(selection, c))}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    // The browser may follow Shift+F10 with its own contextmenu event: the key already opened it.
+                    if (Date.now() - keyboardOpen.current < 400) return;
+                    openInfo(c, e.currentTarget, e.clientX, e.clientY);
+                  }}
+                  onKeyDown={(e) => onTileKey(c, e)}
+                  aria-haspopup="dialog"
+                  aria-expanded={info?.consumable.id === c.id}
                 >
                   <GameIcon src={consumableIconUrl(c)} label={c.name} size={44} />
                   <span className="tool-name">{c.name.replace(/^Omen of /, '')}</span>
@@ -169,6 +194,16 @@ export function ToolPalette(props: ToolPaletteProps) {
         </div>
         <ActiveCraft {...props} />
       </div>
+      {info && (
+        <ToolInfoPopover
+          info={toolInfo(props.view, palette, info.consumable, props.item)}
+          view={props.view}
+          x={info.x}
+          y={info.y}
+          owner={info.owner}
+          onClose={closeInfo}
+        />
+      )}
     </Panel>
   );
 }
